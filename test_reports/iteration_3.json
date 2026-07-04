@@ -1,0 +1,17 @@
+{
+  "summary": "Retest of comment notification fix from iteration 2. Fix verified: POST /api/videos/{video_id}/comments now correctly generates a type='comment' notification for the video owner, and correctly suppresses self-comment notifications via create_notification's guard.",
+  "tested_scope": ["backend"],
+  "passed": [
+    "Two fresh users signed up via POST /api/auth/signup",
+    "u1 uploaded video via POST /api/videos/upload",
+    "u2 commented on u1's video via POST /api/videos/{id}/comments (200)",
+    "u1 self-commented on own video (200) - no notification generated (self-comment guard works)",
+    "GET /api/notifications for u1 returned exactly 1 notification: type='comment', from u2, text contains 'علّق على فيديوك'",
+    "GET /api/notifications for u2 returned 0 comment notifications (self-comment did not notify self)"
+  ],
+  "failed": [],
+  "action_items": [],
+  "success_rate": {"backend": "100%", "frontend": "not_tested"},
+  "retest_needed": false,
+  "full_testing_deferred": true
+}

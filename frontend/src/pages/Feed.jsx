@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Heart, MessageCircle, Share2, ShoppingBag, Play, Sparkles, ChevronLeft, X } from "lucide-react";
+import { Heart, MessageCircle, Share2, ShoppingBag, Play, Sparkles, ChevronLeft, X, Search as SearchIcon, Bell } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 

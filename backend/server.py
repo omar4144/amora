@@ -358,6 +358,9 @@ async def add_comment(video_id: str, data: CommentCreate, user=Depends(current_u
     await db.videos.update_one({"id": video_id}, {"$inc": {"comments_count": 1}})
     doc.pop("_id", None)
     doc["user"] = user
+    v = await db.videos.find_one({"id": video_id})
+    if v:
+        await create_notification(v["user_id"], "comment", f"@{user['username']} علّق على فيديوك", video_id, user["id"])
     return doc
 
 
