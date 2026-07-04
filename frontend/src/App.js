@@ -18,6 +18,10 @@ import Messages from "@/pages/Messages";
 import Chat from "@/pages/Chat";
 import Marketplace from "@/pages/Marketplace";
 import MarketplaceDetail from "@/pages/MarketplaceDetail";
+import Communities from "@/pages/Communities";
+import CommunityDetail from "@/pages/CommunityDetail";
+import Teams from "@/pages/Teams";
+import TeamDetail from "@/pages/TeamDetail";
 
 const Protected = ({ children }) => {
     const { user, loading } = useAuth();
@@ -52,6 +56,10 @@ function App() {
                             <Route path="/messages/:username" element={<Protected><Chat /></Protected>} />
                             <Route path="/marketplace" element={<Marketplace />} />
                             <Route path="/marketplace/:id" element={<MarketplaceDetail />} />
+                            <Route path="/communities" element={<Communities />} />
+                            <Route path="/communities/:slug" element={<CommunityDetail />} />
+                            <Route path="/teams" element={<Teams />} />
+                            <Route path="/teams/:id" element={<TeamDetail />} />
                         </Route>
                         <Route path="/auth" element={<Auth />} />
                     </Routes>

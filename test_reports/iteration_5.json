@@ -1,0 +1,27 @@
+{
+  "summary": "Sprint 2 backend testing: Communities (10 seeded groups, join toggle, posts, likes) and Teams (create, list, get, owner-cannot-join, join/leave toggle, notifications) all working correctly. Auth login and /videos/feed sanity checks pass.",
+  "tested_scope": ["backend", "integration"],
+  "passed": [
+    "POST /api/auth/login (sarah)",
+    "POST /api/auth/signup (secondary user)",
+    "GET /api/communities returns 10 seeded communities with slug/name/icon/joined=false unauth",
+    "GET /api/communities/{slug} returns community with members_count",
+    "POST /api/communities/{slug}/join toggles membership joined true/false",
+    "GET /api/communities/{slug}/posts returns list",
+    "POST /api/communities/{slug}/posts creates post with user + liked=false",
+    "POST /api/posts/{post_id}/like toggles like and increments/decrements likes count (0->1->0 verified)",
+    "POST /api/teams creates team with members_count=1 and owner role",
+    "GET /api/teams returns list with owner populated",
+    "GET /api/teams/{id} returns team with owner + members array with user populated",
+    "POST /api/teams/{id}/join: owner receives 400 (owner cannot join)",
+    "POST /api/teams/{id}/join: other user joins, members_count increments to 2, notification created for owner (type team_join)",
+    "POST /api/teams/{id}/join called again removes membership (joined=false)",
+    "GET /api/videos/feed sanity works"
+  ],
+  "failed": [],
+  "action_items": [],
+  "success_rate": {"backend": "100%", "frontend": "n/a"},
+  "retest_needed": false,
+  "full_testing_deferred": true,
+  "notes": "Sprint 2 endpoints match spec. Slug 'creator-hub-1543' mentioned in request appears to be a copy-paste of the domain prefix; actual seeded slugs are doctors/photographers/cafes/restaurants/artists/entrepreneurs/designers/musicians/actors/writers. Testing was done using 'artists' slug. Register endpoint is /auth/signup (not /auth/register)."
+}
