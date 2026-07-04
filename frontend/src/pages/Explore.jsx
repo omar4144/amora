@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Link } from "react-router-dom";
-import { Users, TrendingUp, UsersRound, MessageCircle } from "lucide-react";
+import { Users, TrendingUp, UsersRound, MessageCircle, Sprout, Bot } from "lucide-react";
 
 export default function Explore() {
     const [creators, setCreators] = useState([]);
@@ -18,15 +18,23 @@ export default function Explore() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
-                <Link to="/communities" data-testid="link-communities" className="bg-gradient-to-br from-[#E3FF00]/20 to-transparent border border-[#E3FF00]/30 rounded-2xl p-4 hover:border-[#E3FF00] transition">
+                <Link to="/incubator" data-testid="link-incubator" className="bg-gradient-to-br from-[#E3FF00]/25 to-transparent border border-[#E3FF00]/40 rounded-2xl p-4 hover:border-[#E3FF00] transition">
+                    <Sprout className="w-8 h-8 text-[#E3FF00] mb-2" />
+                    <div className="font-heading font-bold">الحاضنة</div>
+                    <div className="text-[10px] text-neutral-500 mt-1">من الفكرة للإطلاق</div>
+                </Link>
+                <Link to="/ai" data-testid="link-ai" className="bg-gradient-to-br from-[#E3FF00]/25 to-transparent border border-[#E3FF00]/40 rounded-2xl p-4 hover:border-[#E3FF00] transition">
+                    <Bot className="w-8 h-8 text-[#E3FF00] mb-2" />
+                    <div className="font-heading font-bold">مساعد رؤى AI</div>
+                    <div className="text-[10px] text-neutral-500 mt-1">مدعوم بـ Claude</div>
+                </Link>
+                <Link to="/communities" data-testid="link-communities" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
                     <Users className="w-8 h-8 text-[#E3FF00] mb-2" />
                     <div className="font-heading font-bold">المجتمعات</div>
-                    <div className="text-[10px] text-neutral-500 mt-1">انضم لمجتمع تخصصك</div>
                 </Link>
-                <Link to="/teams" data-testid="link-teams" className="bg-gradient-to-br from-[#E3FF00]/10 to-transparent border border-white/10 rounded-2xl p-4 hover:border-[#E3FF00] transition">
+                <Link to="/teams" data-testid="link-teams" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
                     <UsersRound className="w-8 h-8 text-[#E3FF00] mb-2" />
                     <div className="font-heading font-bold">الفرق</div>
-                    <div className="text-[10px] text-neutral-500 mt-1">فرق ووكالات واستوديوهات</div>
                 </Link>
                 <Link to="/messages" data-testid="link-messages" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
                     <MessageCircle className="w-8 h-8 text-[#E3FF00] mb-2" />

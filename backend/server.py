@@ -149,7 +149,30 @@ class PostCreate(BaseModel):
 class TeamCreate(BaseModel):
     name: str
     description: str
-    kind: Optional[str] = "team"  # team|agency|studio|company
+    kind: Optional[str] = "team"
+
+class IdeaCreate(BaseModel):
+    title: str
+    description: str
+
+class StageUpdate(BaseModel):
+    stage: int  # 1-7
+    progress: int  # 0-100
+    notes: Optional[str] = ""
+
+class AIRequest(BaseModel):
+    task: str  # reels_script | marketing_plan | project_names | account_analysis | pricing | profile_bio | competitors
+    context: str
+
+INCUBATOR_STAGES = [
+    {"id": 1, "name": "الفكرة", "icon": "💡"},
+    {"id": 2, "name": "تحليل السوق", "icon": "📊"},
+    {"id": 3, "name": "الهوية", "icon": "🎨"},
+    {"id": 4, "name": "الخطة المالية", "icon": "💰"},
+    {"id": 5, "name": "بناء البراند", "icon": "🏷️"},
+    {"id": 6, "name": "التسويق", "icon": "📣"},
+    {"id": 7, "name": "الإطلاق", "icon": "🚀"},
+]
 
 COMMUNITIES_SEED = [
     {"slug": "doctors", "name": "الأطباء", "icon": "🩺"},
@@ -990,6 +1013,85 @@ async def join_team(team_id: str, user=Depends(current_user)):
     await db.teams.update_one({"id": team_id}, {"$inc": {"members_count": 1}})
     await create_notification(t["owner_id"], "team_join", f"@{user['username']} انضم لفريقك", team_id, user["id"])
     return {"joined": True}
+
+
+# ==================== INCUBATOR ====================
+@api_router.get("/incubator/stages")
+async def get_stages():
+    return INCUBATOR_STAGES
+
+@api_router.post("/incubator/ideas")
+async def create_idea(data: IdeaCreate, user=Depends(current_user)):
+    doc = {
+        "id": str(uuid.uuid4()), "user_id": user["id"],
+        "title": data.title, "description": data.description,
+        "stages": [{"stage": s["id"], "progress": 0, "notes": ""} for s in INCUBATOR_STAGES],
+        "overall_progress": 0, "created_at": now_iso(),
+    }
+    await db.ideas.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.get("/incubator/ideas")
+async def list_my_ideas(user=Depends(current_user)):
+    items = await db.ideas.find({"user_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return items
+
+@api_router.get("/incubator/ideas/{idea_id}")
+async def get_idea(idea_id: str, user=Depends(current_user)):
+    it = await db.ideas.find_one({"id": idea_id, "user_id": user["id"]}, {"_id": 0})
+    if not it:
+        raise HTTPException(404, "الفكرة غير موجودة")
+    return it
+
+@api_router.put("/incubator/ideas/{idea_id}/stage")
+async def update_stage(idea_id: str, data: StageUpdate, user=Depends(current_user)):
+    it = await db.ideas.find_one({"id": idea_id, "user_id": user["id"]})
+    if not it:
+        raise HTTPException(404, "الفكرة غير موجودة")
+    stages = it["stages"]
+    for s in stages:
+        if s["stage"] == data.stage:
+            s["progress"] = max(0, min(100, data.progress))
+            if data.notes is not None:
+                s["notes"] = data.notes
+    overall = round(sum(s["progress"] for s in stages) / (7 * 100) * 100)
+    await db.ideas.update_one(
+        {"id": idea_id},
+        {"$set": {"stages": stages, "overall_progress": overall}}
+    )
+    return await db.ideas.find_one({"id": idea_id}, {"_id": 0})
+
+
+# ==================== AI ASSISTANT ====================
+AI_PROMPTS = {
+    "reels_script": "أنت خبير محتوى Reels/TikTok باللغة العربية. اكتب سيناريو ريلز جذاب (30-60 ثانية) بناءً على الفكرة التالية. قسّم لخطاطة: Hook (أول 3 ثواني)، المحتوى، الخاتمة (CTA). استخدم أسلوب عصري وحيوي.",
+    "marketing_plan": "أنت مستشار تسويق. ضع خطة تسويقية عربية شاملة (30 يوماً) للمشروع التالي. تشمل: الجمهور المستهدف، المنصات، أنواع المحتوى، ميزانية مقترحة، KPIs.",
+    "project_names": "أنت خبير علامات تجارية. اقترح 10 أسماء مشاريع إبداعية عربية/عالمية للفكرة التالية. مع شرح مختصر لكل اسم ودلالته.",
+    "account_analysis": "أنت خبير سوشيال ميديا. حلل حساب المستخدم بناءً على المعطيات. قدم: نقاط القوة، نقاط الضعف، توصيات فورية، خطة نمو.",
+    "pricing": "أنت خبير تسعير خدمات. اقترح أسعار خدمات صانع المحتوى/المستقل بناءً على معطياته. قدم: أدنى، متوسط، مميز، مع تبرير لكل سعر.",
+    "profile_bio": "اكتب bio احترافي عربي جذاب (2-3 أسطر) للمستخدم بناءً على معطياته. يبرز خبرته وقيمته الفريدة.",
+    "competitors": "أنت محلل سوق. حدد أبرز 5 منافسين للمشروع وأنشط ميزاتهم وثغرات يمكن استغلالها.",
+}
+
+@api_router.post("/ai/assist")
+async def ai_assist(data: AIRequest, user=Depends(current_user)):
+    system_prompt = AI_PROMPTS.get(data.task)
+    if not system_prompt:
+        raise HTTPException(400, "نوع المهمة غير مدعوم")
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"{user['id']}-{data.task}-{uuid.uuid4()}",
+            system_message=system_prompt,
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+        msg = UserMessage(text=data.context)
+        reply = await chat.send_message(msg)
+        return {"result": reply, "task": data.task}
+    except Exception as e:
+        logger.error(f"AI error: {e}")
+        raise HTTPException(500, f"خطأ في المساعد الذكي: {str(e)}")
 
 
 # ==================== APP SETUP ====================

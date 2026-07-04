@@ -1,0 +1,20 @@
+{
+  "summary": "Sprint 3 backend testing: Digital Incubator (7 stages) + AI Assistant (Claude Sonnet 4.5 via emergentintegrations). All endpoints working. Login with test2@test.com successful (token key='token').",
+  "tested_scope": ["backend", "integration"],
+  "passed": [
+    "GET /api/incubator/stages -> 200, returns 7 stages with ids [1..7], each has name+icon",
+    "POST /api/incubator/ideas -> 200, creates idea with 7 stage entries (all progress=0) and overall_progress=0",
+    "GET /api/incubator/ideas -> 200, returns current user's ideas including newly created one",
+    "GET /api/incubator/ideas/{id} -> 200, returns idea with 7 stages and overall_progress",
+    "PUT /api/incubator/ideas/{id}/stage {stage:1, progress:100, notes:'done'} -> overall_progress=14 (round(100/700*100)=14), stage 1 updated correctly",
+    "POST /api/ai/assist {task:'project_names', context:'مقهى'} -> 200, returns non-empty Arabic 'result' string with 10 project names (Claude Sonnet 4.5 confirmed working via emergentintegrations)",
+    "POST /api/ai/assist invalid task -> 400 with detail 'نوع المهمة غير مدعوم'",
+    "Sanity: GET /api/communities 200, GET /api/teams 200, GET /api/videos/feed 200"
+  ],
+  "failed": [],
+  "action_items": [],
+  "success_rate": {"backend": "100%", "frontend": "not tested (backend-only run)"},
+  "retest_needed": false,
+  "full_testing_deferred": true,
+  "notes": "Login response uses 'token' (not 'access_token'). Backend log shows one prior 'Budget exceeded' error on emergent LLM key, but subsequent AI calls succeed - key currently working. No blockers."
+}
