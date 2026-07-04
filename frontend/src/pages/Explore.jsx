@@ -36,6 +36,10 @@ export default function Explore() {
                     <UsersRound className="w-8 h-8 text-[#E3FF00] mb-2" />
                     <div className="font-heading font-bold">الفرق</div>
                 </Link>
+                <Link to="/events" data-testid="link-events" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
+                    <Sprout className="w-8 h-8 text-[#E3FF00] mb-2" />
+                    <div className="font-heading font-bold">الفعاليات</div>
+                </Link>
                 <Link to="/messages" data-testid="link-messages" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
                     <MessageCircle className="w-8 h-8 text-[#E3FF00] mb-2" />
                     <div className="font-heading font-bold">الرسائل</div>

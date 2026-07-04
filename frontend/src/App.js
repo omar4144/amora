@@ -24,6 +24,7 @@ import Teams from "@/pages/Teams";
 import TeamDetail from "@/pages/TeamDetail";
 import Incubator from "@/pages/Incubator";
 import AIAssistant from "@/pages/AIAssistant";
+import Events from "@/pages/Events";
 
 const Protected = ({ children }) => {
     const { user, loading } = useAuth();
@@ -64,6 +65,7 @@ function App() {
                             <Route path="/teams/:id" element={<TeamDetail />} />
                             <Route path="/incubator" element={<Protected><Incubator /></Protected>} />
                             <Route path="/ai" element={<Protected><AIAssistant /></Protected>} />
+                            <Route path="/events" element={<Events />} />
                         </Route>
                         <Route path="/auth" element={<Auth />} />
                     </Routes>
