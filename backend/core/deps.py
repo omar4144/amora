@@ -78,6 +78,24 @@ CONTENT_FORMATS = [
 ]
 CONTENT_FORMAT_KEYS = [f["key"] for f in CONTENT_FORMATS]
 
+# Tasks Engine constants
+TASK_STATUSES = [
+    {"key": "todo",         "name": "\u0644\u0644\u062a\u0646\u0641\u064a\u0630",     "color": "#94A3B8"},
+    {"key": "in_progress",  "name": "\u062c\u0627\u0631\u064d",         "color": "#3B82F6"},
+    {"key": "review",       "name": "\u0645\u0631\u0627\u062c\u0639\u0629",       "color": "#F59E0B"},
+    {"key": "blocked",      "name": "\u0645\u0639\u0644\u0651\u0642\u0629",        "color": "#EF4444"},
+    {"key": "done",         "name": "\u0645\u0643\u062a\u0645\u0644\u0629",       "color": "#10B981"},
+]
+TASK_STATUS_KEYS = [s["key"] for s in TASK_STATUSES]
+
+TASK_PRIORITIES = [
+    {"key": "low",     "name": "\u0645\u0646\u062e\u0641\u0636\u0629", "color": "#94A3B8"},
+    {"key": "medium",  "name": "\u0645\u062a\u0648\u0633\u0637\u0629", "color": "#3B82F6"},
+    {"key": "high",    "name": "\u0639\u0627\u0644\u064a\u0629",   "color": "#F59E0B"},
+    {"key": "urgent",  "name": "\u0639\u0627\u062c\u0644\u0629",   "color": "#EF4444"},
+]
+TASK_PRIORITY_KEYS = [p["key"] for p in TASK_PRIORITIES]
+
 
 
 logger = logging.getLogger("ruaa")

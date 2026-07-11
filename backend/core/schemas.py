@@ -172,6 +172,58 @@ class ContentAIRequest(BaseModel):
     format: Optional[str] = "reel"
 
 
+# ==================== TASKS ENGINE ====================
+class BoardCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    color: Optional[str] = "#E3FF00"
+    kind: Optional[str] = "personal"  # personal | team
+    team_id: Optional[str] = None
+
+
+class BoardUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    color: Optional[str] = None
+
+
+class TaskCreate(BaseModel):
+    board_id: str
+    title: str
+    description: Optional[str] = ""
+    status: Optional[str] = "todo"
+    priority: Optional[str] = "medium"
+    assignee_id: Optional[str] = None
+    due_date: Optional[str] = None
+    tags: Optional[List[str]] = []
+    checklist: Optional[List[Dict]] = []
+    client_id: Optional[str] = None
+    deal_id: Optional[str] = None
+    content_item_id: Optional[str] = None
+
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[str] = None
+    assignee_id: Optional[str] = None
+    due_date: Optional[str] = None
+    tags: Optional[List[str]] = None
+    checklist: Optional[List[Dict]] = None
+    client_id: Optional[str] = None
+    deal_id: Optional[str] = None
+    content_item_id: Optional[str] = None
+
+
+class TaskStatusMove(BaseModel):
+    status: str
+
+
+class ChecklistToggle(BaseModel):
+    index: int
+    done: bool
+
+
 class ClientCreate(BaseModel):
     name: str
     email: Optional[str] = ""

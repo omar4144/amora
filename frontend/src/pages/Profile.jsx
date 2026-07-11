@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video } from "lucide-react";
+import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video, CheckSquare } from "lucide-react";
 
 export default function Profile() {
     const { username } = useParams();
@@ -142,32 +142,36 @@ export default function Profile() {
                 )}
 
                 {isMe && (
-                    <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div className="mt-3 grid grid-cols-3 gap-2">
                         <button
                             data-testid="open-crm-btn"
                             onClick={() => navigate("/crm")}
-                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex items-center gap-2 group"
+                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex flex-col items-center gap-1"
                         >
-                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center flex-shrink-0">
+                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center">
                                 <Briefcase className="w-4 h-4 text-black" />
                             </div>
-                            <div className="flex-1 text-start min-w-0">
-                                <div className="font-heading font-bold text-white text-sm">CRM</div>
-                                <div className="text-[10px] text-white/60 font-body truncate">إدارة عملائك</div>
-                            </div>
+                            <div className="font-heading font-bold text-white text-xs">CRM</div>
                         </button>
                         <button
                             data-testid="open-content-btn"
                             onClick={() => navigate("/content")}
-                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex items-center gap-2 group"
+                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex flex-col items-center gap-1"
                         >
-                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center flex-shrink-0">
+                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center">
                                 <Video className="w-4 h-4 text-black" />
                             </div>
-                            <div className="flex-1 text-start min-w-0">
-                                <div className="font-heading font-bold text-white text-sm">Content OS</div>
-                                <div className="text-[10px] text-white/60 font-body truncate">تشغيل محتواك</div>
+                            <div className="font-heading font-bold text-white text-xs">Content</div>
+                        </button>
+                        <button
+                            data-testid="open-tasks-btn"
+                            onClick={() => navigate("/tasks")}
+                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex flex-col items-center gap-1"
+                        >
+                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center">
+                                <CheckSquare className="w-4 h-4 text-black" />
                             </div>
+                            <div className="font-heading font-bold text-white text-xs">Tasks</div>
                         </button>
                     </div>
                 )}

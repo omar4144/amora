@@ -38,6 +38,12 @@ import ContentKanban from "@/pages/content/ContentKanban";
 import ContentCalendar from "@/pages/content/ContentCalendar";
 import ContentDetail from "@/pages/content/ContentDetail";
 import ContentAI from "@/pages/content/ContentAI";
+import TasksShell from "@/pages/tasks/TasksShell";
+import TasksDashboard from "@/pages/tasks/TasksDashboard";
+import TasksBoards from "@/pages/tasks/TasksBoards";
+import TasksBoard from "@/pages/tasks/TasksBoard";
+import TasksMy from "@/pages/tasks/TasksMy";
+import TaskDetail from "@/pages/tasks/TaskDetail";
 
 const Protected = ({ children }) => {
     const { user, loading } = useAuth();
@@ -102,6 +108,15 @@ function App() {
                                 <Route path="ai" element={<ContentAI />} />
                             </Route>
                             <Route path="/content/item/:id" element={<Protected><ContentDetail /></Protected>} />
+
+                            {/* Tasks Engine */}
+                            <Route path="/tasks" element={<Protected><TasksShell /></Protected>}>
+                                <Route index element={<TasksDashboard />} />
+                                <Route path="boards" element={<TasksBoards />} />
+                                <Route path="my" element={<TasksMy />} />
+                            </Route>
+                            <Route path="/tasks/board/:id" element={<Protected><TasksBoard /></Protected>} />
+                            <Route path="/tasks/task/:id" element={<Protected><TaskDetail /></Protected>} />
                         </Route>
                     </Routes>
                 </AuthProvider>

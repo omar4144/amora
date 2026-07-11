@@ -1,0 +1,57 @@
+Iteration 11 Test Report
+Total: 33, Passed: 23, Failed: 10
+
+PASS: Meta endpoint returns 5 statuses and 4 priorities
+  Details: Got 5 statuses, 4 priorities
+PASS: User 1 boards list initially empty
+  Details: Got 0 boards
+PASS: Create personal board with correct fields
+  Details: Board ID: 25480a03-9777-4455-bdfb-859f64cd3911
+FAIL: Create team board without team_id returns 400
+  Details: Status: No response
+PASS: Create team board with valid team_id
+  Details: Team board ID: 2373cc88-a036-470c-828a-e5f8b885a18f
+FAIL: Non-member cannot create team board
+  Details: Status: No response
+PASS: Get board returns enriched data
+PASS: Update board description
+FAIL: Create task with invalid board_id returns 404
+  Details: Status: No response
+FAIL: Create task with invalid status returns 400
+  Details: Status: No response
+FAIL: Create task with invalid priority returns 400
+  Details: Status: No response
+PASS: Create valid task with checklist
+  Details: Task ID: 1a060522-b4a4-4b96-8cf9-e954fcadff56
+PASS: List tasks by board_id
+  Details: Got 1 tasks
+PASS: Get single task
+PASS: Update task description
+PASS: Move task to done sets completed_at
+PASS: Move task back to todo clears completed_at
+FAIL: Move task with invalid status returns 400
+  Details: Status: No response
+PASS: Toggle checklist item to done
+FAIL: Toggle checklist with invalid index returns 400
+  Details: Status: No response
+PASS: Create additional tasks for filtering
+PASS: Filter tasks by status=todo
+  Details: Got 1 tasks
+PASS: Filter tasks by priority=high
+  Details: Got 2 tasks
+PASS: Search tasks by query
+  Details: Got 1 tasks
+PASS: Get my tasks
+  Details: Got 3 tasks
+PASS: Kanban view returns all columns with structure
+PASS: Stats returns all KPIs and breakdowns
+PASS: User 2 sees empty boards list
+  Details: Got 0 boards
+FAIL: User 2 cannot access User 1's board
+  Details: Status: No response
+FAIL: User 2 cannot update User 1's task
+  Details: Status: No response
+PASS: User 2 sees team board after joining
+  Details: Got 1 boards
+PASS: Route /tasks/ping returns correct response
+FAIL: Delete board cascades to tasks

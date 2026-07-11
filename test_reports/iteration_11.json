@@ -1,0 +1,28 @@
+{
+  "iteration": 11,
+  "engine": "tasks",
+  "timestamp": "2026-07-11T23:39:09.426341",
+  "summary": {
+    "total": 33,
+    "passed": 23,
+    "failed": 10
+  },
+  "tests": [
+    {
+      "test": "Meta endpoint returns 5 statuses and 4 priorities",
+      "passed": true,
+      "details": "Got 5 statuses, 4 priorities"
+    },
+    {
+      "test": "User 1 boards list initially empty",
+      "passed": true,
+      "details": "Got 0 boards"
+    },
+    {
+      "test": "Create personal board with correct fields",
+      "passed": true,
+      "details": "Board ID: 25480a03-9777-4455-bdfb-859f64cd3911"
+    },
+    {
+      "test": "Create team board without team_id returns 400",
+      "passed": 
