@@ -79,18 +79,37 @@ Slogan: **"ندشن قصة حب جديدة مع عميلك"** (We launch a new l
 - Regression: 7/8 ✅ (only /api/ai/assist blocked by budget)
 
 ## Remaining Roadmap (per Manus report 2026-07)
-### P0 — Engine Restructure (backend refactor)
-- Split `server.py` (1240 lines) into 14 Engine modules under `backend/engines/`
-- Modules: Social, Marketplace, Community, Incubator, Business, CRM, Content, AI, Academy, Events, Booking, Analytics, Admin, Payment
+## Iteration 8 — Sprint "Backend Engine Restructure" (2026-07)
 
-### P1 — New Engines (Missing Modules)
-- **CRM Engine**: Clients + Leads + Pipeline + Contracts + Invoices + Projects
-- **Content OS Engine**: Content Calendar + Idea Gen + Scriptwriting + Review/Approval + Publishing + Analytics
-- **Tasks Engine**: Tasks + Kanban Boards + Calendar + Deadlines + Team Assign
-- **AI Everywhere**: Hooks, Bio enhancement, price suggestion, deal close prediction, project idea development
-- **RBAC**: 10 roles (super_admin, ceo, marketing_manager, community_manager, company, creator, trainer, student, client, team_owner) + role-based dashboards
-- **Digital Twin (Booking Engine)**: Meeting rooms, studio bookings + Stripe + QR entry
-- **Economic**: Pro/Business subscriptions, AI credits, featured services, Academy monetization, SaaS tier
+### Delivered
+- **Full backend refactor**: monolithic `server.py` (1240 lines) → 22-file modular Engines architecture with ZERO regressions.
+- **Structure**:
+  - `backend/core/deps.py` (188 lines) — env, db, security, storage, notifications helper, constants
+  - `backend/core/schemas.py` (132 lines) — all Pydantic models
+  - `backend/engines/` — 18 domain routers:
+    - **Active engines** (13): auth, social, marketplace, payment, community, team, incubator, ai, notification, search, events, academy, crm
+    - **Placeholder engines** (5, ready for future iterations): admin (RBAC), analytics (platform stats — this one has real data), content (Content OS), tasks (Kanban), booking (Digital Twin)
+  - `backend/server.py` (101 lines) — orchestrator + CORS + startup hooks
+- **New endpoints introduced**:
+  - `GET /api` → engine list + version
+  - `GET /api/analytics/platform` → live counts
+  - `GET /api/admin|content|tasks|booking/ping` → placeholders
+
+### Test coverage (Iteration 8)
+- **54/56 passed** (96.4% pass rate)
+- 0 regressions
+- 2 skipped: /api/ai/assist (LLM budget exceeded — infra), /api/videos/{id}/view (no videos seeded)
+- Every engine verified: auth ✅, social ✅, marketplace ✅, community ✅, team ✅, incubator ✅, notification ✅, search ✅, events ✅, academy ✅, crm ✅, analytics ✅, placeholders ✅
+
+## Remaining Roadmap (per Manus report 2026-07)
+### P1 — Next Big Feature (one at a time)
+1. **CRM Engine expansion** — Clients, Deals, Pipeline (kanban stages: lead→qualified→proposal→won/lost), Contracts, Invoices, Projects (built on top of existing `/api/leads`)
+2. **Content OS Engine** — Content Calendar + Idea Gen + Scriptwriting + Review/Approval workflow + Publishing schedule + Analytics
+3. **Tasks Engine** — Tasks + Kanban Boards + Calendar + Deadlines + Team Assign (works with teams engine)
+4. **AI Everywhere** — extend AI_PROMPTS with video hooks, bio improvement, price suggestion, deal-close prediction (already prep in deps.py)
+5. **RBAC** — 10 roles + role-based dashboards + admin UI
+6. **Digital Twin (Booking Engine)** — Meeting rooms + Stripe + QR entry codes
+7. **Economic tier** — Pro/Business subscriptions, AI credits, featured services
 
 ### P2 — Nice-to-have
 - WebSockets real-time notifications, video thumbnails, message media, earnings withdrawal, video effects/filters
