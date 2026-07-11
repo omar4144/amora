@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import "@/App.css";
 
 import Layout from "@/components/Layout";
+import Landing from "@/pages/Landing";
 import Feed from "@/pages/Feed";
 import Auth from "@/pages/Auth";
 import Upload from "@/pages/Upload";
@@ -45,8 +46,13 @@ function App() {
                 <AuthProvider>
                     <Toaster position="top-center" theme="dark" richColors />
                     <Routes>
+                        {/* Public agency landing page — full-width, no mobile Layout */}
+                        <Route path="/" element={<Landing />} />
+                        <Route path="/auth" element={<Auth />} />
+
+                        {/* App routes with mobile Layout */}
                         <Route element={<Layout />}>
-                            <Route path="/" element={<Feed />} />
+                            <Route path="/feed" element={<Feed />} />
                             <Route path="/explore" element={<Explore />} />
                             <Route path="/upload" element={<Protected><Upload /></Protected>} />
                             <Route path="/orders" element={<Protected><Orders /></Protected>} />
@@ -67,7 +73,6 @@ function App() {
                             <Route path="/ai" element={<Protected><AIAssistant /></Protected>} />
                             <Route path="/events" element={<Events />} />
                         </Route>
-                        <Route path="/auth" element={<Auth />} />
                     </Routes>
                 </AuthProvider>
             </BrowserRouter>

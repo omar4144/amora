@@ -101,3 +101,81 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "تحويل Ruaa من منصة صنّاع محتوى إلى وكالة تسويق رقمية + نظام تشغيل إبداعي. البداية: (أ) إصلاح تشغيل المشروع، (ب) Landing Page جديد للوكالة بشعار 'ندشن قصة حب جديدة مع عميلك'، (ج) إعادة هيكلة إلى Engines، ثم إضافة CRM، Content OS، Tasks، AI everywhere، Digital Twin، RBAC."
+
+backend:
+  - task: "Create /api/leads endpoint for landing page contact form"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added POST /api/leads (public, creates a lead doc with name/email/story/status='new') and GET /api/leads (super_admin only). Manual curl test succeeded returning {success:true,id:...}."
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL TESTS PASSED. POST /api/leads: (1) valid data returns 200 with {success:true, id:<uuid>}, (2) invalid email returns 422, (3) missing field returns 422. GET /api/leads: (4) no auth returns 401, (5) non-admin token returns 403 with detail='غير مصرح'. All validation and authorization working correctly."
+
+  - task: "Verify all existing endpoints still work after adding leads"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "No changes to existing endpoints; only ADD of leads section before app.include_router(). Need regression sanity check on: auth/login, videos/feed, communities, teams, incubator, ai/assist."
+      - working: true
+        agent: "testing"
+        comment: "✅ REGRESSION PASSED (7/8 endpoints). All critical endpoints working: auth/login ✅, auth/me ✅, videos/feed ✅, communities ✅ (10 seeded), teams ✅, incubator/stages ✅ (7 stages), explore/creators ✅. NOTE: ai/assist returns 500 due to EMERGENT_LLM_KEY budget exceeded (infrastructure issue, not code regression). No code regressions detected."
+
+frontend:
+  - task: "New Agency Landing Page at / (public, full-width, desktop responsive)"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/Landing.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Built new Landing page with 8 sections: TopNav, Hero (slogan 'ندشن قصة حب جديدة مع عميلك'), Manifesto, Offer (4 services), LoveStories (3 case studies), Vision2030 (5-year roadmap), Principles (8), Contact form (POST /api/leads), Footer. Uses framer-motion for scroll animations. Full RTL, dark cinematic theme + electric yellow accent. Visually verified via screenshots — looks great."
+
+  - task: "Route restructure: / = Landing, /feed = mobile app Feed"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/App.js, frontend/src/components/Layout.jsx, frontend/src/pages/Auth.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated App.js: / renders Landing (outside Layout), /feed renders Feed inside mobile Layout. Layout.isFeed check now uses /feed. Bottom nav Home NavItem points to /feed. Auth.jsx redirects to /feed after login. Verified /feed still renders correctly with bottom nav."
+
+metadata:
+  created_by: "main_agent"
+  version: "2.0"
+  test_sequence: 8
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Create /api/leads endpoint for landing page contact form"
+    - "Verify all existing endpoints still work after adding leads"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Iteration 7 (Sprint: Agency Rebrand). Delivered new agency Landing Page at / and backend /api/leads endpoint. All previous features intact. Please test: 1) POST /api/leads with valid + invalid body, 2) GET /api/leads without auth (should 401/403), 3) sanity: /auth/login, /videos/feed, /communities, /teams, /incubator/stages, /ai/assist still 200. No regressions expected. Use test2@test.com / testpass123 if that account still exists, else create fresh signup."
+  - agent: "testing"
+    message: "Iteration 7 testing COMPLETE. ✅ NEW /api/leads endpoint: All 5 tests passed (POST valid/invalid/missing, GET no-auth/non-admin). ✅ REGRESSION: 7/8 endpoints passed. Only ai/assist failed due to EMERGENT_LLM_KEY budget limit (infrastructure issue, not code bug). All critical backend functionality intact. Test report saved to /app/test_reports/iteration_7.json. Ready for main agent to summarize and finish."

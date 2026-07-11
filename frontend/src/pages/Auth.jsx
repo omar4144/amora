@@ -24,7 +24,7 @@ export default function Auth() {
             if (mode === "login") { await login(form.email, form.password); }
             else { await signup(form); }
             toast.success("أهلاً بك في رؤى");
-            navigate("/");
+            navigate("/feed");
         } catch (err) {
             toast.error(err?.response?.data?.detail || "حدث خطأ ما");
         } finally { setLoading(false); }

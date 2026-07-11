@@ -1202,6 +1202,37 @@ async def my_courses(user=Depends(current_user)):
 
 
 
+# ==================== LEADS (Landing Page contact form) ====================
+class LeadCreate(BaseModel):
+    name: str
+    email: EmailStr
+    story: str
+
+@api_router.post("/leads")
+async def create_lead(payload: LeadCreate):
+    lead = {
+        "id": str(uuid.uuid4()),
+        "name": payload.name.strip(),
+        "email": payload.email,
+        "story": payload.story.strip(),
+        "status": "new",
+        "created_at": now_iso(),
+    }
+    await db.leads.insert_one(lead)
+    return {"success": True, "id": lead["id"]}
+
+
+@api_router.get("/leads")
+async def list_leads(user=Depends(current_user)):
+    # Simple admin gate: only super_admin role can list leads
+    if user.get("role") != "super_admin":
+        raise HTTPException(status_code=403, detail="غير مصرح")
+    leads = await db.leads.find().sort("created_at", -1).to_list(500)
+    for l in leads:
+        l.pop("_id", None)
+    return leads
+
+
 # ==================== APP SETUP ====================
 app.include_router(api_router)
 
