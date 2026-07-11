@@ -49,17 +49,17 @@ export default function EditProfile() {
             <form onSubmit={save} className="flex flex-col gap-5">
                 <div>
                     <label className="text-sm text-neutral-400 mb-2 block">الاسم الكامل</label>
-                    <input data-testid="edit-name" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none" />
+                    <input data-testid="edit-name" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none" />
                 </div>
                 <div>
                     <label className="text-sm text-neutral-400 mb-2 block">نبذة عنك</label>
-                    <textarea data-testid="edit-bio" value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} rows={3} placeholder="عرّف عن نفسك ومشاريعك..." className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none resize-none" />
+                    <textarea data-testid="edit-bio" value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} rows={3} placeholder="عرّف عن نفسك ومشاريعك..." className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none resize-none" />
                 </div>
                 <div>
                     <label className="text-sm text-neutral-400 mb-2 block">من أنت؟</label>
                     <div className="grid grid-cols-3 gap-2">
                         {ROLES.map((r) => (
-                            <button type="button" key={r.id} data-testid={`edit-role-${r.id}`} onClick={() => setF({ ...f, role: r.id })} className={`text-xs px-2 py-2 rounded-lg border font-heading font-bold ${f.role === r.id ? "bg-[#E3FF00] text-black border-[#E3FF00]" : "bg-[#141414] border-[#262626]"}`}>{r.label}</button>
+                            <button type="button" key={r.id} data-testid={`edit-role-${r.id}`} onClick={() => setF({ ...f, role: r.id })} className={`text-xs px-2 py-2 rounded-lg border font-heading font-bold ${f.role === r.id ? "bg-[#D1795F] text-white border-[#D1795F]" : "bg-[#141414] border-[#262626]"}`}>{r.label}</button>
                         ))}
                     </div>
                 </div>
@@ -67,15 +67,15 @@ export default function EditProfile() {
                     <label className="text-sm text-neutral-400 mb-2 block">تبحث عن</label>
                     <div className="flex flex-wrap gap-2">
                         {LOOKING_FOR.map((item) => (
-                            <button type="button" key={item} onClick={() => toggle(item, "looking_for")} className={`px-3 py-1.5 rounded-full text-xs font-heading font-bold ${f.looking_for.includes(item) ? "bg-[#E3FF00] text-black" : "bg-[#141414] border border-[#262626]"}`}>{item}</button>
+                            <button type="button" key={item} onClick={() => toggle(item, "looking_for")} className={`px-3 py-1.5 rounded-full text-xs font-heading font-bold ${f.looking_for.includes(item) ? "bg-[#D1795F] text-white" : "bg-[#141414] border border-[#262626]"}`}>{item}</button>
                         ))}
                     </div>
                 </div>
                 <div>
                     <label className="text-sm text-neutral-400 mb-2 block">المهارات</label>
                     <div className="flex gap-2 mb-2">
-                        <input value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())} placeholder="مهارة (مثلاً: Photoshop)" className="flex-1 bg-[#141414] border border-[#262626] rounded-xl px-4 py-2 focus:border-[#E3FF00] focus:outline-none text-sm" />
-                        <button type="button" onClick={addSkill} className="w-10 h-10 rounded-full bg-[#E3FF00] text-black flex items-center justify-center"><Plus className="w-4 h-4" /></button>
+                        <input value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())} placeholder="مهارة (مثلاً: Photoshop)" className="flex-1 bg-[#141414] border border-[#262626] rounded-xl px-4 py-2 focus:border-[#D1795F] focus:outline-none text-sm" />
+                        <button type="button" onClick={addSkill} className="w-10 h-10 rounded-full bg-[#D1795F] text-white flex items-center justify-center"><Plus className="w-4 h-4" /></button>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         {f.skills.map((s) => (
@@ -87,13 +87,13 @@ export default function EditProfile() {
                 </div>
                 <div>
                     <label className="text-sm text-neutral-400 mb-2 block">سنوات الخبرة</label>
-                    <input type="number" min="0" data-testid="edit-years" value={f.years_experience} onChange={(e) => setF({ ...f, years_experience: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none" />
+                    <input type="number" min="0" data-testid="edit-years" value={f.years_experience} onChange={(e) => setF({ ...f, years_experience: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none" />
                 </div>
                 <div>
                     <label className="text-sm text-neutral-400 mb-2 block">رابط فيديو تعريفي (اختياري)</label>
-                    <input type="url" data-testid="edit-intro" placeholder="https://..." value={f.intro_video_url} onChange={(e) => setF({ ...f, intro_video_url: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none" />
+                    <input type="url" data-testid="edit-intro" placeholder="https://..." value={f.intro_video_url} onChange={(e) => setF({ ...f, intro_video_url: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none" />
                 </div>
-                <button data-testid="save-profile-btn" type="submit" disabled={loading} className="bg-[#E3FF00] text-black font-heading font-bold rounded-full py-3.5 hover:bg-[#CCEA00] transition active:scale-95 disabled:opacity-50 mt-3">
+                <button data-testid="save-profile-btn" type="submit" disabled={loading} className="bg-[#D1795F] text-white font-heading font-bold rounded-full py-3.5 hover:bg-[#B86648] transition active:scale-95 disabled:opacity-50 mt-3">
                     {loading ? "..." : "حفظ الملف الاحترافي"}
                 </button>
             </form>

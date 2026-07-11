@@ -9,13 +9,13 @@ import {
 function StatCard({ icon: Icon, label, value, sublabel, tone = "default" }) {
     const tones = {
         default: "bg-white/5 border-white/10",
-        accent: "bg-[#E3FF00]/10 border-[#E3FF00]/30",
+        accent: "bg-[#D1795F]/10 border-[#D1795F]/30",
         success: "bg-emerald-500/10 border-emerald-500/20",
     };
     return (
         <div className={`rounded-2xl border p-4 ${tones[tone]}`}>
             <div className="flex items-center justify-between mb-2">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${tone === 'accent' ? 'bg-[#E3FF00] text-black' : tone === 'success' ? 'bg-emerald-500 text-black' : 'bg-white/10 text-white'}`}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${tone === 'accent' ? 'bg-[#D1795F] text-white' : tone === 'success' ? 'bg-emerald-500 text-black' : 'bg-white/10 text-white'}`}>
                     <Icon className="w-4.5 h-4.5" />
                 </div>
             </div>
@@ -53,9 +53,9 @@ export default function CRMDashboard() {
     return (
         <div data-testid="crm-dashboard" className="p-4 space-y-6">
             {empty && (
-                <div className="rounded-2xl bg-gradient-to-br from-[#E3FF00]/10 to-transparent border border-[#E3FF00]/30 p-6">
+                <div className="rounded-2xl bg-gradient-to-br from-[#D1795F]/10 to-transparent border border-[#D1795F]/30 p-6">
                     <div className="flex items-start gap-3 mb-3">
-                        <Zap className="w-6 h-6 text-[#E3FF00] flex-shrink-0 mt-0.5" fill="#E3FF00" />
+                        <Zap className="w-6 h-6 text-[#D1795F] flex-shrink-0 mt-0.5" fill="#D1795F" />
                         <div>
                             <h3 className="font-heading font-bold text-lg">مرحباً في CRM خاصتك</h3>
                             <p className="text-sm text-white/70 mt-1 font-body leading-relaxed">
@@ -66,7 +66,7 @@ export default function CRMDashboard() {
                     <button
                         data-testid="dashboard-add-first-client"
                         onClick={() => nav("/crm/clients?new=1")}
-                        className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-3 text-sm active:scale-95 transition"
+                        className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-xl py-3 text-sm active:scale-95 transition"
                     >
                         أضف أول عميل →
                     </button>
@@ -107,7 +107,7 @@ export default function CRMDashboard() {
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <h3 className="font-heading font-bold text-base">الصفقات حسب المرحلة</h3>
-                    <button data-testid="open-kanban" onClick={() => nav("/crm/deals")} className="text-xs text-[#E3FF00] font-body flex items-center gap-1">
+                    <button data-testid="open-kanban" onClick={() => nav("/crm/deals")} className="text-xs text-[#D1795F] font-body flex items-center gap-1">
                         أفتح الـ Kanban <ArrowLeft className="w-3 h-3" />
                     </button>
                 </div>
@@ -138,7 +138,7 @@ export default function CRMDashboard() {
             {/* Recent Activities */}
             <div className="space-y-3">
                 <h3 className="font-heading font-bold text-base flex items-center gap-2">
-                    <ActivityIcon className="w-4 h-4 text-[#E3FF00]" />
+                    <ActivityIcon className="w-4 h-4 text-[#D1795F]" />
                     آخر الأنشطة
                 </h3>
                 {recent.length === 0 && (

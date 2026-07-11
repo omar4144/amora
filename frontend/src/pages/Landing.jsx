@@ -68,7 +68,7 @@ function TopNav() {
         >
             <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                 <Link to="/" data-testid="landing-logo" className="flex items-center gap-2 group">
-                    <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center shadow-lg shadow-[#E3FF00]/20 group-hover:scale-110 transition-transform">
+                    <div className="w-9 h-9 rounded-xl bg-[#D1795F] flex items-center justify-center shadow-lg shadow-[#D1795F]/20 group-hover:scale-110 transition-transform">
                         <Heart className="w-5 h-5 text-black" fill="black" />
                     </div>
                     <span className="font-heading font-black text-2xl text-white tracking-tight">Ruaa</span>
@@ -97,7 +97,7 @@ function TopNav() {
                         <button
                             data-testid="landing-open-app"
                             onClick={() => navigate("/feed")}
-                            className="bg-[#E3FF00] text-black font-bold font-heading rounded-full px-5 py-2 hover:bg-[#CCEA00] transition-all active:scale-95 text-sm"
+                            className="bg-[#D1795F] text-white font-bold font-heading rounded-full px-5 py-2 hover:bg-[#B86648] transition-all active:scale-95 text-sm"
                         >
                             دخول المنصة
                         </button>
@@ -113,7 +113,7 @@ function TopNav() {
                             <button
                                 data-testid="landing-nav-cta"
                                 onClick={() => navigate("/auth")}
-                                className="bg-[#E3FF00] text-black font-bold font-heading rounded-full px-5 py-2 hover:bg-[#CCEA00] transition-all active:scale-95 text-sm"
+                                className="bg-[#D1795F] text-white font-bold font-heading rounded-full px-5 py-2 hover:bg-[#B86648] transition-all active:scale-95 text-sm"
                             >
                                 ابدأ قصتك
                             </button>
@@ -153,8 +153,8 @@ function Hero() {
             />
 
             {/* Yellow glow */}
-            <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-[#E3FF00]/20 blur-[120px]" />
-            <div className="absolute bottom-0 -left-20 w-[400px] h-[400px] rounded-full bg-[#E3FF00]/10 blur-[100px]" />
+            <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-[#D1795F]/20 blur-[120px]" />
+            <div className="absolute bottom-0 -left-20 w-[400px] h-[400px] rounded-full bg-[#D1795F]/10 blur-[100px]" />
 
             <motion.div
                 style={{ opacity }}
@@ -166,7 +166,7 @@ function Hero() {
                     transition={{ duration: 0.8 }}
                     className="inline-flex items-center gap-2 self-start bg-white/5 border border-white/10 backdrop-blur-md rounded-full px-4 py-2 mb-8"
                 >
-                    <span className="w-2 h-2 rounded-full bg-[#E3FF00] animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-[#D1795F] animate-pulse" />
                     <span className="text-white/80 text-sm font-body">وكالة تسويق رقمية × نظام تشغيل إبداعي</span>
                 </motion.div>
 
@@ -177,7 +177,7 @@ function Hero() {
                     className="font-heading font-black text-5xl sm:text-7xl lg:text-8xl text-white leading-[1.05] tracking-tight mb-6"
                 >
                     ندشن
-                    <span className="text-[#E3FF00] block sm:inline"> قصة حب </span>
+                    <span className="text-[#D1795F] block sm:inline"> قصة حب </span>
                     <br className="hidden sm:block" />
                     جديدة مع
                     <br className="hidden sm:block" />
@@ -204,7 +204,7 @@ function Hero() {
                     <button
                         data-testid="hero-primary-cta"
                         onClick={() => navigate("/auth")}
-                        className="group relative bg-[#E3FF00] text-black font-bold font-heading rounded-full px-8 py-4 hover:bg-[#CCEA00] transition-all active:scale-95 text-lg flex items-center gap-2 shadow-2xl shadow-[#E3FF00]/30"
+                        className="group relative bg-[#D1795F] text-white font-bold font-heading rounded-full px-8 py-4 hover:bg-[#B86648] transition-all active:scale-95 text-lg flex items-center gap-2 shadow-2xl shadow-[#D1795F]/30"
                     >
                         <span>ابدأ قصة حبك الجديدة</span>
                         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -228,19 +228,19 @@ function Hero() {
                     className="mt-16 flex flex-wrap items-center gap-8 text-white/50 text-sm font-body"
                 >
                     <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-[#E3FF00]" />
+                        <Sparkles className="w-4 h-4 text-[#D1795F]" />
                         <span>محتوى إبداعي</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-[#E3FF00]" />
+                        <Users className="w-4 h-4 text-[#D1795F]" />
                         <span>مجتمع نابض</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Rocket className="w-4 h-4 text-[#E3FF00]" />
+                        <Rocket className="w-4 h-4 text-[#D1795F]" />
                         <span>حاضنة مشاريع</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Brain className="w-4 h-4 text-[#E3FF00]" />
+                        <Brain className="w-4 h-4 text-[#D1795F]" />
                         <span>ذكاء اصطناعي</span>
                     </div>
                 </motion.div>
@@ -280,15 +280,15 @@ function Manifesto() {
                     transition={{ duration: 0.8 }}
                     className="order-2 lg:order-1"
                 >
-                    <div className="inline-flex items-center gap-2 bg-[#E3FF00]/10 border border-[#E3FF00]/20 rounded-full px-4 py-1.5 mb-6">
-                        <Heart className="w-4 h-4 text-[#E3FF00]" fill="#E3FF00" />
-                        <span className="text-[#E3FF00] text-sm font-heading font-semibold">فلسفتنا</span>
+                    <div className="inline-flex items-center gap-2 bg-[#D1795F]/10 border border-[#D1795F]/20 rounded-full px-4 py-1.5 mb-6">
+                        <Heart className="w-4 h-4 text-[#D1795F]" fill="#D1795F" />
+                        <span className="text-[#D1795F] text-sm font-heading font-semibold">فلسفتنا</span>
                     </div>
 
                     <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-8">
                         لا نبني منصة.
                         <br />
-                        <span className="text-[#E3FF00]">نُطلق قصصاً</span> لا تُنسى.
+                        <span className="text-[#D1795F]">نُطلق قصصاً</span> لا تُنسى.
                     </h2>
 
                     <div className="space-y-6 text-white/70 font-body text-lg leading-relaxed">
@@ -299,7 +299,7 @@ function Manifesto() {
                         </p>
                         <p className="text-white text-xl">
                             نحن نبني منصة تجمع أفضل ما في هذه العوالم، داخل نظام واحد يخدم رحلة المبدع{" "}
-                            <span className="text-[#E3FF00] font-semibold">منذ الفكرة، حتى بناء الشركة.</span>
+                            <span className="text-[#D1795F] font-semibold">منذ الفكرة، حتى بناء الشركة.</span>
                         </p>
                         <p>
                             نؤمن أن كل علامة تجارية تستحق أن تُروى قصتها، وكل عميل يستحق أن يشعر بأنه في قصة حب حقيقية مع الخدمة
@@ -314,7 +314,7 @@ function Manifesto() {
                             { n: "٥", l: "سنوات رؤية" },
                         ].map((s, i) => (
                             <div key={i} className="border-r border-white/10 pr-4 first:border-r-0 last:pr-0">
-                                <div className="text-4xl font-black font-heading text-[#E3FF00]">{s.n}</div>
+                                <div className="text-4xl font-black font-heading text-[#D1795F]">{s.n}</div>
                                 <div className="text-sm text-white/50 font-body mt-1">{s.l}</div>
                             </div>
                         ))}
@@ -338,7 +338,7 @@ function Manifesto() {
                         </div>
                     </div>
                     {/* Decorative accents */}
-                    <div className="absolute -top-6 -left-6 w-24 h-24 rounded-2xl bg-[#E3FF00] flex items-center justify-center rotate-6 shadow-2xl shadow-[#E3FF00]/20">
+                    <div className="absolute -top-6 -left-6 w-24 h-24 rounded-2xl bg-[#D1795F] flex items-center justify-center rotate-6 shadow-2xl shadow-[#D1795F]/20">
                         <Sparkles className="w-10 h-10 text-black" />
                     </div>
                 </motion.div>
@@ -389,14 +389,14 @@ function Offer() {
                     className="text-center max-w-3xl mx-auto mb-20"
                 >
                     <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-6">
-                        <Target className="w-4 h-4 text-[#E3FF00]" />
+                        <Target className="w-4 h-4 text-[#D1795F]" />
                         <span className="text-white/80 text-sm font-heading font-semibold">ماذا نقدم</span>
                     </div>
 
                     <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-6">
                         لا نبيع خدمات.
                         <br />
-                        <span className="text-[#E3FF00]">نصنع تحوّلات.</span>
+                        <span className="text-[#D1795F]">نصنع تحوّلات.</span>
                     </h2>
 
                     <p className="text-white/60 font-body text-lg leading-relaxed">
@@ -412,13 +412,13 @@ function Offer() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, amount: 0.2 }}
                             transition={{ duration: 0.6, delay: i * 0.1 }}
-                            className="group relative bg-gradient-to-br from-[#141414] to-[#0A0A0A] border border-white/10 rounded-3xl p-8 lg:p-10 hover:border-[#E3FF00]/40 transition-all overflow-hidden"
+                            className="group relative bg-gradient-to-br from-[#141414] to-[#0A0A0A] border border-white/10 rounded-3xl p-8 lg:p-10 hover:border-[#D1795F]/40 transition-all overflow-hidden"
                         >
-                            <div className="absolute -top-20 -left-20 w-40 h-40 rounded-full bg-[#E3FF00]/0 group-hover:bg-[#E3FF00]/10 blur-3xl transition-all duration-700" />
+                            <div className="absolute -top-20 -left-20 w-40 h-40 rounded-full bg-[#D1795F]/0 group-hover:bg-[#D1795F]/10 blur-3xl transition-all duration-700" />
 
                             <div className="relative z-10">
-                                <div className="w-14 h-14 rounded-2xl bg-[#E3FF00]/10 border border-[#E3FF00]/30 flex items-center justify-center mb-6 group-hover:bg-[#E3FF00] transition-colors">
-                                    <s.icon className="w-7 h-7 text-[#E3FF00] group-hover:text-black transition-colors" />
+                                <div className="w-14 h-14 rounded-2xl bg-[#D1795F]/10 border border-[#D1795F]/30 flex items-center justify-center mb-6 group-hover:bg-[#D1795F] transition-colors">
+                                    <s.icon className="w-7 h-7 text-[#D1795F] group-hover:text-black transition-colors" />
                                 </div>
 
                                 <p className="text-white/50 text-sm font-body mb-2">{s.title}</p>
@@ -443,7 +443,7 @@ function Offer() {
                     <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 to-transparent" />
                     <div className="absolute inset-0 flex items-center">
                         <div className="max-w-xl p-12">
-                            <p className="text-[#E3FF00] font-heading font-semibold text-sm mb-3">وعدنا لك</p>
+                            <p className="text-[#D1795F] font-heading font-semibold text-sm mb-3">وعدنا لك</p>
                             <h3 className="font-heading font-black text-3xl lg:text-4xl text-white leading-tight">
                                 لا تشتري خدمة تصميم. استثمر في هوية تعبّر عن شغفك، وتُلهم جمهورك.
                             </h3>
@@ -502,15 +502,15 @@ function LoveStories() {
                     transition={{ duration: 0.6 }}
                     className="text-center max-w-3xl mx-auto mb-20"
                 >
-                    <div className="inline-flex items-center gap-2 bg-[#E3FF00]/10 border border-[#E3FF00]/20 rounded-full px-4 py-1.5 mb-6">
-                        <Heart className="w-4 h-4 text-[#E3FF00]" fill="#E3FF00" />
-                        <span className="text-[#E3FF00] text-sm font-heading font-semibold">قصص حب حقيقية</span>
+                    <div className="inline-flex items-center gap-2 bg-[#D1795F]/10 border border-[#D1795F]/20 rounded-full px-4 py-1.5 mb-6">
+                        <Heart className="w-4 h-4 text-[#D1795F]" fill="#D1795F" />
+                        <span className="text-[#D1795F] text-sm font-heading font-semibold">قصص حب حقيقية</span>
                     </div>
 
                     <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-6">
                         لكل نجاح قصة.
                         <br />
-                        <span className="text-[#E3FF00]">وكل قصة تبدأ بحبّ.</span>
+                        <span className="text-[#D1795F]">وكل قصة تبدأ بحبّ.</span>
                     </h2>
                 </motion.div>
 
@@ -522,7 +522,7 @@ function LoveStories() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, amount: 0.2 }}
                             transition={{ duration: 0.6, delay: i * 0.1 }}
-                            className={`grid lg:grid-cols-5 gap-8 items-center bg-gradient-to-br from-[#141414] to-[#0A0A0A] border border-white/10 rounded-3xl p-8 lg:p-12 hover:border-[#E3FF00]/30 transition-all ${
+                            className={`grid lg:grid-cols-5 gap-8 items-center bg-gradient-to-br from-[#141414] to-[#0A0A0A] border border-white/10 rounded-3xl p-8 lg:p-12 hover:border-[#D1795F]/30 transition-all ${
                                 i % 2 === 1 ? "lg:direction-rtl" : ""
                             }`}
                         >
@@ -533,7 +533,7 @@ function LoveStories() {
                                         alt={story.name}
                                         className="w-24 h-24 rounded-2xl object-cover border border-white/10"
                                     />
-                                    <div className="absolute -bottom-2 -left-2 bg-[#E3FF00] rounded-full w-10 h-10 flex items-center justify-center">
+                                    <div className="absolute -bottom-2 -left-2 bg-[#D1795F] rounded-full w-10 h-10 flex items-center justify-center">
                                         <Quote className="w-5 h-5 text-black" />
                                     </div>
                                 </div>
@@ -541,8 +541,8 @@ function LoveStories() {
                                     <h4 className="text-white font-heading font-bold text-xl">{story.name}</h4>
                                     <p className="text-white/50 font-body text-sm mt-1">{story.role}</p>
                                 </div>
-                                <div className="bg-[#E3FF00]/10 border border-[#E3FF00]/20 rounded-2xl px-6 py-4">
-                                    <div className="text-[#E3FF00] font-heading font-black text-3xl">{story.metric}</div>
+                                <div className="bg-[#D1795F]/10 border border-[#D1795F]/20 rounded-2xl px-6 py-4">
+                                    <div className="text-[#D1795F] font-heading font-black text-3xl">{story.metric}</div>
                                     <div className="text-white/60 font-body text-xs mt-1">{story.label}</div>
                                 </div>
                             </div>
@@ -553,10 +553,10 @@ function LoveStories() {
                                     <p className="text-white/80 font-body text-lg leading-relaxed">{story.challenge}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[#E3FF00] font-body text-xs uppercase tracking-widest mb-2">الحل الإبداعي</p>
+                                    <p className="text-[#D1795F] font-body text-xs uppercase tracking-widest mb-2">الحل الإبداعي</p>
                                     <p className="text-white font-body text-lg leading-relaxed">{story.solution}</p>
                                 </div>
-                                <div className="bg-white/5 border-r-2 border-[#E3FF00] pr-4 py-2">
+                                <div className="bg-white/5 border-r-2 border-[#D1795F] pr-4 py-2">
                                     <p className="text-white/60 font-body text-xs uppercase tracking-widest mb-2">النتيجة</p>
                                     <p className="text-white font-heading font-bold text-xl leading-relaxed">{story.result}</p>
                                 </div>
@@ -596,15 +596,15 @@ function Vision() {
                     transition={{ duration: 0.6 }}
                     className="text-center max-w-3xl mx-auto mb-20"
                 >
-                    <div className="inline-flex items-center gap-2 bg-[#E3FF00]/10 border border-[#E3FF00]/20 rounded-full px-4 py-1.5 mb-6">
-                        <Rocket className="w-4 h-4 text-[#E3FF00]" />
-                        <span className="text-[#E3FF00] text-sm font-heading font-semibold">رؤية ٢٠٣٠</span>
+                    <div className="inline-flex items-center gap-2 bg-[#D1795F]/10 border border-[#D1795F]/20 rounded-full px-4 py-1.5 mb-6">
+                        <Rocket className="w-4 h-4 text-[#D1795F]" />
+                        <span className="text-[#D1795F] text-sm font-heading font-semibold">رؤية ٢٠٣٠</span>
                     </div>
 
                     <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-6">
                         نبني اليوم،
                         <br />
-                        <span className="text-[#E3FF00]">لخمس سنوات قادمة.</span>
+                        <span className="text-[#D1795F]">لخمس سنوات قادمة.</span>
                     </h2>
                     <p className="text-white/60 font-body text-lg leading-relaxed">
                         خارطة طريق واضحة نحو نظام بيئي إبداعي كامل — يبدأ بربط المواهب، وينتهي بنظام تشغيل شامل يدمج الرقمي بالواقع.
@@ -613,7 +613,7 @@ function Vision() {
 
                 <div className="relative">
                     {/* Vertical line */}
-                    <div className="hidden lg:block absolute right-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#E3FF00] via-[#E3FF00]/30 to-transparent translate-x-1/2" />
+                    <div className="hidden lg:block absolute right-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#D1795F] via-[#D1795F]/30 to-transparent translate-x-1/2" />
 
                     <div className="space-y-12 lg:space-y-24">
                         {roadmap.map((r, i) => (
@@ -633,7 +633,7 @@ function Vision() {
                                     >
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black font-heading text-3xl ${
                                             r.active
-                                                ? "bg-[#E3FF00] text-black"
+                                                ? "bg-[#D1795F] text-white"
                                                 : "bg-white/5 border border-white/20 text-white"
                                         }`}>
                                             {r.year}
@@ -646,8 +646,8 @@ function Vision() {
                                     </p>
                                     {r.active && (
                                         <div className="mt-4">
-                                            <span className="inline-flex items-center gap-2 bg-[#E3FF00]/10 border border-[#E3FF00]/30 text-[#E3FF00] rounded-full px-3 py-1 text-xs font-body">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-[#E3FF00] animate-pulse" />
+                                            <span className="inline-flex items-center gap-2 bg-[#D1795F]/10 border border-[#D1795F]/30 text-[#D1795F] rounded-full px-3 py-1 text-xs font-body">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-[#D1795F] animate-pulse" />
                                                 نحن هنا الآن
                                             </span>
                                         </div>
@@ -655,7 +655,7 @@ function Vision() {
                                 </div>
                                 <div className={`hidden lg:flex ${i % 2 === 0 ? "justify-start" : "justify-end"}`}>
                                     <div className="w-24 h-24 rounded-3xl bg-[#141414] border border-white/10 flex items-center justify-center">
-                                        <r.icon className="w-10 h-10 text-[#E3FF00]" />
+                                        <r.icon className="w-10 h-10 text-[#D1795F]" />
                                     </div>
                                 </div>
                             </motion.div>
@@ -693,14 +693,14 @@ function Principles() {
                     className="text-center max-w-3xl mx-auto mb-16"
                 >
                     <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-6">
-                        <Zap className="w-4 h-4 text-[#E3FF00]" />
+                        <Zap className="w-4 h-4 text-[#D1795F]" />
                         <span className="text-white/80 text-sm font-heading font-semibold">مبادئنا</span>
                     </div>
 
                     <h2 className="font-heading font-black text-4xl sm:text-5xl text-white leading-tight mb-6">
                         كل ميزة نبنيها،
                         <br />
-                        <span className="text-[#E3FF00]">تحقّق أحدها على الأقل.</span>
+                        <span className="text-[#D1795F]">تحقّق أحدها على الأقل.</span>
                     </h2>
                 </motion.div>
 
@@ -712,10 +712,10 @@ function Principles() {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true, amount: 0.5 }}
                             transition={{ duration: 0.4, delay: i * 0.05 }}
-                            className="group bg-[#141414] border border-white/10 rounded-2xl p-6 hover:border-[#E3FF00]/40 hover:bg-[#161616] transition-all cursor-default"
+                            className="group bg-[#141414] border border-white/10 rounded-2xl p-6 hover:border-[#D1795F]/40 hover:bg-[#161616] transition-all cursor-default"
                         >
-                            <div className="w-12 h-12 rounded-xl bg-[#E3FF00]/10 border border-[#E3FF00]/30 flex items-center justify-center mb-4 group-hover:bg-[#E3FF00] transition-colors">
-                                <p.icon className="w-6 h-6 text-[#E3FF00] group-hover:text-black transition-colors" />
+                            <div className="w-12 h-12 rounded-xl bg-[#D1795F]/10 border border-[#D1795F]/30 flex items-center justify-center mb-4 group-hover:bg-[#D1795F] transition-colors">
+                                <p.icon className="w-6 h-6 text-[#D1795F] group-hover:text-black transition-colors" />
                             </div>
                             <p className="text-white font-heading font-semibold text-lg leading-snug">{p.text}</p>
                         </motion.div>
@@ -759,7 +759,7 @@ function Contact() {
             </div>
 
             {/* Glow accents */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-0 w-[600px] h-[600px] rounded-full bg-[#E3FF00]/10 blur-[150px]" />
+            <div className="absolute top-1/2 -translate-y-1/2 right-0 w-[600px] h-[600px] rounded-full bg-[#D1795F]/10 blur-[150px]" />
 
             <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
                 <motion.div
@@ -768,9 +768,9 @@ function Contact() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
                 >
-                    <div className="inline-flex items-center gap-2 bg-[#E3FF00]/10 border border-[#E3FF00]/20 rounded-full px-4 py-1.5 mb-6">
-                        <MessageCircle className="w-4 h-4 text-[#E3FF00]" />
-                        <span className="text-[#E3FF00] text-sm font-heading font-semibold">لنتحدّث</span>
+                    <div className="inline-flex items-center gap-2 bg-[#D1795F]/10 border border-[#D1795F]/20 rounded-full px-4 py-1.5 mb-6">
+                        <MessageCircle className="w-4 h-4 text-[#D1795F]" />
+                        <span className="text-[#D1795F] text-sm font-heading font-semibold">لنتحدّث</span>
                     </div>
 
                     <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-7xl text-white leading-[1.1] mb-8">
@@ -778,7 +778,7 @@ function Contact() {
                         <br />
                         التي تريد أن
                         <br />
-                        <span className="text-[#E3FF00]">تُدشّنها؟</span>
+                        <span className="text-[#D1795F]">تُدشّنها؟</span>
                     </h2>
 
                     <p className="text-white/60 font-body text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
@@ -802,7 +802,7 @@ function Contact() {
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
                             placeholder="اسمك"
-                            className="bg-[#141414] border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/40 focus:border-[#E3FF00] focus:ring-1 focus:ring-[#E3FF00] outline-none font-body"
+                            className="bg-[#141414] border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/40 focus:border-[#D1795F] focus:ring-1 focus:ring-[#D1795F] outline-none font-body"
                         />
                         <input
                             data-testid="contact-email"
@@ -810,7 +810,7 @@ function Contact() {
                             type="email"
                             onChange={(e) => setForm({ ...form, email: e.target.value })}
                             placeholder="بريدك الإلكتروني"
-                            className="bg-[#141414] border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/40 focus:border-[#E3FF00] focus:ring-1 focus:ring-[#E3FF00] outline-none font-body"
+                            className="bg-[#141414] border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/40 focus:border-[#D1795F] focus:ring-1 focus:ring-[#D1795F] outline-none font-body"
                         />
                     </div>
                     <textarea
@@ -819,7 +819,7 @@ function Contact() {
                         onChange={(e) => setForm({ ...form, story: e.target.value })}
                         placeholder="احكِ لنا: ما هي قصة الحب التي تريد أن تدشّنها مع عملائك؟"
                         rows={5}
-                        className="w-full bg-[#141414] border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/40 focus:border-[#E3FF00] focus:ring-1 focus:ring-[#E3FF00] outline-none font-body resize-none"
+                        className="w-full bg-[#141414] border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/40 focus:border-[#D1795F] focus:ring-1 focus:ring-[#D1795F] outline-none font-body resize-none"
                     />
                     <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
                         <div className="flex flex-wrap items-center gap-6 text-white/50 text-sm font-body">
@@ -836,7 +836,7 @@ function Contact() {
                             data-testid="contact-submit"
                             type="submit"
                             disabled={submitting}
-                            className="bg-[#E3FF00] text-black font-bold font-heading rounded-full px-8 py-4 hover:bg-[#CCEA00] transition-all active:scale-95 flex items-center gap-2 disabled:opacity-60 shadow-2xl shadow-[#E3FF00]/20"
+                            className="bg-[#D1795F] text-white font-bold font-heading rounded-full px-8 py-4 hover:bg-[#B86648] transition-all active:scale-95 flex items-center gap-2 disabled:opacity-60 shadow-2xl shadow-[#D1795F]/20"
                         >
                             {submitting ? "جارٍ الإرسال..." : "أرسل قصتي"}
                             <ArrowLeft className="w-5 h-5" />
@@ -858,7 +858,7 @@ function Footer() {
                 <div className="grid md:grid-cols-4 gap-8">
                     <div className="md:col-span-2">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center">
+                            <div className="w-9 h-9 rounded-xl bg-[#D1795F] flex items-center justify-center">
                                 <Heart className="w-5 h-5 text-black" fill="black" />
                             </div>
                             <span className="font-heading font-black text-2xl text-white">Ruaa</span>

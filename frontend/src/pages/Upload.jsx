@@ -69,9 +69,9 @@ export default function Upload() {
                     <label
                         htmlFor="video-file-input"
                         data-testid="pick-video-btn"
-                        className="bg-[#141414] border-2 border-dashed border-[#333] rounded-2xl p-10 flex flex-col items-center gap-3 hover:border-[#E3FF00] transition cursor-pointer"
+                        className="bg-[#141414] border-2 border-dashed border-[#333] rounded-2xl p-10 flex flex-col items-center gap-3 hover:border-[#D1795F] transition cursor-pointer"
                     >
-                        <UploadCloud className="w-12 h-12 text-[#E3FF00]" />
+                        <UploadCloud className="w-12 h-12 text-[#D1795F]" />
                         <div className="font-heading font-bold">اضغط لاختيار فيديو</div>
                         <div className="text-xs text-neutral-500">MP4، MOV — حتى 100MB</div>
                     </label>
@@ -106,7 +106,7 @@ export default function Upload() {
                         onChange={(e) => setCaption(e.target.value)}
                         placeholder="ما اللي تعرضه؟"
                         rows={3}
-                        className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#E3FF00] focus:outline-none resize-none"
+                        className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 text-white placeholder-neutral-500 focus:border-[#D1795F] focus:outline-none resize-none"
                     />
                 </div>
 
@@ -119,7 +119,7 @@ export default function Upload() {
                                 key={c}
                                 data-testid={`cat-${c}`}
                                 onClick={() => setCategory(c)}
-                                className={`px-4 py-1.5 rounded-full text-sm font-heading font-bold transition ${category === c ? "bg-[#E3FF00] text-black" : "bg-[#141414] border border-[#262626] text-neutral-300"}`}
+                                className={`px-4 py-1.5 rounded-full text-sm font-heading font-bold transition ${category === c ? "bg-[#D1795F] text-white" : "bg-[#141414] border border-[#262626] text-neutral-300"}`}
                             >
                                 {c}
                             </button>
@@ -131,7 +131,7 @@ export default function Upload() {
                     data-testid="submit-upload"
                     type="submit"
                     disabled={loading || !file}
-                    className="bg-[#E3FF00] text-black font-heading font-bold rounded-full py-3.5 hover:bg-[#CCEA00] transition active:scale-95 disabled:opacity-50 mt-4 flex items-center justify-center gap-2"
+                    className="bg-[#D1795F] text-white font-heading font-bold rounded-full py-3.5 hover:bg-[#B86648] transition active:scale-95 disabled:opacity-50 mt-4 flex items-center justify-center gap-2"
                 >
                     <Film className="w-5 h-5" />
                     {loading ? "جارٍ الرفع..." : "نشر الفيديو"}

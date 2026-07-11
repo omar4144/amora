@@ -26,7 +26,7 @@ export default function Notifications() {
     return (
         <div className="p-6 pt-8 font-body" data-testid="notifications-page">
             <div className="flex items-center gap-2 mb-6">
-                <Bell className="w-6 h-6 text-[#E3FF00]" />
+                <Bell className="w-6 h-6 text-[#D1795F]" />
                 <h1 className="text-3xl font-heading font-black">الإشعارات</h1>
             </div>
 
@@ -40,10 +40,10 @@ export default function Notifications() {
                             key={n.id}
                             onClick={() => onClick(n)}
                             data-testid={`notif-${n.id}`}
-                            className={`w-full text-start flex items-start gap-3 rounded-2xl p-3 border transition ${n.seen ? "bg-[#141414] border-[#262626]" : "bg-[#1a1a08] border-[#E3FF00]/30"}`}
+                            className={`w-full text-start flex items-start gap-3 rounded-2xl p-3 border transition ${n.seen ? "bg-[#141414] border-[#262626]" : "bg-[#1a1a08] border-[#D1795F]/30"}`}
                         >
-                            <div className="w-10 h-10 rounded-full bg-[#E3FF00]/20 shrink-0 flex items-center justify-center">
-                                <Icon className="w-5 h-5 text-[#E3FF00]" />
+                            <div className="w-10 h-10 rounded-full bg-[#D1795F]/20 shrink-0 flex items-center justify-center">
+                                <Icon className="w-5 h-5 text-[#D1795F]" />
                             </div>
                             <div className="flex-1">
                                 <div className="text-sm text-white">{n.text}</div>

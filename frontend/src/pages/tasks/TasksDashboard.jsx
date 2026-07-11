@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { AlertCircle, Clock, CheckCircle2, TrendingUp, ArrowLeft, Zap, Plus } from "lucide-react";
 
-function StatCard({ icon: Icon, label, value, color = "#E3FF00" }) {
+function StatCard({ icon: Icon, label, value, color = "#D1795F" }) {
     return (
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: `${color}20`, color }}>
@@ -38,9 +38,9 @@ export default function TasksDashboard() {
     return (
         <div data-testid="tasks-dashboard" className="p-4 space-y-6">
             {stats.total === 0 && (
-                <div className="rounded-2xl bg-gradient-to-br from-[#E3FF00]/10 to-transparent border border-[#E3FF00]/30 p-6">
+                <div className="rounded-2xl bg-gradient-to-br from-[#D1795F]/10 to-transparent border border-[#D1795F]/30 p-6">
                     <div className="flex items-start gap-3 mb-3">
-                        <Zap className="w-6 h-6 text-[#E3FF00] flex-shrink-0 mt-0.5" fill="#E3FF00" />
+                        <Zap className="w-6 h-6 text-[#D1795F] flex-shrink-0 mt-0.5" fill="#D1795F" />
                         <div>
                             <h3 className="font-heading font-bold text-lg">مركز إدارة المهام والمشاريع</h3>
                             <p className="text-sm text-white/70 mt-1 font-body leading-relaxed">
@@ -48,7 +48,7 @@ export default function TasksDashboard() {
                             </p>
                         </div>
                     </div>
-                    <button onClick={() => nav("/tasks/boards?new=1")} data-testid="create-first-board" className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-3 text-sm active:scale-95">
+                    <button onClick={() => nav("/tasks/boards?new=1")} data-testid="create-first-board" className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-xl py-3 text-sm active:scale-95">
                         + أنشئ أول لوحة
                     </button>
                 </div>
@@ -58,21 +58,21 @@ export default function TasksDashboard() {
             <div className="grid grid-cols-2 gap-3">
                 <StatCard icon={AlertCircle} label="متأخرة" value={stats.overdue} color="#EF4444" />
                 <StatCard icon={Clock} label="للأخير اليوم" value={stats.due_today} color="#F59E0B" />
-                <StatCard icon={TrendingUp} label="نشطة" value={stats.active} color="#3B82F6" />
-                <StatCard icon={CheckCircle2} label="أدّيت هذا الأسبوع" value={stats.done_this_week} color="#10B981" />
+                <StatCard icon={TrendingUp} label="نشطة" value={stats.active} color="#57769D" />
+                <StatCard icon={CheckCircle2} label="أدّيت هذا الأسبوع" value={stats.done_this_week} color="#C3E0A5" />
             </div>
 
             {/* My Tasks */}
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <h3 className="font-heading font-bold text-base">مهامي</h3>
-                    <button onClick={() => nav("/tasks/my")} className="text-xs text-[#E3FF00] font-body flex items-center gap-1">
+                    <button onClick={() => nav("/tasks/my")} className="text-xs text-[#D1795F] font-body flex items-center gap-1">
                         الكل <ArrowLeft className="w-3 h-3" />
                     </button>
                 </div>
                 {my.length === 0 && <div className="text-center py-8 text-white/40 text-sm">لا يوجد مهام بعد</div>}
                 {my.map((t) => (
-                    <div key={t.id} onClick={() => nav(`/tasks/task/${t.id}`)} className="bg-white/5 border border-white/10 rounded-xl p-3 hover:border-[#E3FF00]/40 transition cursor-pointer">
+                    <div key={t.id} onClick={() => nav(`/tasks/task/${t.id}`)} className="bg-white/5 border border-white/10 rounded-xl p-3 hover:border-[#D1795F]/40 transition cursor-pointer">
                         <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
                                 <h4 className="text-sm font-heading font-semibold text-white line-clamp-1">{t.title}</h4>

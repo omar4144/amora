@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Plus, X, KanbanSquare, Trash2 } from "lucide-react";
 
 function BoardForm({ initial, onSubmit, onClose }) {
-    const [form, setForm] = useState(initial || { name: "", description: "", color: "#E3FF00", kind: "personal" });
+    const [form, setForm] = useState(initial || { name: "", description: "", color: "#D1795F", kind: "personal" });
     const [busy, setBusy] = useState(false);
 
     const submit = async (e) => {
@@ -25,15 +25,15 @@ function BoardForm({ initial, onSubmit, onClose }) {
                     <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
                 </div>
                 <div className="space-y-3">
-                    <input data-testid="board-name" placeholder="الاسم *" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
-                    <textarea placeholder="وصف" value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none resize-none" />
+                    <input data-testid="board-name" placeholder="الاسم *" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
+                    <textarea placeholder="وصف" value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none resize-none" />
                     <div className="flex gap-2">
-                        {["#E3FF00","#3B82F6","#EF4444","#10B981","#8B5CF6","#F59E0B"].map((c) => (
+                        {["#D1795F","#57769D","#EF4444","#C3E0A5","#8B5CF6","#F59E0B"].map((c) => (
                             <button key={c} type="button" onClick={() => setForm({...form, color: c})} className={`w-8 h-8 rounded-full ${form.color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-black' : ''}`} style={{ backgroundColor: c }} />
                         ))}
                     </div>
                 </div>
-                <button data-testid="board-save" type="submit" disabled={busy} className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">
+                <button data-testid="board-save" type="submit" disabled={busy} className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">
                     {busy ? "..." : "حفظ"}
                 </button>
             </form>
@@ -70,7 +70,7 @@ export default function TasksBoards() {
     return (
         <div data-testid="tasks-boards" className="p-4 space-y-4">
             <div className="flex justify-end">
-                <button data-testid="add-board-btn" onClick={() => setShowForm(true)} className="bg-[#E3FF00] text-black font-heading font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1 active:scale-95">
+                <button data-testid="add-board-btn" onClick={() => setShowForm(true)} className="bg-[#D1795F] text-white font-heading font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1 active:scale-95">
                     <Plus className="w-4 h-4" /> لوحة جديدة
                 </button>
             </div>
@@ -79,7 +79,7 @@ export default function TasksBoards() {
                     <div className="text-center py-16 text-white/40 text-sm">لا يوجد لوحات. أنشئ واحدة!</div>
                 )}
                 {boards.map((b) => (
-                    <div key={b.id} data-testid={`board-${b.id}`} onClick={() => nav(`/tasks/board/${b.id}`)} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-[#E3FF00]/40 transition cursor-pointer group">
+                    <div key={b.id} data-testid={`board-${b.id}`} onClick={() => nav(`/tasks/board/${b.id}`)} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-[#D1795F]/40 transition cursor-pointer group">
                         <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${b.color}20`, color: b.color }}>
                                 <KanbanSquare className="w-5 h-5" />
@@ -96,7 +96,7 @@ export default function TasksBoards() {
                                     <span>{b.tasks_count} مهمة</span>
                                     <span>•</span>
                                     <span>{b.done_count} مكتملة</span>
-                                    {b.kind === "team" && <><span>•</span><span className="text-[#E3FF00]">👥 {b.team?.name || "فريق"}</span></>}
+                                    {b.kind === "team" && <><span>•</span><span className="text-[#D1795F]">👥 {b.team?.name || "فريق"}</span></>}
                                 </div>
                                 {b.tasks_count > 0 && (
                                     <div className="mt-2 h-1 bg-black/40 rounded-full overflow-hidden">

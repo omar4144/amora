@@ -30,7 +30,7 @@ export default function Search() {
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     placeholder="ابحث عن صانع محتوى أو فئة..."
-                    className="w-full bg-[#141414] border border-[#262626] rounded-full ps-11 pe-11 py-3.5 focus:border-[#E3FF00] focus:outline-none"
+                    className="w-full bg-[#141414] border border-[#262626] rounded-full ps-11 pe-11 py-3.5 focus:border-[#D1795F] focus:outline-none"
                     autoFocus
                 />
                 {q && (
@@ -47,8 +47,8 @@ export default function Search() {
                     <h3 className="font-heading font-bold text-neutral-400 mb-3 text-sm">صناع المحتوى</h3>
                     <div className="space-y-2 mb-6">
                         {results.users.map((u) => (
-                            <Link key={u.id} to={`/u/${u.username}`} data-testid={`search-user-${u.username}`} className="flex items-center gap-3 bg-[#141414] border border-[#262626] hover:border-[#E3FF00] rounded-2xl p-3 transition">
-                                <div className="w-11 h-11 rounded-full bg-[#E3FF00] flex items-center justify-center text-black font-heading font-black">{u.name?.[0]}</div>
+                            <Link key={u.id} to={`/u/${u.username}`} data-testid={`search-user-${u.username}`} className="flex items-center gap-3 bg-[#141414] border border-[#262626] hover:border-[#D1795F] rounded-2xl p-3 transition">
+                                <div className="w-11 h-11 rounded-full bg-[#D1795F] flex items-center justify-center text-black font-heading font-black">{u.name?.[0]}</div>
                                 <div className="flex-1">
                                     <div className="font-heading font-bold">{u.name}</div>
                                     <div className="text-xs text-neutral-500">@{u.username} · {u.followers || 0} متابع</div>

@@ -12,7 +12,7 @@ export default function TasksShell() {
             <div className="px-4 pt-6 pb-3 border-b border-white/5 sticky top-0 bg-black/95 backdrop-blur-xl z-30">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-xl bg-[#D1795F] flex items-center justify-center">
                             <CheckSquare className="w-5 h-5 text-black" />
                         </div>
                         <div>
@@ -27,7 +27,7 @@ export default function TasksShell() {
                             data-testid={`tasks-tab-${t.to.split('/').pop()||'dashboard'}`}
                             className={({ isActive }) =>
                                 `flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-heading font-semibold whitespace-nowrap transition ${
-                                    isActive ? "bg-[#E3FF00] text-black" : "bg-white/5 text-white/70 border border-white/10 hover:bg-white/10"
+                                    isActive ? "bg-[#D1795F] text-white" : "bg-white/5 text-white/70 border border-white/10 hover:bg-white/10"
                                 }`
                             }>
                             <t.icon className="w-3.5 h-3.5" />

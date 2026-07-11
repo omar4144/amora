@@ -35,21 +35,21 @@ function DealForm({ clients, initial, onSubmit, onClose }) {
                     <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
                 </div>
                 <div className="space-y-3">
-                    <input data-testid="deal-title" placeholder="عنوان الصفقة *" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
+                    <input data-testid="deal-title" placeholder="عنوان الصفقة *" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
                     <select data-testid="deal-client" value={form.client_id} onChange={(e) => setForm({...form, client_id: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none">
                         <option value="">-- اختر العميل --</option>
                         {clients.map((c) => <option key={c.id} value={c.id}>{c.name}{c.company ? ` (${c.company})` : ""}</option>)}
                     </select>
                     <div className="grid grid-cols-3 gap-3">
-                        <input data-testid="deal-value" type="number" placeholder="القيمة" value={form.value} onChange={(e) => setForm({...form, value: e.target.value})} className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
+                        <input data-testid="deal-value" type="number" placeholder="القيمة" value={form.value} onChange={(e) => setForm({...form, value: e.target.value})} className="col-span-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
                         <select value={form.currency} onChange={(e) => setForm({...form, currency: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none">
                             <option>USD</option><option>SAR</option><option>EUR</option><option>AED</option>
                         </select>
                     </div>
                     <input type="date" value={form.expected_close_date?.slice(0,10) || ""} onChange={(e) => setForm({...form, expected_close_date: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none" />
-                    <textarea placeholder="ملاحظات" value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none resize-none" />
+                    <textarea placeholder="ملاحظات" value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none resize-none" />
                 </div>
-                <button data-testid="deal-save" type="submit" disabled={busy} className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">
+                <button data-testid="deal-save" type="submit" disabled={busy} className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">
                     {busy ? "جارٍ الحفظ..." : "حفظ"}
                 </button>
             </form>
@@ -64,7 +64,7 @@ function DealCard({ deal, onMove, stages, onOpen }) {
     return (
         <div
             data-testid={`deal-card-${deal.id}`}
-            className="bg-black border border-white/10 rounded-xl p-3 hover:border-[#E3FF00]/40 transition group cursor-pointer"
+            className="bg-black border border-white/10 rounded-xl p-3 hover:border-[#D1795F]/40 transition group cursor-pointer"
         >
             <div onClick={onOpen}>
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -74,7 +74,7 @@ function DealCard({ deal, onMove, stages, onOpen }) {
                     <p className="text-[11px] text-white/50 mb-2 truncate">👤 {deal.client.name}</p>
                 )}
                 <div className="flex items-center justify-between">
-                    <span className="text-[#E3FF00] font-heading font-bold text-sm">
+                    <span className="text-[#D1795F] font-heading font-bold text-sm">
                         {deal.currency === "USD" ? "$" : ""}{deal.value.toLocaleString()} {deal.currency !== "USD" ? deal.currency : ""}
                     </span>
                     <span className="text-[10px] text-white/40">{deal.probability}%</span>
@@ -83,7 +83,7 @@ function DealCard({ deal, onMove, stages, onOpen }) {
             <div className="mt-3 pt-2 border-t border-white/5 flex items-center gap-1">
                 <button
                     onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
-                    className="flex-1 text-[10px] text-white/60 hover:text-[#E3FF00] flex items-center justify-center gap-1 py-1"
+                    className="flex-1 text-[10px] text-white/60 hover:text-[#D1795F] flex items-center justify-center gap-1 py-1"
                     data-testid={`move-deal-${deal.id}`}
                 >
                     <ArrowLeftRight className="w-3 h-3" /> نقل
@@ -154,7 +154,7 @@ export default function CRMDeals() {
                     data-testid="add-deal-btn"
                     onClick={() => setShowForm(true)}
                     disabled={clients.length === 0}
-                    className="bg-[#E3FF00] text-black font-heading font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1 active:scale-95 disabled:opacity-40"
+                    className="bg-[#D1795F] text-white font-heading font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1 active:scale-95 disabled:opacity-40"
                 >
                     <Plus className="w-4 h-4" /> صفقة
                 </button>
@@ -183,7 +183,7 @@ export default function CRMDeals() {
                                     <h4 className="font-heading font-bold text-sm text-white">{s.name}</h4>
                                     <span className="text-[10px] text-white/40">{col.count}</span>
                                 </div>
-                                <span className="text-[10px] text-[#E3FF00] font-heading font-semibold">
+                                <span className="text-[10px] text-[#D1795F] font-heading font-semibold">
                                     ${col.total_value.toLocaleString()}
                                 </span>
                             </div>

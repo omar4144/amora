@@ -35,11 +35,11 @@ STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
 # CRM Pipeline stages (with default probability %)
 DEAL_STAGES = [
     {"key": "new",          "name": "\u062c\u062f\u064a\u062f",         "probability": 0,   "color": "#94A3B8"},
-    {"key": "contacted",    "name": "\u062a\u0648\u0627\u0635\u0644",       "probability": 10,  "color": "#3B82F6"},
+    {"key": "contacted",    "name": "\u062a\u0648\u0627\u0635\u0644",       "probability": 10,  "color": "#57769D"},
     {"key": "qualified",    "name": "\u0645\u0624\u0647\u0651\u0644",       "probability": 25,  "color": "#8B5CF6"},
     {"key": "proposal",     "name": "\u0639\u0631\u0636 \u0645\u0642\u062f\u0651\u0645",  "probability": 50,  "color": "#F59E0B"},
     {"key": "negotiation",  "name": "\u062a\u0641\u0627\u0648\u0636",       "probability": 75,  "color": "#EF4444"},
-    {"key": "won",          "name": "\u0641\u0627\u0632",           "probability": 100, "color": "#10B981"},
+    {"key": "won",          "name": "\u0641\u0627\u0632",           "probability": 100, "color": "#C3E0A5"},
     {"key": "lost",         "name": "\u062e\u0633\u0631",           "probability": 0,   "color": "#6B7280"},
 ]
 DEAL_STAGE_KEYS = [s["key"] for s in DEAL_STAGES]
@@ -47,11 +47,11 @@ DEAL_STAGE_KEYS = [s["key"] for s in DEAL_STAGES]
 # Content OS constants
 CONTENT_STATUSES = [
     {"key": "idea",       "name": "\u0641\u0643\u0631\u0629",       "color": "#94A3B8"},
-    {"key": "draft",      "name": "\u0645\u0633\u0648\u062f\u0651\u0629",     "color": "#3B82F6"},
+    {"key": "draft",      "name": "\u0645\u0633\u0648\u062f\u0651\u0629",     "color": "#57769D"},
     {"key": "review",     "name": "\u0645\u0631\u0627\u062c\u0639\u0629",     "color": "#F59E0B"},
     {"key": "approved",   "name": "\u0645\u0639\u062a\u0645\u062f\u0629",     "color": "#8B5CF6"},
     {"key": "scheduled",  "name": "\u0645\u062c\u062f\u0648\u0644\u0629",     "color": "#06B6D4"},
-    {"key": "published",  "name": "\u0645\u0646\u0634\u0648\u0631\u0629",     "color": "#10B981"},
+    {"key": "published",  "name": "\u0645\u0646\u0634\u0648\u0631\u0629",     "color": "#C3E0A5"},
     {"key": "archived",   "name": "\u0645\u0624\u0631\u0634\u0641\u0629",     "color": "#6B7280"},
 ]
 CONTENT_STATUS_KEYS = [s["key"] for s in CONTENT_STATUSES]
@@ -81,16 +81,16 @@ CONTENT_FORMAT_KEYS = [f["key"] for f in CONTENT_FORMATS]
 # Tasks Engine constants
 TASK_STATUSES = [
     {"key": "todo",         "name": "\u0644\u0644\u062a\u0646\u0641\u064a\u0630",     "color": "#94A3B8"},
-    {"key": "in_progress",  "name": "\u062c\u0627\u0631\u064d",         "color": "#3B82F6"},
+    {"key": "in_progress",  "name": "\u062c\u0627\u0631\u064d",         "color": "#57769D"},
     {"key": "review",       "name": "\u0645\u0631\u0627\u062c\u0639\u0629",       "color": "#F59E0B"},
     {"key": "blocked",      "name": "\u0645\u0639\u0644\u0651\u0642\u0629",        "color": "#EF4444"},
-    {"key": "done",         "name": "\u0645\u0643\u062a\u0645\u0644\u0629",       "color": "#10B981"},
+    {"key": "done",         "name": "\u0645\u0643\u062a\u0645\u0644\u0629",       "color": "#C3E0A5"},
 ]
 TASK_STATUS_KEYS = [s["key"] for s in TASK_STATUSES]
 
 TASK_PRIORITIES = [
     {"key": "low",     "name": "\u0645\u0646\u062e\u0641\u0636\u0629", "color": "#94A3B8"},
-    {"key": "medium",  "name": "\u0645\u062a\u0648\u0633\u0637\u0629", "color": "#3B82F6"},
+    {"key": "medium",  "name": "\u0645\u062a\u0648\u0633\u0637\u0629", "color": "#57769D"},
     {"key": "high",    "name": "\u0639\u0627\u0644\u064a\u0629",   "color": "#F59E0B"},
     {"key": "urgent",  "name": "\u0639\u0627\u062c\u0644\u0629",   "color": "#EF4444"},
 ]

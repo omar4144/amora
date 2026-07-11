@@ -30,8 +30,8 @@ function ContentForm({ meta, initial, onSubmit, onClose }) {
                     <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
                 </div>
                 <div className="space-y-3">
-                    <input data-testid="content-title" placeholder="العنوان *" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
-                    <textarea placeholder="وصف مختصر" value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none resize-none" />
+                    <input data-testid="content-title" placeholder="العنوان *" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
+                    <textarea placeholder="وصف مختصر" value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none resize-none" />
                     <div className="grid grid-cols-2 gap-3">
                         <select value={form.platform} onChange={(e) => setForm({...form, platform: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none">
                             {meta.platforms.map((p) => <option key={p.key} value={p.key}>{p.name}</option>)}
@@ -40,15 +40,15 @@ function ContentForm({ meta, initial, onSubmit, onClose }) {
                             {meta.formats.map((f) => <option key={f.key} value={f.key}>{f.name}</option>)}
                         </select>
                     </div>
-                    <input placeholder="Hook (الجملة الأولى الجذّابة)" value={form.hook} onChange={(e) => setForm({...form, hook: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
-                    <textarea placeholder="Caption — الوصف المنشور" value={form.caption} onChange={(e) => setForm({...form, caption: e.target.value})} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none resize-none" />
-                    <input placeholder="Hashtags" value={form.hashtags} onChange={(e) => setForm({...form, hashtags: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
+                    <input placeholder="Hook (الجملة الأولى الجذّابة)" value={form.hook} onChange={(e) => setForm({...form, hook: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
+                    <textarea placeholder="Caption — الوصف المنشور" value={form.caption} onChange={(e) => setForm({...form, caption: e.target.value})} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none resize-none" />
+                    <input placeholder="Hashtags" value={form.hashtags} onChange={(e) => setForm({...form, hashtags: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
                     <input type="datetime-local" value={form.scheduled_at?.slice(0,16) || ""} onChange={(e) => setForm({...form, scheduled_at: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none" />
                     <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none">
                         {meta.statuses.map((s) => <option key={s.key} value={s.key}>{s.name}</option>)}
                     </select>
                 </div>
-                <button data-testid="content-save" type="submit" disabled={busy} className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">
+                <button data-testid="content-save" type="submit" disabled={busy} className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">
                     {busy ? "جارٍ الحفظ..." : "حفظ"}
                 </button>
             </form>
@@ -60,17 +60,17 @@ function ContentCard({ item, onOpen, onMove, statuses, meta }) {
     const [showMenu, setShowMenu] = useState(false);
     const platform = meta.platforms.find((p) => p.key === item.platform);
     return (
-        <div data-testid={`content-card-${item.id}`} className="bg-black border border-white/10 rounded-xl p-3 hover:border-[#E3FF00]/40 transition cursor-pointer">
+        <div data-testid={`content-card-${item.id}`} className="bg-black border border-white/10 rounded-xl p-3 hover:border-[#D1795F]/40 transition cursor-pointer">
             <div onClick={onOpen}>
                 <h4 className="text-sm font-heading font-semibold text-white line-clamp-2 mb-2">{item.title}</h4>
-                {item.hook && <p className="text-[11px] text-[#E3FF00] mb-1 line-clamp-1">Hook: {item.hook}</p>}
+                {item.hook && <p className="text-[11px] text-[#D1795F] mb-1 line-clamp-1">Hook: {item.hook}</p>}
                 <div className="flex items-center gap-2 text-[10px]">
                     <span className="px-2 py-0.5 rounded-full text-white/70" style={{ backgroundColor: `${platform?.color || '#666'}30` }}>{platform?.name || item.platform}</span>
                     <span className="text-white/40">{item.format}</span>
                 </div>
             </div>
             <div className="mt-2 pt-2 border-t border-white/5">
-                <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="w-full text-[10px] text-white/60 hover:text-[#E3FF00] flex items-center justify-center gap-1 py-1">
+                <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="w-full text-[10px] text-white/60 hover:text-[#D1795F] flex items-center justify-center gap-1 py-1">
                     <ArrowLeftRight className="w-3 h-3" /> نقل
                 </button>
             </div>
@@ -129,7 +129,7 @@ export default function ContentKanban() {
         <div data-testid="content-kanban" className="pt-4">
             <div className="px-4 mb-3 flex items-center justify-between">
                 <p className="text-xs text-white/50 font-body">اسحب أفقياً</p>
-                <button data-testid="add-content-btn" onClick={() => setShowForm(true)} className="bg-[#E3FF00] text-black font-heading font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1 active:scale-95">
+                <button data-testid="add-content-btn" onClick={() => setShowForm(true)} className="bg-[#D1795F] text-white font-heading font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1 active:scale-95">
                     <Plus className="w-4 h-4" /> محتوى
                 </button>
             </div>

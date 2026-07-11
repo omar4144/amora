@@ -13,39 +13,39 @@ export default function Explore() {
     return (
         <div className="p-6 pt-8 font-body" data-testid="explore-page">
             <div className="flex items-center gap-2 mb-6">
-                <TrendingUp className="w-6 h-6 text-[#E3FF00]" />
+                <TrendingUp className="w-6 h-6 text-[#D1795F]" />
                 <h1 className="text-3xl font-heading font-black">اكتشف</h1>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
-                <Link to="/incubator" data-testid="link-incubator" className="bg-gradient-to-br from-[#E3FF00]/25 to-transparent border border-[#E3FF00]/40 rounded-2xl p-4 hover:border-[#E3FF00] transition">
-                    <Sprout className="w-8 h-8 text-[#E3FF00] mb-2" />
+                <Link to="/incubator" data-testid="link-incubator" className="bg-gradient-to-br from-[#D1795F]/25 to-transparent border border-[#D1795F]/40 rounded-2xl p-4 hover:border-[#D1795F] transition">
+                    <Sprout className="w-8 h-8 text-[#D1795F] mb-2" />
                     <div className="font-heading font-bold">الحاضنة</div>
                     <div className="text-[10px] text-neutral-500 mt-1">من الفكرة للإطلاق</div>
                 </Link>
-                <Link to="/ai" data-testid="link-ai" className="bg-gradient-to-br from-[#E3FF00]/25 to-transparent border border-[#E3FF00]/40 rounded-2xl p-4 hover:border-[#E3FF00] transition">
-                    <Bot className="w-8 h-8 text-[#E3FF00] mb-2" />
+                <Link to="/ai" data-testid="link-ai" className="bg-gradient-to-br from-[#D1795F]/25 to-transparent border border-[#D1795F]/40 rounded-2xl p-4 hover:border-[#D1795F] transition">
+                    <Bot className="w-8 h-8 text-[#D1795F] mb-2" />
                     <div className="font-heading font-bold">مساعد رؤى AI</div>
                     <div className="text-[10px] text-neutral-500 mt-1">مدعوم بـ Claude</div>
                 </Link>
                 <Link to="/communities" data-testid="link-communities" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
-                    <Users className="w-8 h-8 text-[#E3FF00] mb-2" />
+                    <Users className="w-8 h-8 text-[#D1795F] mb-2" />
                     <div className="font-heading font-bold">المجتمعات</div>
                 </Link>
                 <Link to="/teams" data-testid="link-teams" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
-                    <UsersRound className="w-8 h-8 text-[#E3FF00] mb-2" />
+                    <UsersRound className="w-8 h-8 text-[#D1795F] mb-2" />
                     <div className="font-heading font-bold">الفرق</div>
                 </Link>
                 <Link to="/events" data-testid="link-events" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
-                    <Sprout className="w-8 h-8 text-[#E3FF00] mb-2" />
+                    <Sprout className="w-8 h-8 text-[#D1795F] mb-2" />
                     <div className="font-heading font-bold">الفعاليات</div>
                 </Link>
                 <Link to="/messages" data-testid="link-messages" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
-                    <MessageCircle className="w-8 h-8 text-[#E3FF00] mb-2" />
+                    <MessageCircle className="w-8 h-8 text-[#D1795F] mb-2" />
                     <div className="font-heading font-bold">الرسائل</div>
                 </Link>
                 <Link to="/search" data-testid="link-search" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
-                    <TrendingUp className="w-8 h-8 text-[#E3FF00] mb-2" />
+                    <TrendingUp className="w-8 h-8 text-[#D1795F] mb-2" />
                     <div className="font-heading font-bold">البحث</div>
                 </Link>
             </div>
@@ -58,9 +58,9 @@ export default function Explore() {
                         key={c.id}
                         to={`/u/${c.username}`}
                         data-testid={`creator-${c.username}`}
-                        className="bg-[#141414] border border-[#262626] hover:border-[#E3FF00] rounded-2xl p-4 transition-all group"
+                        className="bg-[#141414] border border-[#262626] hover:border-[#D1795F] rounded-2xl p-4 transition-all group"
                     >
-                        <div className="w-16 h-16 rounded-full bg-[#E3FF00] mb-3 flex items-center justify-center text-black text-2xl font-heading font-black group-hover:scale-105 transition">
+                        <div className="w-16 h-16 rounded-full bg-[#D1795F] mb-3 flex items-center justify-center text-black text-2xl font-heading font-black group-hover:scale-105 transition">
                             {c.name?.[0] || "?"}
                         </div>
                         <div className="font-heading font-bold text-sm truncate">{c.name}</div>

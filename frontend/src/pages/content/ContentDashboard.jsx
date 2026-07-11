@@ -5,7 +5,7 @@ import { Lightbulb, PenSquare, Eye, Check, Calendar, Rocket, Archive, ArrowLeft,
 
 const STATUS_ICONS = { idea: Lightbulb, draft: PenSquare, review: Eye, approved: Check, scheduled: Calendar, published: Rocket, archived: Archive };
 
-function StatCard({ icon: Icon, label, value, color = "#E3FF00" }) {
+function StatCard({ icon: Icon, label, value, color = "#D1795F" }) {
     return (
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: `${color}20`, color }}>
@@ -40,9 +40,9 @@ export default function ContentDashboard() {
     return (
         <div data-testid="content-dashboard" className="p-4 space-y-6">
             {stats.total === 0 && (
-                <div className="rounded-2xl bg-gradient-to-br from-[#E3FF00]/10 to-transparent border border-[#E3FF00]/30 p-6">
+                <div className="rounded-2xl bg-gradient-to-br from-[#D1795F]/10 to-transparent border border-[#D1795F]/30 p-6">
                     <div className="flex items-start gap-3 mb-3">
-                        <Sparkles className="w-6 h-6 text-[#E3FF00] flex-shrink-0 mt-0.5" fill="#E3FF00" />
+                        <Sparkles className="w-6 h-6 text-[#D1795F] flex-shrink-0 mt-0.5" fill="#D1795F" />
                         <div>
                             <h3 className="font-heading font-bold text-lg">أهلاً في Content OS</h3>
                             <p className="text-sm text-white/70 mt-1 font-body leading-relaxed">
@@ -51,7 +51,7 @@ export default function ContentDashboard() {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-4">
-                        <button onClick={() => nav("/content/ai")} data-testid="dash-quick-ai" className="bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-3 text-sm active:scale-95">
+                        <button onClick={() => nav("/content/ai")} data-testid="dash-quick-ai" className="bg-[#D1795F] text-white font-heading font-bold rounded-xl py-3 text-sm active:scale-95">
                             ✨ ولّد أفكاراً
                         </button>
                         <button onClick={() => nav("/content/kanban?new=1")} data-testid="dash-quick-new" className="bg-white/5 border border-white/10 text-white font-heading font-bold rounded-xl py-3 text-sm">
@@ -64,16 +64,16 @@ export default function ContentDashboard() {
             {/* KPIs */}
             <div className="grid grid-cols-2 gap-3">
                 <StatCard icon={Lightbulb} label="أفكار" value={stats.ideas} color="#94A3B8" />
-                <StatCard icon={PenSquare} label="مسودّات" value={stats.drafts} color="#3B82F6" />
+                <StatCard icon={PenSquare} label="مسودّات" value={stats.drafts} color="#57769D" />
                 <StatCard icon={Calendar} label="مجدولة" value={stats.scheduled} color="#06B6D4" />
-                <StatCard icon={Rocket} label="نشر هذا الشهر" value={stats.published_this_month} color="#10B981" />
+                <StatCard icon={Rocket} label="نشر هذا الشهر" value={stats.published_this_month} color="#C3E0A5" />
             </div>
 
             {/* Upcoming scheduled */}
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
                     <h3 className="font-heading font-bold text-base">منشورات قادمة</h3>
-                    <button onClick={() => nav("/content/calendar")} className="text-xs text-[#E3FF00] font-body flex items-center gap-1">
+                    <button onClick={() => nav("/content/calendar")} className="text-xs text-[#D1795F] font-body flex items-center gap-1">
                         التقويم <ArrowLeft className="w-3 h-3" />
                     </button>
                 </div>
@@ -81,7 +81,7 @@ export default function ContentDashboard() {
                     <div className="text-center py-8 text-white/40 text-sm">لا يوجد محتوى مجدول بعد</div>
                 )}
                 {upcoming.map((it) => (
-                    <div key={it.id} onClick={() => nav(`/content/item/${it.id}`)} className="bg-white/5 border border-white/10 rounded-xl p-3 hover:border-[#E3FF00]/40 transition cursor-pointer">
+                    <div key={it.id} onClick={() => nav(`/content/item/${it.id}`)} className="bg-white/5 border border-white/10 rounded-xl p-3 hover:border-[#D1795F]/40 transition cursor-pointer">
                         <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
                                 <h4 className="text-sm font-heading font-semibold text-white truncate">{it.title}</h4>

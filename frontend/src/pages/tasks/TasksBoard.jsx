@@ -34,8 +34,8 @@ function TaskForm({ meta, boardId, initial, onSubmit, onClose }) {
                     <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
                 </div>
                 <div className="space-y-3">
-                    <input data-testid="task-title" placeholder="العنوان *" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
-                    <textarea placeholder="وصف" value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none resize-none" />
+                    <input data-testid="task-title" placeholder="العنوان *" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
+                    <textarea placeholder="وصف" value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none resize-none" />
                     <div className="grid grid-cols-2 gap-3">
                         <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm text-white outline-none">
                             {meta.statuses.map((s) => <option key={s.key} value={s.key}>{s.name}</option>)}
@@ -55,12 +55,12 @@ function TaskForm({ meta, boardId, initial, onSubmit, onClose }) {
                             </div>
                         ))}
                         <div className="flex gap-2">
-                            <input placeholder="أضف عنصر مراجعة..." value={newCheck} onChange={(e) => setNewCheck(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCheck())} className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#E3FF00]" />
+                            <input placeholder="أضف عنصر مراجعة..." value={newCheck} onChange={(e) => setNewCheck(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCheck())} className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#D1795F]" />
                             <button type="button" onClick={addCheck} className="bg-white/10 rounded-lg px-3 text-xs">+</button>
                         </div>
                     </div>
                 </div>
-                <button data-testid="task-save" type="submit" disabled={busy} className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">{busy ? "..." : "حفظ"}</button>
+                <button data-testid="task-save" type="submit" disabled={busy} className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">{busy ? "..." : "حفظ"}</button>
             </form>
         </div>
     );
@@ -72,7 +72,7 @@ function TaskCard({ task, statuses, priorities, onMove, onOpen }) {
     const checklistDone = (task.checklist || []).filter(c => c.done).length;
     const checklistTotal = (task.checklist || []).length;
     return (
-        <div data-testid={`task-card-${task.id}`} className="bg-black border border-white/10 rounded-xl p-3 hover:border-[#E3FF00]/40 transition cursor-pointer">
+        <div data-testid={`task-card-${task.id}`} className="bg-black border border-white/10 rounded-xl p-3 hover:border-[#D1795F]/40 transition cursor-pointer">
             <div onClick={onOpen}>
                 <div className="flex items-start gap-2 mb-2">
                     <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: prio?.color }} />
@@ -94,7 +94,7 @@ function TaskCard({ task, statuses, priorities, onMove, onOpen }) {
                 </div>
             </div>
             <div className="mt-2 pt-2 border-t border-white/5">
-                <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="w-full text-[10px] text-white/60 hover:text-[#E3FF00] flex items-center justify-center gap-1 py-1">
+                <button onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }} className="w-full text-[10px] text-white/60 hover:text-[#D1795F] flex items-center justify-center gap-1 py-1">
                     <ArrowLeftRight className="w-3 h-3" /> نقل
                 </button>
             </div>
@@ -152,7 +152,7 @@ export default function TasksBoard() {
                 <button onClick={() => nav("/tasks/boards")} className="text-xs text-white/60 flex items-center gap-1">
                     <ArrowRight className="w-3 h-3" /> {board.name}
                 </button>
-                <button data-testid="add-task-btn" onClick={() => setShowForm(true)} className="bg-[#E3FF00] text-black font-heading font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1 active:scale-95">
+                <button data-testid="add-task-btn" onClick={() => setShowForm(true)} className="bg-[#D1795F] text-white font-heading font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1 active:scale-95">
                     <Plus className="w-4 h-4" /> مهمة
                 </button>
             </div>

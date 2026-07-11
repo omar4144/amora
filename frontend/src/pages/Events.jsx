@@ -27,8 +27,8 @@ export default function Events() {
     return (
         <div className="p-6 pt-8 font-body pb-24" data-testid="events-page">
             <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2"><Calendar className="w-6 h-6 text-[#E3FF00]"/><h1 className="text-2xl font-heading font-black">الفعاليات</h1></div>
-                <button data-testid="new-event-btn" onClick={()=>user?setShow(true):navigate("/auth")} className="bg-[#E3FF00] text-black font-heading font-bold rounded-full px-4 py-2 text-sm flex items-center gap-1"><Plus className="w-4 h-4"/>فعالية</button>
+                <div className="flex items-center gap-2"><Calendar className="w-6 h-6 text-[#D1795F]"/><h1 className="text-2xl font-heading font-black">الفعاليات</h1></div>
+                <button data-testid="new-event-btn" onClick={()=>user?setShow(true):navigate("/auth")} className="bg-[#D1795F] text-white font-heading font-bold rounded-full px-4 py-2 text-sm flex items-center gap-1"><Plus className="w-4 h-4"/>فعالية</button>
             </div>
             {items.length===0 && <div className="text-center py-16 text-neutral-500">لا فعاليات بعد</div>}
             <div className="space-y-3">
@@ -36,7 +36,7 @@ export default function Events() {
                     <div key={e.id} className="bg-[#141414] border border-[#262626] rounded-2xl p-4" data-testid={`event-${e.id}`}>
                         <div className="flex items-start justify-between mb-2">
                             <h3 className="font-heading font-bold">{e.title}</h3>
-                            <span className="text-[10px] bg-[#E3FF00]/20 text-[#E3FF00] px-2 py-0.5 rounded-full">{KINDS.find(k=>k.id===e.kind)?.l}</span>
+                            <span className="text-[10px] bg-[#D1795F]/20 text-[#D1795F] px-2 py-0.5 rounded-full">{KINDS.find(k=>k.id===e.kind)?.l}</span>
                         </div>
                         <p className="text-sm text-neutral-400 line-clamp-2 mb-2">{e.description}</p>
                         <div className="flex flex-wrap gap-3 text-xs text-neutral-500 mb-3">
@@ -45,8 +45,8 @@ export default function Events() {
                             <span>{e.tickets_sold}/{e.capacity} مسجّل</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-[#E3FF00] font-heading font-black">{e.price>0?`$${e.price}`:"مجاناً"}</span>
-                            <button onClick={()=>register(e.id)} data-testid={`register-${e.id}`} className="bg-[#E3FF00] text-black font-heading font-bold rounded-full px-4 py-1.5 text-xs flex items-center gap-1"><Ticket className="w-3 h-3"/>احجز</button>
+                            <span className="text-[#D1795F] font-heading font-black">{e.price>0?`$${e.price}`:"مجاناً"}</span>
+                            <button onClick={()=>register(e.id)} data-testid={`register-${e.id}`} className="bg-[#D1795F] text-white font-heading font-bold rounded-full px-4 py-1.5 text-xs flex items-center gap-1"><Ticket className="w-3 h-3"/>احجز</button>
                         </div>
                     </div>
                 ))}
@@ -55,16 +55,16 @@ export default function Events() {
                 <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={()=>setShow(false)}>
                     <form onSubmit={create} onClick={e=>e.stopPropagation()} className="w-full max-w-md bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 space-y-2 max-h-[85vh] overflow-y-auto">
                         <div className="flex items-center justify-between"><h3 className="font-heading font-black text-lg">فعالية جديدة</h3><button type="button" onClick={()=>setShow(false)}><X className="w-5 h-5"/></button></div>
-                        <input required data-testid="ev-title" placeholder="عنوان الفعالية" value={f.title} onChange={e=>setF({...f,title:e.target.value})} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none"/>
-                        <textarea required data-testid="ev-desc" placeholder="الوصف" rows={2} value={f.description} onChange={e=>setF({...f,description:e.target.value})} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none resize-none"/>
-                        <div className="grid grid-cols-5 gap-1">{KINDS.map(k=><button key={k.id} type="button" onClick={()=>setF({...f,kind:k.id})} className={`text-xs py-2 rounded-lg font-heading font-bold ${f.kind===k.id?"bg-[#E3FF00] text-black":"bg-[#141414] border border-[#262626]"}`}>{k.l}</button>)}</div>
-                        <input required type="date" data-testid="ev-date" value={f.date} onChange={e=>setF({...f,date:e.target.value})} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none"/>
-                        <input data-testid="ev-loc" placeholder="الموقع" value={f.location} onChange={e=>setF({...f,location:e.target.value})} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none"/>
+                        <input required data-testid="ev-title" placeholder="عنوان الفعالية" value={f.title} onChange={e=>setF({...f,title:e.target.value})} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none"/>
+                        <textarea required data-testid="ev-desc" placeholder="الوصف" rows={2} value={f.description} onChange={e=>setF({...f,description:e.target.value})} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none resize-none"/>
+                        <div className="grid grid-cols-5 gap-1">{KINDS.map(k=><button key={k.id} type="button" onClick={()=>setF({...f,kind:k.id})} className={`text-xs py-2 rounded-lg font-heading font-bold ${f.kind===k.id?"bg-[#D1795F] text-white":"bg-[#141414] border border-[#262626]"}`}>{k.l}</button>)}</div>
+                        <input required type="date" data-testid="ev-date" value={f.date} onChange={e=>setF({...f,date:e.target.value})} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none"/>
+                        <input data-testid="ev-loc" placeholder="الموقع" value={f.location} onChange={e=>setF({...f,location:e.target.value})} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none"/>
                         <div className="grid grid-cols-2 gap-2">
-                            <input type="number" min="0" data-testid="ev-price" placeholder="السعر ($)" value={f.price} onChange={e=>setF({...f,price:e.target.value})} className="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none"/>
-                            <input type="number" min="1" data-testid="ev-cap" placeholder="السعة" value={f.capacity} onChange={e=>setF({...f,capacity:e.target.value})} className="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none"/>
+                            <input type="number" min="0" data-testid="ev-price" placeholder="السعر ($)" value={f.price} onChange={e=>setF({...f,price:e.target.value})} className="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none"/>
+                            <input type="number" min="1" data-testid="ev-cap" placeholder="السعة" value={f.capacity} onChange={e=>setF({...f,capacity:e.target.value})} className="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none"/>
                         </div>
-                        <button data-testid="submit-event" type="submit" className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-full py-3">نشر الفعالية</button>
+                        <button data-testid="submit-event" type="submit" className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-full py-3">نشر الفعالية</button>
                     </form>
                 </div>
             )}

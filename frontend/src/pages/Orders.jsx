@@ -21,7 +21,7 @@ const ReviewModal = ({ order, onClose, onSubmit }) => {
                 <div className="flex justify-center gap-2 mb-4">
                     {[1, 2, 3, 4, 5].map((n) => (
                         <button key={n} data-testid={`star-${n}`} onClick={() => setRating(n)}>
-                            <Star className={`w-9 h-9 ${n <= rating ? "text-[#E3FF00] fill-[#E3FF00]" : "text-neutral-700"}`} />
+                            <Star className={`w-9 h-9 ${n <= rating ? "text-[#D1795F] fill-[#D1795F]" : "text-neutral-700"}`} />
                         </button>
                     ))}
                 </div>
@@ -29,11 +29,11 @@ const ReviewModal = ({ order, onClose, onSubmit }) => {
                     data-testid="review-text"
                     value={text} onChange={(e) => setText(e.target.value)}
                     rows={3} placeholder="اكتب تعليقك..."
-                    className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none resize-none mb-4"
+                    className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none resize-none mb-4"
                 />
                 <div className="flex gap-2">
                     <button onClick={onClose} className="flex-1 bg-white/10 rounded-full py-3 font-heading font-bold">إلغاء</button>
-                    <button data-testid="submit-review" onClick={() => onSubmit(rating, text)} className="flex-1 bg-[#E3FF00] text-black rounded-full py-3 font-heading font-bold">إرسال</button>
+                    <button data-testid="submit-review" onClick={() => onSubmit(rating, text)} className="flex-1 bg-[#D1795F] text-white rounded-full py-3 font-heading font-bold">إرسال</button>
                 </div>
             </div>
         </div>
@@ -53,7 +53,7 @@ const OrderCard = ({ o, isCreator, onDeliver, onPay, onReview }) => {
                         {isCreator ? `العميل: @${o.client?.username}` : `المصمم: @${o.creator?.username}`}
                     </div>
                 </div>
-                <div className="text-[#E3FF00] font-heading font-black text-xl">${o.amount}</div>
+                <div className="text-[#D1795F] font-heading font-black text-xl">${o.amount}</div>
             </div>
             <div className={`flex items-center gap-1 text-sm ${s.color} mb-3`}>
                 <Icon className="w-4 h-4" />
@@ -64,7 +64,7 @@ const OrderCard = ({ o, isCreator, onDeliver, onPay, onReview }) => {
                 <button
                     onClick={() => onPay(o.id)}
                     data-testid={`pay-btn-${o.id}`}
-                    className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-full py-2.5 hover:bg-[#CCEA00] transition"
+                    className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-full py-2.5 hover:bg-[#B86648] transition"
                 >
                     دفع ${o.amount}
                 </button>
@@ -83,7 +83,7 @@ const OrderCard = ({ o, isCreator, onDeliver, onPay, onReview }) => {
                 <button
                     onClick={() => onDeliver(o.id)}
                     data-testid={`deliver-btn-${o.id}`}
-                    className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-full py-2.5 hover:bg-[#CCEA00] transition"
+                    className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-full py-2.5 hover:bg-[#B86648] transition"
                 >
                     تأكيد التسليم
                 </button>
@@ -177,7 +177,7 @@ export default function Orders() {
     return (
         <div className="p-6 pt-8 font-body" data-testid="orders-page">
             <div className="flex items-center gap-2 mb-6">
-                <Package className="w-6 h-6 text-[#E3FF00]" />
+                <Package className="w-6 h-6 text-[#D1795F]" />
                 <h1 className="text-3xl font-heading font-black">طلباتي</h1>
             </div>
 
@@ -185,14 +185,14 @@ export default function Orders() {
                 <button
                     data-testid="tab-as-client"
                     onClick={() => setTab("as_client")}
-                    className={`flex-1 py-2 rounded-full font-heading font-bold text-sm transition ${tab === "as_client" ? "bg-[#E3FF00] text-black" : "text-neutral-400"}`}
+                    className={`flex-1 py-2 rounded-full font-heading font-bold text-sm transition ${tab === "as_client" ? "bg-[#D1795F] text-white" : "text-neutral-400"}`}
                 >
                     طلبت ({data.as_client.length})
                 </button>
                 <button
                     data-testid="tab-as-creator"
                     onClick={() => setTab("as_creator")}
-                    className={`flex-1 py-2 rounded-full font-heading font-bold text-sm transition ${tab === "as_creator" ? "bg-[#E3FF00] text-black" : "text-neutral-400"}`}
+                    className={`flex-1 py-2 rounded-full font-heading font-bold text-sm transition ${tab === "as_creator" ? "bg-[#D1795F] text-white" : "text-neutral-400"}`}
                 >
                     استلمت ({data.as_creator.length})
                 </button>

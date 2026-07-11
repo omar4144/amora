@@ -51,7 +51,7 @@ export default function CommunityDetail() {
                 <div className="text-5xl mb-2">{c.icon}</div>
                 <h1 className="text-2xl font-heading font-black">{c.name}</h1>
                 <div className="text-sm text-neutral-400 mb-4">{c.members_count} عضو</div>
-                <button onClick={join} data-testid="join-btn" className={`w-full rounded-full py-2.5 font-heading font-bold text-sm transition ${c.joined ? "bg-white/10" : "bg-[#E3FF00] text-black"}`}>
+                <button onClick={join} data-testid="join-btn" className={`w-full rounded-full py-2.5 font-heading font-bold text-sm transition ${c.joined ? "bg-white/10" : "bg-[#D1795F] text-white"}`}>
                     {c.joined ? "عضو ✓" : "انضم للمجتمع"}
                 </button>
             </div>
@@ -59,8 +59,8 @@ export default function CommunityDetail() {
             <div className="p-4">
                 {c.joined && (
                     <form onSubmit={post} className="bg-[#141414] border border-[#262626] rounded-2xl p-3 mb-4 flex gap-2">
-                        <input data-testid="post-input" value={text} onChange={(e) => setText(e.target.value)} placeholder="شارك فكرة أو نقاش..." className="flex-1 bg-black border border-[#262626] rounded-full px-4 py-2.5 focus:border-[#E3FF00] focus:outline-none text-sm" />
-                        <button type="submit" data-testid="submit-post" className="w-10 h-10 rounded-full bg-[#E3FF00] text-black flex items-center justify-center"><Send className="w-4 h-4" /></button>
+                        <input data-testid="post-input" value={text} onChange={(e) => setText(e.target.value)} placeholder="شارك فكرة أو نقاش..." className="flex-1 bg-black border border-[#262626] rounded-full px-4 py-2.5 focus:border-[#D1795F] focus:outline-none text-sm" />
+                        <button type="submit" data-testid="submit-post" className="w-10 h-10 rounded-full bg-[#D1795F] text-white flex items-center justify-center"><Send className="w-4 h-4" /></button>
                     </form>
                 )}
                 {posts.length === 0 && <div className="text-center py-16 text-neutral-500">لا منشورات بعد. كن أول من ينشر</div>}
@@ -68,15 +68,15 @@ export default function CommunityDetail() {
                     {posts.map((p) => (
                         <div key={p.id} className="bg-[#141414] border border-[#262626] rounded-2xl p-4" data-testid={`post-${p.id}`}>
                             <Link to={`/u/${p.user?.username}`} className="flex items-center gap-2 mb-2">
-                                <div className="w-8 h-8 rounded-full bg-[#E3FF00] flex items-center justify-center text-black font-heading font-black text-xs">{p.user?.name?.[0]}</div>
+                                <div className="w-8 h-8 rounded-full bg-[#D1795F] flex items-center justify-center text-black font-heading font-black text-xs">{p.user?.name?.[0]}</div>
                                 <div>
                                     <div className="text-sm font-heading font-bold">{p.user?.name}</div>
                                     <div className="text-[10px] text-neutral-500">@{p.user?.username}</div>
                                 </div>
                             </Link>
                             <p className="text-sm text-white/90 whitespace-pre-line mb-3">{p.text}</p>
-                            <button onClick={() => like(p.id)} data-testid={`like-post-${p.id}`} className="flex items-center gap-1 text-xs text-neutral-400 hover:text-[#E3FF00]">
-                                <Heart className={`w-4 h-4 ${p.liked ? "fill-[#E3FF00] text-[#E3FF00]" : ""}`} /> {p.likes || 0}
+                            <button onClick={() => like(p.id)} data-testid={`like-post-${p.id}`} className="flex items-center gap-1 text-xs text-neutral-400 hover:text-[#D1795F]">
+                                <Heart className={`w-4 h-4 ${p.liked ? "fill-[#D1795F] text-[#D1795F]" : ""}`} /> {p.likes || 0}
                             </button>
                         </div>
                     ))}

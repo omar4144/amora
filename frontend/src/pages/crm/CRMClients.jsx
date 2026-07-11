@@ -32,14 +32,14 @@ function ClientForm({ initial, onSubmit, onClose }) {
                     <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
                 </div>
                 <div className="space-y-3">
-                    <input data-testid="client-name" placeholder="الاسم *" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
-                    <input placeholder="الشركة" value={form.company} onChange={(e) => setForm({...form, company: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
-                    <input placeholder="المجال" value={form.industry} onChange={(e) => setForm({...form, industry: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
+                    <input data-testid="client-name" placeholder="الاسم *" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
+                    <input placeholder="الشركة" value={form.company} onChange={(e) => setForm({...form, company: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
+                    <input placeholder="المجال" value={form.industry} onChange={(e) => setForm({...form, industry: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
                     <div className="grid grid-cols-2 gap-3">
-                        <input placeholder="البريد" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
-                        <input placeholder="الهاتف" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none" />
+                        <input placeholder="البريد" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
+                        <input placeholder="الهاتف" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none" />
                     </div>
-                    <textarea placeholder="ملاحظات" value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none resize-none" />
+                    <textarea placeholder="ملاحظات" value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none resize-none" />
                     <div className="grid grid-cols-2 gap-3">
                         <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none">
                             <option value="active">نشط</option>
@@ -55,7 +55,7 @@ function ClientForm({ initial, onSubmit, onClose }) {
                         </select>
                     </div>
                 </div>
-                <button data-testid="client-save" type="submit" disabled={busy} className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">
+                <button data-testid="client-save" type="submit" disabled={busy} className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-xl py-3 mt-5 active:scale-95 disabled:opacity-60">
                     {busy ? "جارٍ الحفظ..." : "حفظ"}
                 </button>
             </form>
@@ -115,13 +115,13 @@ export default function CRMClients() {
                         placeholder="بحث..."
                         value={q}
                         onChange={(e) => setQ(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none"
                     />
                 </div>
                 <button
                     data-testid="add-client-btn"
                     onClick={() => setShowForm(true)}
-                    className="bg-[#E3FF00] text-black font-heading font-bold rounded-xl px-4 py-2.5 text-sm flex items-center gap-1 active:scale-95"
+                    className="bg-[#D1795F] text-white font-heading font-bold rounded-xl px-4 py-2.5 text-sm flex items-center gap-1 active:scale-95"
                 >
                     <Plus className="w-4 h-4" /> إضافة
                 </button>
@@ -134,7 +134,7 @@ export default function CRMClients() {
                     </div>
                 )}
                 {filtered.map((c) => (
-                    <div key={c.id} data-testid={`client-${c.id}`} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-[#E3FF00]/40 transition">
+                    <div key={c.id} data-testid={`client-${c.id}`} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-[#D1795F]/40 transition">
                         <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
@@ -154,7 +154,7 @@ export default function CRMClients() {
                                     {c.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {c.phone}</span>}
                                 </div>
                                 <div className="mt-2 flex items-center gap-2">
-                                    <span className="text-[10px] bg-[#E3FF00]/10 text-[#E3FF00] px-2 py-0.5 rounded-full font-heading font-semibold">
+                                    <span className="text-[10px] bg-[#D1795F]/10 text-[#D1795F] px-2 py-0.5 rounded-full font-heading font-semibold">
                                         {c.deals_count} صفقة
                                     </span>
                                 </div>

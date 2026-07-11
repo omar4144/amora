@@ -26,7 +26,7 @@ export default function CRMActivities() {
                         key={t}
                         onClick={() => setFilter(t)}
                         className={`px-3 py-1.5 rounded-full text-[11px] whitespace-nowrap font-heading font-semibold ${
-                            filter === t ? "bg-[#E3FF00] text-black" : "bg-white/5 text-white/60 border border-white/10"
+                            filter === t ? "bg-[#D1795F] text-white" : "bg-white/5 text-white/60 border border-white/10"
                         }`}
                     >
                         {t === "all" ? "الكل" : ACT_LABELS[t]}
@@ -43,8 +43,8 @@ export default function CRMActivities() {
                     const Icon = ACT_ICONS[a.type] || StickyNote;
                     return (
                         <div key={a.id} className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-start gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#E3FF00]/10 flex items-center justify-center flex-shrink-0">
-                                <Icon className="w-4 h-4 text-[#E3FF00]" />
+                            <div className="w-9 h-9 rounded-full bg-[#D1795F]/10 flex items-center justify-center flex-shrink-0">
+                                <Icon className="w-4 h-4 text-[#D1795F]" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm text-white font-heading font-semibold">{a.title}</p>

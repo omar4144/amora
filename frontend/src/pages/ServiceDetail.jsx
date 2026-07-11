@@ -41,8 +41,8 @@ export default function ServiceDetail() {
                 <ChevronRight className="w-4 h-4" /> رجوع
             </button>
 
-            <Link to={`/u/${service.creator?.username}`} className="flex items-center gap-3 mb-6 bg-[#141414] border border-[#262626] rounded-2xl p-3 hover:border-[#E3FF00] transition">
-                <div className="w-12 h-12 rounded-full bg-[#E3FF00] flex items-center justify-center text-black font-heading font-black">
+            <Link to={`/u/${service.creator?.username}`} className="flex items-center gap-3 mb-6 bg-[#141414] border border-[#262626] rounded-2xl p-3 hover:border-[#D1795F] transition">
+                <div className="w-12 h-12 rounded-full bg-[#D1795F] flex items-center justify-center text-black font-heading font-black">
                     {service.creator?.name?.[0]}
                 </div>
                 <div>
@@ -56,7 +56,7 @@ export default function ServiceDetail() {
                 <div className="flex items-center gap-2 mb-3" data-testid="service-rating">
                     <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((n) => (
-                            <Star key={n} className={`w-4 h-4 ${n <= Math.round(reviewsData.average) ? "text-[#E3FF00] fill-[#E3FF00]" : "text-neutral-700"}`} />
+                            <Star key={n} className={`w-4 h-4 ${n <= Math.round(reviewsData.average) ? "text-[#D1795F] fill-[#D1795F]" : "text-neutral-700"}`} />
                         ))}
                     </div>
                     <span className="text-sm text-white font-heading font-bold">{reviewsData.average}</span>
@@ -70,7 +70,7 @@ export default function ServiceDetail() {
                     <div className="text-xs text-neutral-500 mb-1 flex items-center gap-1">
                         <DollarSign className="w-3 h-3" /> السعر
                     </div>
-                    <div className="text-[#E3FF00] font-heading font-black text-2xl">${service.price}</div>
+                    <div className="text-[#D1795F] font-heading font-black text-2xl">${service.price}</div>
                 </div>
                 <div className="bg-[#141414] border border-[#262626] rounded-2xl p-4">
                     <div className="text-xs text-neutral-500 mb-1 flex items-center gap-1">
@@ -87,14 +87,14 @@ export default function ServiceDetail() {
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
                 placeholder="اكتب ما تحتاجه..."
-                className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none mb-6 resize-none"
+                className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none mb-6 resize-none"
             />
 
             <button
                 onClick={order}
                 disabled={loading}
                 data-testid="order-service-btn"
-                className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-full py-4 hover:bg-[#CCEA00] transition active:scale-95 disabled:opacity-50"
+                className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-full py-4 hover:bg-[#B86648] transition active:scale-95 disabled:opacity-50"
             >
                 {loading ? "..." : `اطلب الآن بـ $${service.price}`}
             </button>
@@ -102,19 +102,19 @@ export default function ServiceDetail() {
             {reviewsData.reviews.length > 0 && (
                 <div className="mt-8">
                     <h3 className="font-heading font-bold text-lg mb-3 flex items-center gap-2">
-                        <Star className="w-5 h-5 text-[#E3FF00]" /> التقييمات ({reviewsData.count})
+                        <Star className="w-5 h-5 text-[#D1795F]" /> التقييمات ({reviewsData.count})
                     </h3>
                     <div className="space-y-3">
                         {reviewsData.reviews.map((r) => (
                             <div key={r.id} className="bg-[#141414] border border-[#262626] rounded-2xl p-4" data-testid={`review-${r.id}`}>
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-[#E3FF00] flex items-center justify-center text-black text-xs font-heading font-black">{r.client?.name?.[0]}</div>
+                                        <div className="w-8 h-8 rounded-full bg-[#D1795F] flex items-center justify-center text-black text-xs font-heading font-black">{r.client?.name?.[0]}</div>
                                         <div className="text-sm font-heading font-bold">@{r.client?.username}</div>
                                     </div>
                                     <div className="flex items-center gap-0.5">
                                         {[1, 2, 3, 4, 5].map((n) => (
-                                            <Star key={n} className={`w-3 h-3 ${n <= r.rating ? "text-[#E3FF00] fill-[#E3FF00]" : "text-neutral-700"}`} />
+                                            <Star key={n} className={`w-3 h-3 ${n <= r.rating ? "text-[#D1795F] fill-[#D1795F]" : "text-neutral-700"}`} />
                                         ))}
                                     </div>
                                 </div>

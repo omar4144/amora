@@ -87,7 +87,7 @@ export default function CRMDealDetail() {
                 </div>
 
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center gap-1.5 text-[#E3FF00] font-heading font-black text-2xl">
+                    <div className="flex items-center gap-1.5 text-[#D1795F] font-heading font-black text-2xl">
                         <DollarSign className="w-5 h-5" />
                         {deal.value.toLocaleString()}
                         <span className="text-white/40 text-sm">{deal.currency}</span>
@@ -139,7 +139,7 @@ export default function CRMDealDetail() {
                                 key={t} type="button"
                                 onClick={() => setAct({ ...act, type: t })}
                                 className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] whitespace-nowrap ${
-                                    act.type === t ? "bg-[#E3FF00] text-black font-heading font-bold" : "bg-white/5 text-white/60 border border-white/10"
+                                    act.type === t ? "bg-[#D1795F] text-white font-heading font-bold" : "bg-white/5 text-white/60 border border-white/10"
                                 }`}
                             >
                                 <Icon className="w-3 h-3" /> {ACT_LABELS[t]}
@@ -152,16 +152,16 @@ export default function CRMDealDetail() {
                     placeholder="ماذا حدث؟"
                     value={act.title}
                     onChange={(e) => setAct({ ...act, title: e.target.value })}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none"
                 />
                 <textarea
                     placeholder="تفاصيل (اختياري)"
                     value={act.description}
                     onChange={(e) => setAct({ ...act, description: e.target.value })}
                     rows={2}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none resize-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none resize-none"
                 />
-                <button data-testid="activity-save" type="submit" disabled={busy} className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-2.5 text-sm active:scale-95 disabled:opacity-60">
+                <button data-testid="activity-save" type="submit" disabled={busy} className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-xl py-2.5 text-sm active:scale-95 disabled:opacity-60">
                     {busy ? "..." : "حفظ النشاط"}
                 </button>
             </form>
@@ -177,8 +177,8 @@ export default function CRMDealDetail() {
                         const Icon = ACT_ICONS[a.type] || StickyNote;
                         return (
                             <div key={a.id} className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#E3FF00]/10 flex items-center justify-center flex-shrink-0">
-                                    <Icon className="w-4 h-4 text-[#E3FF00]" />
+                                <div className="w-8 h-8 rounded-full bg-[#D1795F]/10 flex items-center justify-center flex-shrink-0">
+                                    <Icon className="w-4 h-4 text-[#D1795F]" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm text-white font-heading font-semibold">{a.title}</p>

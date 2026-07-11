@@ -72,11 +72,11 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView }) => {
                     className="inline-flex items-center gap-2 mb-3 group"
                     data-testid={`video-creator-${v.id}`}
                 >
-                    <div className="w-10 h-10 rounded-full bg-[#E3FF00] flex items-center justify-center text-black font-heading font-black text-sm">
+                    <div className="w-10 h-10 rounded-full bg-[#D1795F] flex items-center justify-center text-black font-heading font-black text-sm">
                         {v.creator?.name?.[0] || "?"}
                     </div>
                     <div>
-                        <div className="font-heading font-bold text-white group-hover:text-[#E3FF00] transition">
+                        <div className="font-heading font-bold text-white group-hover:text-[#D1795F] transition">
                             @{v.creator?.username}
                         </div>
                         <div className="text-xs text-neutral-400">{v.creator?.name}</div>
@@ -117,7 +117,7 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView }) => {
                     data-testid={`services-btn-${v.id}`}
                     className="flex flex-col items-center gap-1"
                 >
-                    <div className="w-11 h-11 rounded-full bg-[#E3FF00] flex items-center justify-center hover:bg-[#CCEA00] transition active:scale-95">
+                    <div className="w-11 h-11 rounded-full bg-[#D1795F] flex items-center justify-center hover:bg-[#B86648] transition active:scale-95">
                         <ShoppingBag className="w-6 h-6 text-black" strokeWidth={2.4} />
                     </div>
                     <span className="text-xs text-white font-body font-bold">اطلب</span>
@@ -174,7 +174,7 @@ const CommentsSheet = ({ video, onClose, onCommentAdded }) => {
                     {comments.length === 0 && <p className="text-neutral-500 text-center py-10">كن أول من يعلق</p>}
                     {comments.map((c) => (
                         <div key={c.id} className="flex gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#E3FF00] shrink-0 flex items-center justify-center text-black font-heading font-black text-sm">
+                            <div className="w-9 h-9 rounded-full bg-[#D1795F] shrink-0 flex items-center justify-center text-black font-heading font-black text-sm">
                                 {c.user?.name?.[0]}
                             </div>
                             <div className="flex-1">
@@ -190,9 +190,9 @@ const CommentsSheet = ({ video, onClose, onCommentAdded }) => {
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         placeholder="اكتب تعليقاً..."
-                        className="flex-1 bg-[#141414] border border-[#262626] rounded-full px-4 py-2.5 text-white placeholder-neutral-500 focus:border-[#E3FF00] focus:outline-none text-sm"
+                        className="flex-1 bg-[#141414] border border-[#262626] rounded-full px-4 py-2.5 text-white placeholder-neutral-500 focus:border-[#D1795F] focus:outline-none text-sm"
                     />
-                    <button type="submit" data-testid="submit-comment" className="bg-[#E3FF00] text-black font-heading font-bold px-5 rounded-full active:scale-95">
+                    <button type="submit" data-testid="submit-comment" className="bg-[#D1795F] text-white font-heading font-bold px-5 rounded-full active:scale-95">
                         نشر
                     </button>
                 </form>
@@ -228,7 +228,7 @@ const ServicesSheet = ({ video, onClose }) => {
                             key={s.id}
                             onClick={() => { navigate(`/service/${s.id}`); onClose(); }}
                             data-testid={`service-item-${s.id}`}
-                            className="w-full text-start bg-[#141414] border border-[#262626] hover:border-[#E3FF00] rounded-2xl p-4 transition-all"
+                            className="w-full text-start bg-[#141414] border border-[#262626] hover:border-[#D1795F] rounded-2xl p-4 transition-all"
                         >
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex-1">
@@ -237,7 +237,7 @@ const ServicesSheet = ({ video, onClose }) => {
                                     <p className="text-xs text-neutral-500 mt-2">التسليم خلال {s.delivery_days} أيام</p>
                                 </div>
                                 <div className="text-end">
-                                    <div className="text-[#E3FF00] font-heading font-black text-xl">${s.price}</div>
+                                    <div className="text-[#D1795F] font-heading font-black text-xl">${s.price}</div>
                                 </div>
                             </div>
                         </button>
@@ -294,13 +294,13 @@ export default function Feed() {
     if (videos.length === 0) {
         return (
             <div className="h-[100dvh] w-full flex flex-col items-center justify-center bg-black text-white p-8 text-center">
-                <Sparkles className="w-16 h-16 text-[#E3FF00] mb-4" />
+                <Sparkles className="w-16 h-16 text-[#D1795F] mb-4" />
                 <h2 className="font-heading font-black text-2xl mb-2">مافيه محتوى بعد</h2>
                 <p className="text-neutral-400 mb-6 font-body">كن أول من ينشر فيديو ويبدأ الرحلة</p>
                 <button
                     onClick={() => navigate(user ? "/upload" : "/auth")}
                     data-testid="empty-upload-btn"
-                    className="bg-[#E3FF00] text-black font-heading font-bold rounded-full px-8 py-3 hover:bg-[#CCEA00] transition active:scale-95"
+                    className="bg-[#D1795F] text-white font-heading font-bold rounded-full px-8 py-3 hover:bg-[#B86648] transition active:scale-95"
                 >
                     انشر أول فيديو
                 </button>
@@ -316,7 +316,7 @@ export default function Feed() {
                     <SearchIcon className="w-5 h-5 text-white" />
                 </Link>
                 <div className="font-heading font-black text-white text-lg pointer-events-none">
-                    <span className="text-[#E3FF00]">رؤى</span>
+                    <span className="text-[#D1795F]">رؤى</span>
                 </div>
                 <Link to={user ? "/notifications" : "/auth"} data-testid="feed-notif-btn" className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center pointer-events-auto hover:bg-black/70">
                     <Bell className="w-5 h-5 text-white" />

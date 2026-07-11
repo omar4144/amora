@@ -8,7 +8,7 @@ const NavItem = ({ to, icon: Icon, label, testId }) => (
         data-testid={testId}
         className={({ isActive }) =>
             `flex flex-col items-center justify-center gap-1 w-full h-full transition-colors ${
-                isActive ? "text-[#E3FF00]" : "text-neutral-400 hover:text-white"
+                isActive ? "text-[#D1795F]" : "text-neutral-400 hover:text-white"
             }`
         }
     >
@@ -48,7 +48,7 @@ export default function Layout() {
                     onClick={goProfile}
                     className={`flex flex-col items-center justify-center gap-1 w-full h-full transition-colors ${
                         location.pathname.startsWith("/u/") || location.pathname.startsWith("/profile")
-                            ? "text-[#E3FF00]"
+                            ? "text-[#D1795F]"
                             : "text-neutral-400 hover:text-white"
                     }`}
                 >

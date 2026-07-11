@@ -78,13 +78,13 @@ export default function TaskDetail() {
                         value={task.title}
                         onChange={(e) => setTask({ ...task, title: e.target.value })}
                         onBlur={() => save({ title: task.title })}
-                        className="flex-1 bg-transparent text-white font-heading font-black text-lg outline-none border-b border-transparent focus:border-[#E3FF00]/50 pb-1"
+                        className="flex-1 bg-transparent text-white font-heading font-black text-lg outline-none border-b border-transparent focus:border-[#D1795F]/50 pb-1"
                     />
                     <button onClick={remove} className="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center">
                         <Trash2 className="w-4 h-4 text-red-400" />
                     </button>
                 </div>
-                <textarea placeholder="وصف..." value={task.description || ""} onChange={(e) => setTask({ ...task, description: e.target.value })} onBlur={() => save({ description: task.description })} rows={3} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/80 outline-none resize-none focus:border-[#E3FF00]" />
+                <textarea placeholder="وصف..." value={task.description || ""} onChange={(e) => setTask({ ...task, description: e.target.value })} onBlur={() => save({ description: task.description })} rows={3} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/80 outline-none resize-none focus:border-[#D1795F]" />
             </div>
 
             {/* Status + Priority */}
@@ -117,7 +117,7 @@ export default function TaskDetail() {
                 <div className="space-y-2">
                     {(task.checklist || []).map((item, i) => (
                         <div key={i} className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-3 group">
-                            <button onClick={() => toggleCheck(i, !item.done)} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition ${item.done ? "bg-[#E3FF00] border-[#E3FF00]" : "border-white/30 hover:border-[#E3FF00]/50"}`}>
+                            <button onClick={() => toggleCheck(i, !item.done)} className={`w-5 h-5 rounded border-2 flex items-center justify-center transition ${item.done ? "bg-[#D1795F] border-[#D1795F]" : "border-white/30 hover:border-[#D1795F]/50"}`}>
                                 {item.done && <Check className="w-3 h-3 text-black" strokeWidth={3} />}
                             </button>
                             <span className={`flex-1 text-sm ${item.done ? "text-white/40 line-through" : "text-white"}`}>{item.text}</span>
@@ -125,8 +125,8 @@ export default function TaskDetail() {
                         </div>
                     ))}
                     <div className="flex gap-2">
-                        <input placeholder="أضف عنصر..." value={newCheck} onChange={(e) => setNewCheck(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCheck())} className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-[#E3FF00]" />
-                        <button onClick={addCheck} className="bg-[#E3FF00] text-black rounded-xl px-4 py-2.5 font-bold"><Plus className="w-4 h-4" /></button>
+                        <input placeholder="أضف عنصر..." value={newCheck} onChange={(e) => setNewCheck(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCheck())} className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-[#D1795F]" />
+                        <button onClick={addCheck} className="bg-[#D1795F] text-white rounded-xl px-4 py-2.5 font-bold"><Plus className="w-4 h-4" /></button>
                     </div>
                 </div>
             </div>

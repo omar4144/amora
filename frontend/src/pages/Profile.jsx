@@ -67,7 +67,7 @@ export default function Profile() {
             {/* Header */}
             <div className="relative bg-gradient-to-b from-[#141414] to-black pt-8 pb-6 px-6">
                 <div className="flex items-start justify-between mb-4">
-                    <div className="w-24 h-24 rounded-full bg-[#E3FF00] flex items-center justify-center text-black text-3xl font-heading font-black">
+                    <div className="w-24 h-24 rounded-full bg-[#D1795F] flex items-center justify-center text-black text-3xl font-heading font-black">
                         {profile.name?.[0] || "?"}
                     </div>
                     {isMe && (
@@ -102,7 +102,7 @@ export default function Profile() {
                 <div className="text-neutral-400 text-sm mb-2">@{profile.username}</div>
                 {profile.role && (
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className="text-xs bg-[#E3FF00]/20 text-[#E3FF00] px-2 py-0.5 rounded-full font-heading font-bold">{profile.role}</span>
+                        <span className="text-xs bg-[#D1795F]/20 text-[#D1795F] px-2 py-0.5 rounded-full font-heading font-bold">{profile.role}</span>
                         {profile.years_experience > 0 && <span className="text-xs text-neutral-500">{profile.years_experience} سنة خبرة</span>}
                     </div>
                 )}
@@ -126,7 +126,7 @@ export default function Profile() {
                         <button
                             onClick={follow}
                             data-testid="follow-btn"
-                            className={`flex-1 rounded-full py-3 font-heading font-bold transition ${profile.is_following ? "bg-white/10 text-white" : "bg-[#E3FF00] text-black hover:bg-[#CCEA00]"}`}
+                            className={`flex-1 rounded-full py-3 font-heading font-bold transition ${profile.is_following ? "bg-white/10 text-white" : "bg-[#D1795F] text-white hover:bg-[#B86648]"}`}
                         >
                             {profile.is_following ? "أتابعه" : "متابعة"}
                         </button>
@@ -146,9 +146,9 @@ export default function Profile() {
                         <button
                             data-testid="open-crm-btn"
                             onClick={() => navigate("/crm")}
-                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex flex-col items-center gap-1"
+                            className="bg-gradient-to-r from-[#D1795F]/10 to-[#D1795F]/5 hover:from-[#D1795F]/20 hover:to-[#D1795F]/10 border border-[#D1795F]/30 rounded-2xl p-3 transition flex flex-col items-center gap-1"
                         >
-                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center">
+                            <div className="w-9 h-9 rounded-xl bg-[#D1795F] flex items-center justify-center">
                                 <Briefcase className="w-4 h-4 text-black" />
                             </div>
                             <div className="font-heading font-bold text-white text-xs">CRM</div>
@@ -156,9 +156,9 @@ export default function Profile() {
                         <button
                             data-testid="open-content-btn"
                             onClick={() => navigate("/content")}
-                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex flex-col items-center gap-1"
+                            className="bg-gradient-to-r from-[#D1795F]/10 to-[#D1795F]/5 hover:from-[#D1795F]/20 hover:to-[#D1795F]/10 border border-[#D1795F]/30 rounded-2xl p-3 transition flex flex-col items-center gap-1"
                         >
-                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center">
+                            <div className="w-9 h-9 rounded-xl bg-[#D1795F] flex items-center justify-center">
                                 <Video className="w-4 h-4 text-black" />
                             </div>
                             <div className="font-heading font-bold text-white text-xs">Content</div>
@@ -166,9 +166,9 @@ export default function Profile() {
                         <button
                             data-testid="open-tasks-btn"
                             onClick={() => navigate("/tasks")}
-                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex flex-col items-center gap-1"
+                            className="bg-gradient-to-r from-[#D1795F]/10 to-[#D1795F]/5 hover:from-[#D1795F]/20 hover:to-[#D1795F]/10 border border-[#D1795F]/30 rounded-2xl p-3 transition flex flex-col items-center gap-1"
                         >
-                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center">
+                            <div className="w-9 h-9 rounded-xl bg-[#D1795F] flex items-center justify-center">
                                 <CheckSquare className="w-4 h-4 text-black" />
                             </div>
                             <div className="font-heading font-bold text-white text-xs">Tasks</div>
@@ -177,14 +177,14 @@ export default function Profile() {
                 )}
 
                 {isMe && earnings && (
-                    <div className="mt-3 bg-gradient-to-br from-[#E3FF00]/10 to-transparent border border-[#E3FF00]/30 rounded-2xl p-4" data-testid="earnings-card">
+                    <div className="mt-3 bg-gradient-to-br from-[#D1795F]/10 to-transparent border border-[#D1795F]/30 rounded-2xl p-4" data-testid="earnings-card">
                         <div className="flex items-center gap-2 mb-2">
-                            <Wallet className="w-4 h-4 text-[#E3FF00]" />
+                            <Wallet className="w-4 h-4 text-[#D1795F]" />
                             <span className="text-xs text-neutral-400 font-heading font-bold">لوحة الأرباح</span>
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-center">
                             <div>
-                                <div className="text-[#E3FF00] font-heading font-black text-lg">${earnings.total_earned}</div>
+                                <div className="text-[#D1795F] font-heading font-black text-lg">${earnings.total_earned}</div>
                                 <div className="text-[10px] text-neutral-500">صافي</div>
                             </div>
                             <div>
@@ -208,7 +208,7 @@ export default function Profile() {
                         key={k}
                         data-testid={`tab-${k}`}
                         onClick={() => setTab(k)}
-                        className={`flex items-center gap-2 py-3 border-b-2 transition font-heading font-bold text-sm ${tab === k ? "border-[#E3FF00] text-[#E3FF00]" : "border-transparent text-neutral-500"}`}
+                        className={`flex items-center gap-2 py-3 border-b-2 transition font-heading font-bold text-sm ${tab === k ? "border-[#D1795F] text-[#D1795F]" : "border-transparent text-neutral-500"}`}
                     >
                         <Icon className="w-4 h-4" />
                         {label}
@@ -235,9 +235,9 @@ export default function Profile() {
                             <button
                                 onClick={() => setShowAdd(true)}
                                 data-testid="add-service-btn"
-                                className="w-full bg-[#141414] border-2 border-dashed border-[#333] hover:border-[#E3FF00] rounded-2xl py-6 flex flex-col items-center gap-1 transition"
+                                className="w-full bg-[#141414] border-2 border-dashed border-[#333] hover:border-[#D1795F] rounded-2xl py-6 flex flex-col items-center gap-1 transition"
                             >
-                                <Plus className="w-6 h-6 text-[#E3FF00]" />
+                                <Plus className="w-6 h-6 text-[#D1795F]" />
                                 <div className="font-heading font-bold text-sm">إضافة خدمة</div>
                             </button>
                         )}
@@ -251,7 +251,7 @@ export default function Profile() {
                                         <div className="text-xs text-neutral-500 mt-2">تسليم {s.delivery_days} أيام</div>
                                     </Link>
                                     <div className="text-end">
-                                        <div className="text-[#E3FF00] font-heading font-black text-xl">${s.price}</div>
+                                        <div className="text-[#D1795F] font-heading font-black text-xl">${s.price}</div>
                                         {isMe && (
                                             <button onClick={() => removeSvc(s.id)} data-testid={`delete-service-${s.id}`} className="text-neutral-500 mt-2">
                                                 <Trash2 className="w-4 h-4" />
@@ -270,15 +270,15 @@ export default function Profile() {
                 <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setShowAdd(false)}>
                     <form onSubmit={addService} onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 space-y-4" data-testid="add-service-modal">
                         <h3 className="font-heading font-black text-xl">إضافة خدمة جديدة</h3>
-                        <input required placeholder="عنوان الخدمة" data-testid="svc-title" value={svc.title} onChange={(e) => setSvc({ ...svc, title: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none" />
-                        <textarea required placeholder="وصف الخدمة" data-testid="svc-desc" value={svc.description} onChange={(e) => setSvc({ ...svc, description: e.target.value })} rows={3} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none resize-none" />
+                        <input required placeholder="عنوان الخدمة" data-testid="svc-title" value={svc.title} onChange={(e) => setSvc({ ...svc, title: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none" />
+                        <textarea required placeholder="وصف الخدمة" data-testid="svc-desc" value={svc.description} onChange={(e) => setSvc({ ...svc, description: e.target.value })} rows={3} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none resize-none" />
                         <div className="grid grid-cols-2 gap-3">
-                            <input required type="number" min="1" step="0.01" placeholder="السعر (USD)" data-testid="svc-price" value={svc.price} onChange={(e) => setSvc({ ...svc, price: e.target.value })} className="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none" />
-                            <input required type="number" min="1" placeholder="مدة التسليم (يوم)" data-testid="svc-delivery" value={svc.delivery_days} onChange={(e) => setSvc({ ...svc, delivery_days: e.target.value })} className="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#E3FF00] focus:outline-none" />
+                            <input required type="number" min="1" step="0.01" placeholder="السعر (USD)" data-testid="svc-price" value={svc.price} onChange={(e) => setSvc({ ...svc, price: e.target.value })} className="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none" />
+                            <input required type="number" min="1" placeholder="مدة التسليم (يوم)" data-testid="svc-delivery" value={svc.delivery_days} onChange={(e) => setSvc({ ...svc, delivery_days: e.target.value })} className="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none" />
                         </div>
                         <div className="flex gap-2">
                             <button type="button" onClick={() => setShowAdd(false)} className="flex-1 bg-white/10 rounded-full py-3 font-heading font-bold">إلغاء</button>
-                            <button type="submit" data-testid="submit-service" className="flex-1 bg-[#E3FF00] text-black rounded-full py-3 font-heading font-bold">إضافة</button>
+                            <button type="submit" data-testid="submit-service" className="flex-1 bg-[#D1795F] text-white rounded-full py-3 font-heading font-bold">إضافة</button>
                         </div>
                     </form>
                 </div>

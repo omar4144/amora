@@ -92,7 +92,7 @@ export default function ContentDetail() {
                         value={item.title}
                         onChange={(e) => setItem({ ...item, title: e.target.value })}
                         onBlur={() => save({ title: item.title })}
-                        className="flex-1 bg-transparent text-white font-heading font-black text-lg outline-none border-b border-transparent focus:border-[#E3FF00]/50 pb-1"
+                        className="flex-1 bg-transparent text-white font-heading font-black text-lg outline-none border-b border-transparent focus:border-[#D1795F]/50 pb-1"
                     />
                     <button onClick={remove} className="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center">
                         <Trash2 className="w-4 h-4 text-red-400" />
@@ -128,24 +128,24 @@ export default function ContentDetail() {
             <div className="space-y-3">
                 <div>
                     <label className="text-xs text-white/50 font-body block mb-1">Hook (الجملة الجذّابة)</label>
-                    <input value={item.hook || ""} onChange={(e) => setItem({ ...item, hook: e.target.value })} onBlur={() => save({ hook: item.hook })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#E3FF00]" />
+                    <input value={item.hook || ""} onChange={(e) => setItem({ ...item, hook: e.target.value })} onBlur={() => save({ hook: item.hook })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#D1795F]" />
                 </div>
                 <div>
                     <label className="text-xs text-white/50 font-body block mb-1 flex items-center gap-1"><MessageCircle className="w-3 h-3" /> Caption</label>
-                    <textarea value={item.caption || ""} onChange={(e) => setItem({ ...item, caption: e.target.value })} onBlur={() => save({ caption: item.caption })} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#E3FF00] resize-none" />
+                    <textarea value={item.caption || ""} onChange={(e) => setItem({ ...item, caption: e.target.value })} onBlur={() => save({ caption: item.caption })} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#D1795F] resize-none" />
                     <div className="flex gap-1 mt-1.5">
-                        <button onClick={() => runAi("caption")} disabled={aiBusy === "caption"} className="text-[10px] text-[#E3FF00] flex items-center gap-1 hover:underline disabled:opacity-40"><Wand2 className="w-3 h-3" /> {aiBusy === "caption" ? "..." : "حسّن بالـ AI"}</button>
+                        <button onClick={() => runAi("caption")} disabled={aiBusy === "caption"} className="text-[10px] text-[#D1795F] flex items-center gap-1 hover:underline disabled:opacity-40"><Wand2 className="w-3 h-3" /> {aiBusy === "caption" ? "..." : "حسّن بالـ AI"}</button>
                     </div>
                 </div>
                 <div>
                     <label className="text-xs text-white/50 font-body block mb-1 flex items-center gap-1"><Hash className="w-3 h-3" /> Hashtags</label>
-                    <textarea value={item.hashtags || ""} onChange={(e) => setItem({ ...item, hashtags: e.target.value })} onBlur={() => save({ hashtags: item.hashtags })} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#E3FF00] resize-none" />
-                    <button onClick={() => runAi("hashtags")} disabled={aiBusy === "hashtags"} className="mt-1.5 text-[10px] text-[#E3FF00] flex items-center gap-1 hover:underline disabled:opacity-40"><Wand2 className="w-3 h-3" /> {aiBusy === "hashtags" ? "..." : "ولّد هاشتاجات"}</button>
+                    <textarea value={item.hashtags || ""} onChange={(e) => setItem({ ...item, hashtags: e.target.value })} onBlur={() => save({ hashtags: item.hashtags })} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#D1795F] resize-none" />
+                    <button onClick={() => runAi("hashtags")} disabled={aiBusy === "hashtags"} className="mt-1.5 text-[10px] text-[#D1795F] flex items-center gap-1 hover:underline disabled:opacity-40"><Wand2 className="w-3 h-3" /> {aiBusy === "hashtags" ? "..." : "ولّد هاشتاجات"}</button>
                 </div>
                 <div>
                     <label className="text-xs text-white/50 font-body block mb-1 flex items-center gap-1"><FileText className="w-3 h-3" /> السيناريو</label>
-                    <textarea value={item.script || ""} onChange={(e) => setItem({ ...item, script: e.target.value })} onBlur={() => save({ script: item.script })} rows={6} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#E3FF00] resize-none" />
-                    <button onClick={() => runAi("script")} disabled={aiBusy === "script"} className="mt-1.5 text-[10px] text-[#E3FF00] flex items-center gap-1 hover:underline disabled:opacity-40"><Wand2 className="w-3 h-3" /> {aiBusy === "script" ? "..." : "ولّد سيناريو"}</button>
+                    <textarea value={item.script || ""} onChange={(e) => setItem({ ...item, script: e.target.value })} onBlur={() => save({ script: item.script })} rows={6} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[#D1795F] resize-none" />
+                    <button onClick={() => runAi("script")} disabled={aiBusy === "script"} className="mt-1.5 text-[10px] text-[#D1795F] flex items-center gap-1 hover:underline disabled:opacity-40"><Wand2 className="w-3 h-3" /> {aiBusy === "script" ? "..." : "ولّد سيناريو"}</button>
                 </div>
                 <div>
                     <label className="text-xs text-white/50 font-body block mb-1">تاريخ الجدولة</label>
@@ -156,15 +156,15 @@ export default function ContentDetail() {
             {/* AI Result Overlay */}
             {aiResult && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setAiResult("")}>
-                    <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-[#0F0F0F] border border-[#E3FF00]/30 rounded-3xl p-5 max-h-[80vh] overflow-y-auto">
+                    <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md bg-[#0F0F0F] border border-[#D1795F]/30 rounded-3xl p-5 max-h-[80vh] overflow-y-auto">
                         <div className="flex items-center gap-2 mb-3">
-                            <Sparkles className="w-4 h-4 text-[#E3FF00]" />
+                            <Sparkles className="w-4 h-4 text-[#D1795F]" />
                             <h3 className="font-heading font-bold">نتيجة الذكاء</h3>
                         </div>
                         <div className="bg-black/40 rounded-xl p-4 text-sm text-white/90 whitespace-pre-wrap leading-relaxed font-body">{aiResult}</div>
                         <div className="flex gap-2 mt-4">
                             <button onClick={() => setAiResult("")} className="flex-1 bg-white/5 border border-white/10 rounded-xl py-2.5 text-sm">إغلاق</button>
-                            <button onClick={applyAi} className="flex-1 bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-2.5 text-sm">طبّق →</button>
+                            <button onClick={applyAi} className="flex-1 bg-[#D1795F] text-white font-heading font-bold rounded-xl py-2.5 text-sm">طبّق →</button>
                         </div>
                     </div>
                 </div>

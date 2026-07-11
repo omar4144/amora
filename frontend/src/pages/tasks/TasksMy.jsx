@@ -17,7 +17,7 @@ export default function TasksMy() {
         <div data-testid="tasks-my" className="p-4 space-y-4">
             <div className="flex gap-1.5 overflow-x-auto -mx-4 px-4">
                 {["all", "todo", "in_progress", "review", "blocked", "done"].map((s) => (
-                    <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-full text-[11px] whitespace-nowrap font-heading font-semibold ${filter === s ? "bg-[#E3FF00] text-black" : "bg-white/5 text-white/60 border border-white/10"}`}>
+                    <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-full text-[11px] whitespace-nowrap font-heading font-semibold ${filter === s ? "bg-[#D1795F] text-white" : "bg-white/5 text-white/60 border border-white/10"}`}>
                         {s === "all" ? "الكل" : s}
                     </button>
                 ))}
@@ -25,7 +25,7 @@ export default function TasksMy() {
             <div className="space-y-2">
                 {filtered.length === 0 && <div className="text-center py-16 text-white/40 text-sm">لا يوجد مهام</div>}
                 {filtered.map((t) => (
-                    <div key={t.id} data-testid={`my-task-${t.id}`} onClick={() => nav(`/tasks/task/${t.id}`)} className="bg-white/5 border border-white/10 rounded-xl p-3 hover:border-[#E3FF00]/40 transition cursor-pointer">
+                    <div key={t.id} data-testid={`my-task-${t.id}`} onClick={() => nav(`/tasks/task/${t.id}`)} className="bg-white/5 border border-white/10 rounded-xl p-3 hover:border-[#D1795F]/40 transition cursor-pointer">
                         <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
                                 <h4 className="text-sm font-heading font-semibold text-white line-clamp-1">{t.title}</h4>

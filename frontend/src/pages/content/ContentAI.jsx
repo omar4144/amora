@@ -53,9 +53,9 @@ export default function ContentAI() {
                             key={p.key}
                             data-testid={`ai-task-${p.key}`}
                             onClick={() => { setSelected(p.key); setResult(""); }}
-                            className={`p-3 rounded-xl border transition text-start ${selected === p.key ? "bg-[#E3FF00]/10 border-[#E3FF00]/40" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
+                            className={`p-3 rounded-xl border transition text-start ${selected === p.key ? "bg-[#D1795F]/10 border-[#D1795F]/40" : "bg-white/5 border-white/10 hover:bg-white/10"}`}
                         >
-                            <p.icon className={`w-4 h-4 mb-1.5 ${selected === p.key ? "text-[#E3FF00]" : "text-white/60"}`} />
+                            <p.icon className={`w-4 h-4 mb-1.5 ${selected === p.key ? "text-[#D1795F]" : "text-white/60"}`} />
                             <div className="text-xs font-heading font-semibold text-white leading-tight">{p.label}</div>
                         </button>
                     ))}
@@ -72,7 +72,7 @@ export default function ContentAI() {
                         onChange={(e) => setTopic(e.target.value)}
                         placeholder={current.placeholder}
                         rows={4}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#E3FF00] outline-none resize-none"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#D1795F] outline-none resize-none"
                     />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -95,7 +95,7 @@ export default function ContentAI() {
                     data-testid="ai-run"
                     onClick={run}
                     disabled={busy}
-                    className="w-full bg-[#E3FF00] text-black font-heading font-bold rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
+                    className="w-full bg-[#D1795F] text-white font-heading font-bold rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
                 >
                     {busy ? (
                         <>
@@ -113,14 +113,14 @@ export default function ContentAI() {
 
             {/* Result */}
             {result && (
-                <div data-testid="ai-result" className="bg-gradient-to-br from-[#141414] to-[#0A0A0A] border border-[#E3FF00]/30 rounded-2xl p-5">
+                <div data-testid="ai-result" className="bg-gradient-to-br from-[#141414] to-[#0A0A0A] border border-[#D1795F]/30 rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-[#E3FF00]" fill="#E3FF00" />
+                            <Sparkles className="w-4 h-4 text-[#D1795F]" fill="#D1795F" />
                             <h3 className="font-heading font-bold text-sm">النتيجة</h3>
                         </div>
                         <button onClick={copy} className="text-[10px] text-white/60 hover:text-white flex items-center gap-1">
-                            {copied ? <><Check className="w-3 h-3 text-[#E3FF00]" /> نسخ!</> : <><Copy className="w-3 h-3" /> نسخ</>}
+                            {copied ? <><Check className="w-3 h-3 text-[#D1795F]" /> نسخ!</> : <><Copy className="w-3 h-3" /> نسخ</>}
                         </button>
                     </div>
                     <div className="bg-black/40 rounded-xl p-4 text-sm text-white/90 whitespace-pre-wrap leading-relaxed font-body max-h-[500px] overflow-y-auto">

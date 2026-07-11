@@ -71,12 +71,12 @@ export default function ContentCalendar() {
                                             <div
                                                 key={it.id}
                                                 onClick={() => nav(`/content/item/${it.id}`)}
-                                                className="text-[7px] leading-tight bg-[#E3FF00]/20 border-r border-[#E3FF00] text-white truncate px-1 py-0.5 rounded cursor-pointer"
+                                                className="text-[7px] leading-tight bg-[#D1795F]/20 border-r border-[#D1795F] text-white truncate px-1 py-0.5 rounded cursor-pointer"
                                             >
                                                 {it.title}
                                             </div>
                                         ))}
-                                        {items.length > 2 && <div className="text-[7px] text-[#E3FF00] font-body">+{items.length - 2}</div>}
+                                        {items.length > 2 && <div className="text-[7px] text-[#D1795F] font-body">+{items.length - 2}</div>}
                                     </div>
                                 </>
                             )}
