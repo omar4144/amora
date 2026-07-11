@@ -130,3 +130,63 @@ class LeadCreate(BaseModel):
     name: str
     email: EmailStr
     story: str
+
+
+class ClientCreate(BaseModel):
+    name: str
+    email: Optional[str] = ""
+    phone: Optional[str] = ""
+    company: Optional[str] = ""
+    industry: Optional[str] = ""
+    address: Optional[str] = ""
+    notes: Optional[str] = ""
+    tags: Optional[List[str]] = []
+    source: Optional[str] = "manual"  # manual | lead | referral | website | other
+    status: Optional[str] = "active"  # active | inactive | archived
+
+
+class ClientUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    industry: Optional[str] = None
+    address: Optional[str] = None
+    notes: Optional[str] = None
+    tags: Optional[List[str]] = None
+    status: Optional[str] = None
+
+
+class DealCreate(BaseModel):
+    title: str
+    client_id: str
+    value: float = 0
+    currency: str = "USD"
+    stage: Optional[str] = "new"  # new | contacted | qualified | proposal | negotiation | won | lost
+    expected_close_date: Optional[str] = ""  # ISO date
+    notes: Optional[str] = ""
+    tags: Optional[List[str]] = []
+    source_lead_id: Optional[str] = None
+
+
+class DealUpdate(BaseModel):
+    title: Optional[str] = None
+    value: Optional[float] = None
+    currency: Optional[str] = None
+    expected_close_date: Optional[str] = None
+    notes: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+class DealMove(BaseModel):
+    stage: str
+
+
+class ActivityCreate(BaseModel):
+    client_id: Optional[str] = None
+    deal_id: Optional[str] = None
+    type: str  # note | call | email | meeting | task
+    title: str
+    description: Optional[str] = ""
+    date: Optional[str] = None  # ISO datetime
+

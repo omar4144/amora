@@ -105,6 +105,21 @@
 user_problem_statement: "تحويل Ruaa من منصة صنّاع محتوى إلى وكالة تسويق رقمية + نظام تشغيل إبداعي. البداية: (أ) إصلاح تشغيل المشروع، (ب) Landing Page جديد للوكالة بشعار 'ندشن قصة حب جديدة مع عميلك'، (ج) إعادة هيكلة إلى Engines، ثم إضافة CRM، Content OS، Tasks، AI everywhere، Digital Twin، RBAC."
 
 backend:
+  - task: "CRM Engine V1 — Clients + Deals + Pipeline + Activities + Stats"
+    implemented: true
+    working: true
+    file: "backend/engines/crm_engine.py, backend/core/schemas.py, backend/core/deps.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Iteration 9. Rewrote crm_engine.py from 33 lines (leads only) to ~340 lines with full CRM: (1) Clients CRUD user-scoped, (2) Deals CRUD + kanban pipeline + stage transitions + auto-activity log, (3) Activities log (note/call/email/meeting/task/stage_change) with client/deal filtering, (4) Stats/dashboard endpoint (KPIs: clients_total, deals_active/won/lost, pipeline_value, weighted_pipeline, won_value, avg_deal_size, win_rate, by_stage). Added DEAL_STAGES constant (7 stages with probabilities). New endpoints: GET /crm/stages, GET/POST/GET/PUT/DELETE /crm/clients, GET/POST/GET/PUT/DELETE /crm/deals, GET /crm/deals/pipeline, PUT /crm/deals/{id}/stage, GET/POST/DELETE /crm/activities, GET /crm/stats. Legacy POST/GET /leads still works. Manual smoke tests: signup + create client + create deal + move to won + pipeline + stats all working correctly. Frontend built (5 pages under /crm/*). Needs full backend test."
+      - working: true
+        agent: "testing"
+        comment: "✅ FULL CRM ENGINE TEST COMPLETE - 32/32 tests PASSED. Comprehensive testing of all CRM endpoints: (1) CRM Meta: GET /crm/stages returns 7 stages with correct structure (new/contacted/qualified/proposal/negotiation/won/lost). (2) Clients CRUD 7/7: empty list initially, create Alba Cafe with owner_id + deals_count:0, list 1 client, get client with deals:[] activities:[], update industry to Restaurants, search by name q=alba, filter by status=inactive returns empty. (3) Deals CRUD 11/11: create deal with probability:50 closed_at:null client enriched, invalid client_id→404, invalid stage→400, list 1 deal, filter by stage=proposal, filter by stage=won empty, get deal with 1 auto-created activity 'تم إنشاء الصفقة', update value to 6000, move stage to won (probability:100 closed_at NOT null), move to lost (closed_at updates), pipeline returns 7 stages with deal in 'lost'. (4) Activities 6/6: create call activity, invalid type→400, no client_id/deal_id→400, list activities with auto-logs + manual enriched with client_name/deal_title, filter by deal_id, delete activity. (5) Stats Dashboard 1/1: returns all KPIs (clients_total, clients_active, deals_total, deals_active, deals_won, deals_lost, pipeline_value, weighted_pipeline, won_value, avg_deal_size, win_rate) + by_stage array with 7 items. (6) User Isolation 3/3: second user sees empty clients list, second user GET first_user_client→404, second user PUT first_user_deal/stage→404 (strict isolation working). (7) Legacy Leads 2/2: POST /leads→200, GET /leads unauth→401. (8) Cascade Delete 1/1: DELETE client removes all deals + activities, stats updated correctly. ZERO FAILURES. All CRUD operations working, user-scoping strict, auto-activity logging working, stats computing correctly, legacy endpoints preserved. Report: /app/test_reports/iteration_9.json"
+
   - task: "Backend refactor into Engines architecture (14 engines + core)"
     implemented: true
     working: true
@@ -178,19 +193,22 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "2.0"
-  test_sequence: 9
+  test_sequence: 10
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "CRM Engine V1 — Clients + Deals + Pipeline + Activities + Stats"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Iteration 8 (Sprint: Backend Engine Restructure). Refactored server.py (1240 lines monolith) into 22-file modular Engines architecture (core/ + engines/). ZERO functional changes — every endpoint preserved. Need FULL regression pass. Test: 1) auth flow (signup/login/me), 2) videos/feed + stream + like + comment, 3) services CRUD + orders lifecycle, 4) communities join + posts + like, 5) teams create/join, 6) incubator stages + ideas + progress, 7) notifications + messages, 8) search + explore, 9) events + tickets, 10) courses + enroll, 11) reviews, 12) project-requests + apply, 13) payments/checkout, 14) leads endpoint, 15) NEW: /api/analytics/platform (counts), 16) NEW: /api/admin/ping /content/ping /tasks/ping /booking/ping (placeholders). Login response field is 'token' (not access_token). Use test_credentials.md."
+    message: "Iteration 9 (Sprint: CRM Engine V1). Built complete CRM. New endpoints under /api/crm/*: stages, clients (CRUD), deals (CRUD + pipeline + stage move), activities (CRUD), stats. User-scoped (owner_id filter — a user only sees their own clients/deals/activities). Frontend built too (5 pages under /crm/*). Login field is 'token'. Save report to /app/test_reports/iteration_9.json."
   - agent: "testing"
     message: "Iteration 7 testing COMPLETE. ✅ NEW /api/leads endpoint: All 5 tests passed (POST valid/invalid/missing, GET no-auth/non-admin). ✅ REGRESSION: 7/8 endpoints passed. Only ai/assist failed due to EMERGENT_LLM_KEY budget limit (infrastructure issue, not code bug). All critical backend functionality intact. Test report saved to /app/test_reports/iteration_7.json. Ready for main agent to summarize and finish."
   - agent: "testing"
     message: "Iteration 8 FULL REGRESSION PASS COMPLETE. ✅ 54/56 tests PASSED, 2 skipped (expected). Tested all 18 engines comprehensively: Sanity (6), Auth (3), Social (4), Marketplace (9), Community (6), Team (4), Incubator (4), AI (1 skipped), Notification (5), Search (2), Events (4), Academy (4), CRM (3). ZERO REGRESSIONS detected from the monolithic → modular refactor. All endpoints working correctly. The refactor was successful with NO functional changes. Report: /app/test_reports/iteration_8.json. Backend is production-ready."
+  - agent: "testing"
+    message: "Iteration 9 CRM ENGINE V1 TESTING COMPLETE. ✅ 32/32 tests PASSED. Comprehensive testing of full CRM implementation: (1) CRM Meta: stages endpoint returns 7 stages correctly. (2) Clients CRUD: all 7 scenarios passed (create, list, get, update, search, filter, empty state). (3) Deals CRUD: all 11 scenarios passed (create with enrichment, validation, filtering, pipeline view, stage transitions with auto-activity logging, probability + closed_at updates). (4) Activities: all 6 scenarios passed (create, validation, enrichment with client_name/deal_title, filtering, delete). (5) Stats Dashboard: comprehensive KPIs computing correctly (clients, deals, pipeline_value, weighted_pipeline, won_value, avg_deal_size, win_rate, by_stage breakdown). (6) User Isolation: STRICT isolation verified - users cannot access each other's data (404 responses). (7) Legacy Leads: preserved and working. (8) Cascade Delete: verified - deleting client removes all associated deals + activities. ZERO FAILURES. All CRUD operations working, user-scoping strict, auto-activity logging on deal creation and stage moves working perfectly, stats accurate. Report: /app/test_reports/iteration_9.json. CRM Engine V1 is PRODUCTION-READY."

@@ -26,6 +26,12 @@ import TeamDetail from "@/pages/TeamDetail";
 import Incubator from "@/pages/Incubator";
 import AIAssistant from "@/pages/AIAssistant";
 import Events from "@/pages/Events";
+import CRMShell from "@/pages/crm/CRMShell";
+import CRMDashboard from "@/pages/crm/CRMDashboard";
+import CRMClients from "@/pages/crm/CRMClients";
+import CRMDeals from "@/pages/crm/CRMDeals";
+import CRMDealDetail from "@/pages/crm/CRMDealDetail";
+import CRMActivities from "@/pages/crm/CRMActivities";
 
 const Protected = ({ children }) => {
     const { user, loading } = useAuth();
@@ -72,6 +78,15 @@ function App() {
                             <Route path="/incubator" element={<Protected><Incubator /></Protected>} />
                             <Route path="/ai" element={<Protected><AIAssistant /></Protected>} />
                             <Route path="/events" element={<Events />} />
+
+                            {/* CRM (Business Engine) */}
+                            <Route path="/crm" element={<Protected><CRMShell /></Protected>}>
+                                <Route index element={<CRMDashboard />} />
+                                <Route path="clients" element={<CRMClients />} />
+                                <Route path="deals" element={<CRMDeals />} />
+                                <Route path="deals/:id" element={<CRMDealDetail />} />
+                                <Route path="activities" element={<CRMActivities />} />
+                            </Route>
                         </Route>
                     </Routes>
                 </AuthProvider>

@@ -1,0 +1,168 @@
+{
+  "timestamp": "2026-07-11T22:29:09.430211",
+  "total": 32,
+  "passed": 32,
+  "failed": 0,
+  "scenarios": [
+    {
+      "name": "1. GET /crm/stages \u2192 200 with 7 stages",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "2. GET /crm/clients \u2192 200 empty list initially",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "3. POST /crm/clients \u2192 200 with id + owner_id + deals_count:0",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "4. GET /crm/clients \u2192 200 with 1 client, deals_count:0",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "5. GET /crm/clients/{id} \u2192 200 with deals:[] activities:[]",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "6. PUT /crm/clients/{id} \u2192 200 updated",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "7. GET /crm/clients?q=alba \u2192 200 finds by name",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "8. GET /crm/clients?status=inactive \u2192 200 empty",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "10. POST /crm/deals \u2192 200 with probability:50, closed_at:null, client enriched",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "11. POST /crm/deals with invalid client_id \u2192 404",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "12. POST /crm/deals with invalid stage \u2192 400",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "13. GET /crm/deals \u2192 200 with 1 deal",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "14. GET /crm/deals?stage=proposal \u2192 200 with 1",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "15. GET /crm/deals?stage=won \u2192 200 empty",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "16. GET /crm/deals/{id} \u2192 200 with activities (1 auto-created)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "17. PUT /crm/deals/{id} \u2192 200 updated value",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "18. PUT /crm/deals/{id}/stage \u2192 won (stage:won, probability:100, closed_at NOT null)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "19. PUT /crm/deals/{id}/stage \u2192 lost (closed_at updates)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "20. GET /crm/deals/pipeline \u2192 200 dict with 7 stages, deal in 'lost'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "21. POST /crm/activities \u2192 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "22. POST /crm/activities with invalid type \u2192 400",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "23. POST /crm/activities with no client_id and no deal_id \u2192 400",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "24. GET /crm/activities \u2192 200 with auto-logs + manual, enriched",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "25. GET /crm/activities?deal_id={id} \u2192 200 filtered",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "26. DELETE /crm/activities/{id} \u2192 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "27. GET /crm/stats \u2192 200 with all KPIs + by_stage (7 items)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "28. Second user GET /crm/clients \u2192 200 EMPTY (isolation working)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "29. Second user GET /crm/clients/{first_user_client_id} \u2192 404",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "30. Second user PUT /crm/deals/{first_user_deal_id}/stage \u2192 404",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "31. POST /leads \u2192 200 (legacy endpoint working)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "32. GET /leads unauth \u2192 401",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "33. DELETE client \u2192 cascade delete works (deals + activities gone, stats updated)",
+      "passed": true,
+      "details": ""
+    }
+  ]
+}

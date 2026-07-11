@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet } from "lucide-react";
+import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft } from "lucide-react";
 
 export default function Profile() {
     const { username } = useParams();
@@ -139,6 +139,23 @@ export default function Profile() {
                             رسالة
                         </button>
                     </div>
+                )}
+
+                {isMe && (
+                    <button
+                        data-testid="open-crm-btn"
+                        onClick={() => navigate("/crm")}
+                        className="mt-3 w-full bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-4 transition flex items-center gap-3 group"
+                    >
+                        <div className="w-10 h-10 rounded-xl bg-[#E3FF00] flex items-center justify-center flex-shrink-0">
+                            <Briefcase className="w-5 h-5 text-black" />
+                        </div>
+                        <div className="flex-1 text-start">
+                            <div className="font-heading font-bold text-white">CRM — إدارة عملائك</div>
+                            <div className="text-xs text-white/60 font-body">تتبّع صفقاتك، عملاءك، وأنشطتك</div>
+                        </div>
+                        <ArrowLeft className="w-4 h-4 text-[#E3FF00] group-hover:-translate-x-1 transition" />
+                    </button>
                 )}
 
                 {isMe && earnings && (

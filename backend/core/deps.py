@@ -32,6 +32,19 @@ CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
 PLATFORM_FEE_PERCENT = 10.0
 STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
 
+# CRM Pipeline stages (with default probability %)
+DEAL_STAGES = [
+    {"key": "new",          "name": "\u062c\u062f\u064a\u062f",         "probability": 0,   "color": "#94A3B8"},
+    {"key": "contacted",    "name": "\u062a\u0648\u0627\u0635\u0644",       "probability": 10,  "color": "#3B82F6"},
+    {"key": "qualified",    "name": "\u0645\u0624\u0647\u0651\u0644",       "probability": 25,  "color": "#8B5CF6"},
+    {"key": "proposal",     "name": "\u0639\u0631\u0636 \u0645\u0642\u062f\u0651\u0645",  "probability": 50,  "color": "#F59E0B"},
+    {"key": "negotiation",  "name": "\u062a\u0641\u0627\u0648\u0636",       "probability": 75,  "color": "#EF4444"},
+    {"key": "won",          "name": "\u0641\u0627\u0632",           "probability": 100, "color": "#10B981"},
+    {"key": "lost",         "name": "\u062e\u0633\u0631",           "probability": 0,   "color": "#6B7280"},
+]
+DEAL_STAGE_KEYS = [s["key"] for s in DEAL_STAGES]
+
+
 logger = logging.getLogger("ruaa")
 
 # ==================== DATABASE ====================
