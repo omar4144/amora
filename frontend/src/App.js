@@ -44,6 +44,10 @@ import TasksBoards from "@/pages/tasks/TasksBoards";
 import TasksBoard from "@/pages/tasks/TasksBoard";
 import TasksMy from "@/pages/tasks/TasksMy";
 import TaskDetail from "@/pages/tasks/TaskDetail";
+import AdminShell from "@/pages/admin/AdminShell";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminAudit from "@/pages/admin/AdminAudit";
 
 const Protected = ({ children }) => {
     const { user, loading } = useAuth();
@@ -117,6 +121,13 @@ function App() {
                             </Route>
                             <Route path="/tasks/board/:id" element={<Protected><TasksBoard /></Protected>} />
                             <Route path="/tasks/task/:id" element={<Protected><TaskDetail /></Protected>} />
+
+                            {/* Admin (RBAC gated) */}
+                            <Route path="/admin" element={<Protected><AdminShell /></Protected>}>
+                                <Route index element={<AdminDashboard />} />
+                                <Route path="users" element={<AdminUsers />} />
+                                <Route path="audit" element={<AdminAudit />} />
+                            </Route>
                         </Route>
                     </Routes>
                 </AuthProvider>

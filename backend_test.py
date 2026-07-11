@@ -1,702 +1,625 @@
+#!/usr/bin/env python3
 """
-Iteration 11 — Tasks Engine V1 Full Backend Test
-~30 test scenarios covering:
-- Meta (statuses, priorities)
-- Boards CRUD (personal/team, user isolation)
-- Tasks CRUD (validation, filters, search)
-- Checklist operations
-- My Tasks
-- Kanban view
-- Stats
-- Team board sharing
-- Route order sanity
-- Cascade delete
+Iteration 12 Backend Test — RBAC + Admin Engine V1
+Tests 10 roles, capabilities matrix, user management, ban/unban, audit log
 """
 import requests
 import json
 import os
-import time
-from datetime import datetime, timedelta
+import sys
+from datetime import datetime
 
 # Backend URL from frontend/.env
 BACKEND_URL = "https://doc-restore-3.preview.emergentagent.com/api"
 
 # Test results
-results = []
-def log_test(name, passed, details=""):
-    status = "✅ PASS" if passed else "❌ FAIL"
-    # Ensure details is a string
-    details_str = str(details) if details else ""
-    results.append({"test": name, "passed": passed, "details": details_str})
-    print(f"{status} | {name}")
-    if details_str and not passed:
-        print(f"   Details: {details_str}")
-    # Small delay to avoid overwhelming the server
-    time.sleep(0.1)
-
-# Helper to make requests
-def req(method, path, json_data=None, token=None, params=None):
-    url = f"{BACKEND_URL}{path}"
-    headers = {}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    try:
-        if method == "GET":
-            r = requests.get(url, headers=headers, params=params, timeout=15)
-        elif method == "POST":
-            r = requests.post(url, json=json_data, headers=headers, timeout=15)
-        elif method == "PUT":
-            r = requests.put(url, json=json_data, headers=headers, timeout=15)
-        elif method == "DELETE":
-            r = requests.delete(url, headers=headers, timeout=15)
-        return r
-    except requests.exceptions.Timeout:
-        print(f"   ⚠️  Request timeout for {method} {path}")
-        return None
-    except requests.exceptions.RequestException as e:
-        print(f"   ⚠️  Request error for {method} {path}: {str(e)[:100]}")
-        return None
-    except Exception as e:
-        print(f"   ⚠️  Unexpected error for {method} {path}: {str(e)[:100]}")
-        return None
-
-print("=" * 80)
-print("ITERATION 11 — TASKS ENGINE V1 FULL BACKEND TEST")
-print("=" * 80)
-
-# ==================== SETUP: Create 2 users ====================
-print("\n[SETUP] Creating test users...")
-
-# User 1
-r1 = req("POST", "/auth/signup", {
-    "name": "Layla Tasks",
-    "username": f"layla_tasks_{datetime.now().timestamp()}",
-    "email": f"layla_tasks_{datetime.now().timestamp()}@test.com",
-    "password": "testpass123",
-    "role": "creator"
-})
-if not r1 or r1.status_code != 200:
-    print("❌ Failed to create user 1")
-    exit(1)
-user1 = r1.json()
-token1 = user1["token"]
-user1_id = user1["user"]["id"]
-print(f"✅ User 1 created: {user1['user']['username']}")
-
-# User 2
-r2 = req("POST", "/auth/signup", {
-    "name": "Noor Tasks",
-    "username": f"noor_tasks_{datetime.now().timestamp()}",
-    "email": f"noor_tasks_{datetime.now().timestamp()}@test.com",
-    "password": "testpass123",
-    "role": "creator"
-})
-if not r2 or r2.status_code != 200:
-    print("❌ Failed to create user 2")
-    exit(1)
-user2 = r2.json()
-token2 = user2["token"]
-user2_id = user2["user"]["id"]
-print(f"✅ User 2 created: {user2['user']['username']}")
-
-# ==================== TEST 1: Meta endpoint ====================
-print("\n[TEST 1] GET /tasks/meta")
-r = req("GET", "/tasks/meta", token=token1)
-if r and r.status_code == 200:
-    data = r.json()
-    statuses = data.get("statuses", [])
-    priorities = data.get("priorities", [])
-    expected_statuses = ["todo", "in_progress", "review", "blocked", "done"]
-    expected_priorities = ["low", "medium", "high", "urgent"]
-    status_keys = [s["key"] for s in statuses]
-    priority_keys = [p["key"] for p in priorities]
-    passed = (len(statuses) == 5 and len(priorities) == 4 and 
-              all(k in status_keys for k in expected_statuses) and
-              all(k in priority_keys for k in expected_priorities))
-    log_test("Meta endpoint returns 5 statuses and 4 priorities", passed, 
-             f"Got {len(statuses)} statuses, {len(priorities)} priorities")
-else:
-    log_test("Meta endpoint returns 5 statuses and 4 priorities", False, 
-             f"Status: {r.status_code if r else 'No response'}")
-
-# ==================== TEST 2: Boards - empty list ====================
-print("\n[TEST 2] GET /tasks/boards (empty)")
-r = req("GET", "/tasks/boards", token=token1)
-if r and r.status_code == 200:
-    boards = r.json()
-    log_test("User 1 boards list initially empty", len(boards) == 0, 
-             f"Got {len(boards)} boards")
-else:
-    log_test("User 1 boards list initially empty", False, 
-             f"Status: {r.status_code if r else 'No response'}")
-
-# ==================== TEST 3: Create personal board ====================
-print("\n[TEST 3] POST /tasks/boards (personal)")
-r = req("POST", "/tasks/boards", {
-    "name": "My Personal Board",
-    "description": "Personal tasks for Layla",
-    "color": "#E3FF00",
-    "kind": "personal"
-}, token=token1)
-if r and r.status_code == 200:
-    board1 = r.json()
-    board1_id = board1.get("id")
-    passed = (board1.get("name") == "My Personal Board" and 
-              board1.get("kind") == "personal" and
-              board1.get("owner_id") == user1_id and
-              board1.get("tasks_count") == 0 and
-              board1.get("done_count") == 0)
-    log_test("Create personal board with correct fields", passed, 
-             f"Board ID: {board1_id}")
-else:
-    log_test("Create personal board with correct fields", False, 
-             f"Status: {r.status_code if r else 'No response'}")
-    board1_id = None
-
-# ==================== TEST 4: Create team board without team_id ====================
-print("\n[TEST 4] POST /tasks/boards (team without team_id)")
-r = req("POST", "/tasks/boards", {
-    "name": "Team Board",
-    "kind": "team"
-}, token=token1)
-log_test("Create team board without team_id returns 400", 
-         r and r.status_code == 400,
-         f"Status: {r.status_code if r else 'No response'}")
-
-# ==================== TEST 5: Create team and team board ====================
-print("\n[TEST 5] Create team and team board")
-# Create team
-r = req("POST", "/teams", {
-    "name": "Layla's Team",
-    "description": "Test team for tasks"
-}, token=token1)
-if r and r.status_code == 200:
-    team1 = r.json()
-    team1_id = team1.get("id")
-    print(f"   Team created: {team1_id}")
-    
-    # Create team board
-    r = req("POST", "/tasks/boards", {
-        "name": "Team Board",
-        "description": "Shared team tasks",
-        "color": "#3B82F6",
-        "kind": "team",
-        "team_id": team1_id
-    }, token=token1)
-    if r and r.status_code == 200:
-        team_board = r.json()
-        team_board_id = team_board.get("id")
-        passed = (team_board.get("kind") == "team" and 
-                  team_board.get("team_id") == team1_id and
-                  team_board.get("owner_id") == user1_id)
-        log_test("Create team board with valid team_id", passed, 
-                 f"Team board ID: {team_board_id}")
-    else:
-        log_test("Create team board with valid team_id", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-        team_board_id = None
-else:
-    log_test("Create team and team board", False, "Failed to create team")
-    team1_id = None
-    team_board_id = None
-
-# ==================== TEST 6: User 2 tries to create board with User 1's team ====================
-print("\n[TEST 6] User 2 creates board with User 1's team (should fail)")
-if team1_id:
-    r = req("POST", "/tasks/boards", {
-        "name": "Unauthorized Board",
-        "kind": "team",
-        "team_id": team1_id
-    }, token=token2)
-    log_test("Non-member cannot create team board", 
-             r and r.status_code == 403,
-             f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Non-member cannot create team board", False, "No team to test with")
-
-# ==================== TEST 7: GET board with enrichment ====================
-print("\n[TEST 7] GET /tasks/boards/{id}")
-if board1_id:
-    r = req("GET", f"/tasks/boards/{board1_id}", token=token1)
-    if r and r.status_code == 200:
-        board = r.json()
-        passed = ("tasks_count" in board and "done_count" in board and
-                  board.get("id") == board1_id)
-        log_test("Get board returns enriched data", passed)
-    else:
-        log_test("Get board returns enriched data", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Get board returns enriched data", False, "No board to test with")
-
-# ==================== TEST 8: Update board ====================
-print("\n[TEST 8] PUT /tasks/boards/{id}")
-if board1_id:
-    r = req("PUT", f"/tasks/boards/{board1_id}", {
-        "description": "Updated description for personal board"
-    }, token=token1)
-    if r and r.status_code == 200:
-        board = r.json()
-        log_test("Update board description", 
-                 board.get("description") == "Updated description for personal board")
-    else:
-        log_test("Update board description", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Update board description", False, "No board to test with")
-
-# ==================== TEST 9: Create task with invalid board_id ====================
-print("\n[TEST 9] POST /tasks (invalid board_id)")
-r = req("POST", "/tasks", {
-    "board_id": "invalid-board-id",
-    "title": "Test Task"
-}, token=token1)
-log_test("Create task with invalid board_id returns 404", 
-         r and r.status_code == 404,
-         f"Status: {r.status_code if r else 'No response'}")
-
-# ==================== TEST 10: Create task with invalid status ====================
-print("\n[TEST 10] POST /tasks (invalid status)")
-if board1_id:
-    r = req("POST", "/tasks", {
-        "board_id": board1_id,
-        "title": "Test Task",
-        "status": "bad_status"
-    }, token=token1)
-    log_test("Create task with invalid status returns 400", 
-             r and r.status_code == 400,
-             f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Create task with invalid status returns 400", False, "No board to test with")
-
-# ==================== TEST 11: Create task with invalid priority ====================
-print("\n[TEST 11] POST /tasks (invalid priority)")
-if board1_id:
-    r = req("POST", "/tasks", {
-        "board_id": board1_id,
-        "title": "Test Task",
-        "priority": "unknown"
-    }, token=token1)
-    log_test("Create task with invalid priority returns 400", 
-             r and r.status_code == 400,
-             f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Create task with invalid priority returns 400", False, "No board to test with")
-
-# ==================== TEST 12: Create valid task ====================
-print("\n[TEST 12] POST /tasks (valid)")
-if board1_id:
-    due_date = (datetime.now() + timedelta(days=7)).isoformat()
-    r = req("POST", "/tasks", {
-        "board_id": board1_id,
-        "title": "Design new landing page",
-        "description": "Create mockups for agency landing",
-        "priority": "high",
-        "due_date": due_date,
-        "checklist": [
-            {"text": "Research competitors", "done": False},
-            {"text": "Create wireframes", "done": False}
-        ]
-    }, token=token1)
-    if r and r.status_code == 200:
-        task1 = r.json()
-        task1_id = task1.get("id")
-        passed = (task1.get("title") == "Design new landing page" and
-                  task1.get("owner_id") == user1_id and
-                  task1.get("status") == "todo" and
-                  task1.get("priority") == "high" and
-                  len(task1.get("checklist", [])) == 2 and
-                  "created_at" in task1 and
-                  "updated_at" in task1)
-        log_test("Create valid task with checklist", passed, f"Task ID: {task1_id}")
-    else:
-        log_test("Create valid task with checklist", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-        task1_id = None
-else:
-    log_test("Create valid task with checklist", False, "No board to test with")
-    task1_id = None
-
-# ==================== TEST 13: List tasks by board ====================
-print("\n[TEST 13] GET /tasks?board_id={id}")
-if board1_id:
-    r = req("GET", "/tasks", token=token1, params={"board_id": board1_id})
-    if r and r.status_code == 200:
-        tasks = r.json()
-        log_test("List tasks by board_id", len(tasks) == 1, f"Got {len(tasks)} tasks")
-    else:
-        log_test("List tasks by board_id", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("List tasks by board_id", False, "No board to test with")
-
-# ==================== TEST 14: Get single task ====================
-print("\n[TEST 14] GET /tasks/{task_id}")
-if task1_id:
-    r = req("GET", f"/tasks/{task1_id}", token=token1)
-    if r and r.status_code == 200:
-        task = r.json()
-        log_test("Get single task", task.get("id") == task1_id)
-    else:
-        log_test("Get single task", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Get single task", False, "No task to test with")
-
-# ==================== TEST 15: Update task ====================
-print("\n[TEST 15] PUT /tasks/{task_id}")
-if task1_id:
-    r = req("PUT", f"/tasks/{task1_id}", {
-        "description": "Updated: Create mockups and prototypes"
-    }, token=token1)
-    if r and r.status_code == 200:
-        task = r.json()
-        log_test("Update task description", 
-                 task.get("description") == "Updated: Create mockups and prototypes")
-    else:
-        log_test("Update task description", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Update task description", False, "No task to test with")
-
-# ==================== TEST 16: Move task status to done ====================
-print("\n[TEST 16] PUT /tasks/{task_id}/status (to done)")
-if task1_id:
-    r = req("PUT", f"/tasks/{task1_id}/status", {
-        "status": "done"
-    }, token=token1)
-    if r and r.status_code == 200:
-        task = r.json()
-        passed = (task.get("status") == "done" and 
-                  task.get("completed_at") is not None)
-        log_test("Move task to done sets completed_at", passed)
-    else:
-        log_test("Move task to done sets completed_at", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Move task to done sets completed_at", False, "No task to test with")
-
-# ==================== TEST 17: Move task status back to todo ====================
-print("\n[TEST 17] PUT /tasks/{task_id}/status (back to todo)")
-if task1_id:
-    r = req("PUT", f"/tasks/{task1_id}/status", {
-        "status": "todo"
-    }, token=token1)
-    if r and r.status_code == 200:
-        task = r.json()
-        passed = (task.get("status") == "todo" and 
-                  task.get("completed_at") is None)
-        log_test("Move task back to todo clears completed_at", passed)
-    else:
-        log_test("Move task back to todo clears completed_at", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Move task back to todo clears completed_at", False, "No task to test with")
-
-# ==================== TEST 18: Move task with invalid status ====================
-print("\n[TEST 18] PUT /tasks/{task_id}/status (invalid)")
-if task1_id:
-    r = req("PUT", f"/tasks/{task1_id}/status", {
-        "status": "bad_status"
-    }, token=token1)
-    log_test("Move task with invalid status returns 400", 
-             r and r.status_code == 400,
-             f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Move task with invalid status returns 400", False, "No task to test with")
-
-# ==================== TEST 19: Toggle checklist item ====================
-print("\n[TEST 19] PUT /tasks/{task_id}/checklist")
-if task1_id:
-    r = req("PUT", f"/tasks/{task1_id}/checklist", {
-        "index": 0,
-        "done": True
-    }, token=token1)
-    if r and r.status_code == 200:
-        task = r.json()
-        checklist = task.get("checklist", [])
-        passed = len(checklist) > 0 and checklist[0].get("done") == True
-        log_test("Toggle checklist item to done", passed)
-    else:
-        log_test("Toggle checklist item to done", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Toggle checklist item to done", False, "No task to test with")
-
-# ==================== TEST 20: Toggle checklist with invalid index ====================
-print("\n[TEST 20] PUT /tasks/{task_id}/checklist (invalid index)")
-if task1_id:
-    r = req("PUT", f"/tasks/{task1_id}/checklist", {
-        "index": 99,
-        "done": True
-    }, token=token1)
-    log_test("Toggle checklist with invalid index returns 400", 
-             r and r.status_code == 400,
-             f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Toggle checklist with invalid index returns 400", False, "No task to test with")
-
-# ==================== TEST 21: Create more tasks for filtering ====================
-print("\n[TEST 21] Create additional tasks for filtering")
-if board1_id:
-    # Task 2: in_progress, medium priority
-    r = req("POST", "/tasks", {
-        "board_id": board1_id,
-        "title": "Write blog post",
-        "status": "in_progress",
-        "priority": "medium"
-    }, token=token1)
-    task2_created = r and r.status_code == 200
-    
-    # Task 3: review, high priority
-    r = req("POST", "/tasks", {
-        "board_id": board1_id,
-        "title": "Review client proposal",
-        "status": "review",
-        "priority": "high"
-    }, token=token1)
-    task3_created = r and r.status_code == 200
-    
-    log_test("Create additional tasks for filtering", 
-             task2_created and task3_created)
-else:
-    log_test("Create additional tasks for filtering", False, "No board to test with")
-
-# ==================== TEST 22: Filter by status ====================
-print("\n[TEST 22] GET /tasks?board_id={id}&status=todo")
-if board1_id:
-    r = req("GET", "/tasks", token=token1, params={"board_id": board1_id, "status": "todo"})
-    if r and r.status_code == 200:
-        tasks = r.json()
-        all_todo = all(t.get("status") == "todo" for t in tasks)
-        log_test("Filter tasks by status=todo", all_todo, f"Got {len(tasks)} tasks")
-    else:
-        log_test("Filter tasks by status=todo", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Filter tasks by status=todo", False, "No board to test with")
-
-# ==================== TEST 23: Filter by priority ====================
-print("\n[TEST 23] GET /tasks?board_id={id}&priority=high")
-if board1_id:
-    r = req("GET", "/tasks", token=token1, params={"board_id": board1_id, "priority": "high"})
-    if r and r.status_code == 200:
-        tasks = r.json()
-        all_high = all(t.get("priority") == "high" for t in tasks)
-        log_test("Filter tasks by priority=high", all_high, f"Got {len(tasks)} tasks")
-    else:
-        log_test("Filter tasks by priority=high", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Filter tasks by priority=high", False, "No board to test with")
-
-# ==================== TEST 24: Search tasks ====================
-print("\n[TEST 24] GET /tasks?q=landing")
-r = req("GET", "/tasks", token=token1, params={"q": "landing"})
-if r and r.status_code == 200:
-    tasks = r.json()
-    found = any("landing" in t.get("title", "").lower() or 
-                "landing" in t.get("description", "").lower() for t in tasks)
-    log_test("Search tasks by query", found, f"Got {len(tasks)} tasks")
-else:
-    log_test("Search tasks by query", False, 
-             f"Status: {r.status_code if r else 'No response'}")
-
-# ==================== TEST 25: My tasks ====================
-print("\n[TEST 25] GET /tasks/my")
-r = req("GET", "/tasks/my", token=token1)
-if r and r.status_code == 200:
-    tasks = r.json()
-    log_test("Get my tasks", len(tasks) >= 1, f"Got {len(tasks)} tasks")
-else:
-    log_test("Get my tasks", False, 
-             f"Status: {r.status_code if r else 'No response'}")
-
-# ==================== TEST 26: Kanban view ====================
-print("\n[TEST 26] GET /tasks/board/{board_id}/kanban")
-if board1_id:
-    r = req("GET", f"/tasks/board/{board1_id}/kanban", token=token1)
-    if r and r.status_code == 200:
-        data = r.json()
-        board = data.get("board")
-        columns = data.get("columns", {})
-        expected_columns = ["todo", "in_progress", "review", "blocked", "done"]
-        has_all_columns = all(col in columns for col in expected_columns)
-        has_structure = all(
-            "key" in columns[col] and "name" in columns[col] and 
-            "color" in columns[col] and "tasks" in columns[col] and 
-            "count" in columns[col]
-            for col in expected_columns if col in columns
-        )
-        log_test("Kanban view returns all columns with structure", 
-                 has_all_columns and has_structure)
-    else:
-        log_test("Kanban view returns all columns with structure", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Kanban view returns all columns with structure", False, "No board to test with")
-
-# ==================== TEST 27: Stats ====================
-print("\n[TEST 27] GET /tasks/stats")
-r = req("GET", "/tasks/stats", token=token1)
-if r and r.status_code == 200:
-    stats = r.json()
-    required_fields = ["total", "active", "done", "overdue", "due_today", 
-                       "done_this_week", "by_status", "by_priority"]
-    has_all_fields = all(field in stats for field in required_fields)
-    has_5_statuses = len(stats.get("by_status", [])) == 5
-    has_4_priorities = len(stats.get("by_priority", [])) == 4
-    log_test("Stats returns all KPIs and breakdowns", 
-             has_all_fields and has_5_statuses and has_4_priorities)
-else:
-    log_test("Stats returns all KPIs and breakdowns", False, 
-             f"Status: {r.status_code if r else 'No response'}")
-
-# ==================== TEST 28: User isolation - User 2 sees empty boards ====================
-print("\n[TEST 28] User 2 GET /tasks/boards (should be empty)")
-r = req("GET", "/tasks/boards", token=token2)
-if r and r.status_code == 200:
-    boards = r.json()
-    log_test("User 2 sees empty boards list", len(boards) == 0, 
-             f"Got {len(boards)} boards")
-else:
-    log_test("User 2 sees empty boards list", False, 
-             f"Status: {r.status_code if r else 'No response'}")
-
-# ==================== TEST 29: User isolation - User 2 cannot access User 1's board ====================
-print("\n[TEST 29] User 2 GET /tasks/boards/{user1_board_id}")
-if board1_id:
-    r = req("GET", f"/tasks/boards/{board1_id}", token=token2)
-    log_test("User 2 cannot access User 1's board", 
-             r and r.status_code == 404,
-             f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("User 2 cannot access User 1's board", False, "No board to test with")
-
-# ==================== TEST 30: User isolation - User 2 cannot update User 1's task ====================
-print("\n[TEST 30] User 2 PUT /tasks/{user1_task_id}/status")
-if task1_id:
-    r = req("PUT", f"/tasks/{task1_id}/status", {
-        "status": "done"
-    }, token=token2)
-    log_test("User 2 cannot update User 1's task", 
-             r and r.status_code == 404,
-             f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("User 2 cannot update User 1's task", False, "No task to test with")
-
-# ==================== TEST 31: Team board sharing ====================
-print("\n[TEST 31] Team board sharing - User 2 joins team")
-if team1_id and team_board_id:
-    # User 2 joins User 1's team
-    r = req("POST", f"/teams/{team1_id}/join", token=token2)
-    if r and r.status_code == 200:
-        print("   User 2 joined team")
-        
-        # User 2 should now see the team board
-        r = req("GET", "/tasks/boards", token=token2)
-        if r and r.status_code == 200:
-            boards = r.json()
-            team_board_visible = any(b.get("id") == team_board_id for b in boards)
-            log_test("User 2 sees team board after joining", team_board_visible, 
-                     f"Got {len(boards)} boards")
-        else:
-            log_test("User 2 sees team board after joining", False, 
-                     f"Status: {r.status_code if r else 'No response'}")
-    else:
-        log_test("User 2 sees team board after joining", False, "Failed to join team")
-else:
-    log_test("User 2 sees team board after joining", False, "No team/board to test with")
-
-# ==================== TEST 32: Route order - /tasks/ping ====================
-print("\n[TEST 32] GET /tasks/ping (specific route)")
-r = req("GET", "/tasks/ping", token=token1)
-if r and r.status_code == 200:
-    data = r.json()
-    passed = (data.get("engine") == "tasks" and 
-              data.get("status") == "active" and
-              data.get("version") == "v1")
-    log_test("Route /tasks/ping returns correct response", passed)
-else:
-    log_test("Route /tasks/ping returns correct response", False, 
-             f"Status: {r.status_code if r else 'No response'}")
-
-# ==================== TEST 33: Cascade delete ====================
-print("\n[TEST 33] DELETE /tasks/boards/{board_id} (cascade)")
-if board1_id:
-    # First verify tasks exist
-    r = req("GET", "/tasks", token=token1, params={"board_id": board1_id})
-    tasks_before = len(r.json()) if r and r.status_code == 200 else 0
-    print(f"   Tasks before delete: {tasks_before}")
-    
-    # Delete board
-    r = req("DELETE", f"/tasks/boards/{board1_id}", token=token1)
-    if r and r.status_code == 200:
-        # Verify board is gone
-        r = req("GET", f"/tasks/boards/{board1_id}", token=token1)
-        board_gone = r and r.status_code == 404
-        
-        # Verify tasks are gone (try to get one)
-        if task1_id:
-            r = req("GET", f"/tasks/{task1_id}", token=token1)
-            task_gone = r and r.status_code == 404
-        else:
-            task_gone = True
-        
-        log_test("Delete board cascades to tasks", board_gone and task_gone)
-    else:
-        log_test("Delete board cascades to tasks", False, 
-                 f"Status: {r.status_code if r else 'No response'}")
-else:
-    log_test("Delete board cascades to tasks", False, "No board to test with")
-
-# ==================== SUMMARY ====================
-print("\n" + "=" * 80)
-print("TEST SUMMARY")
-print("=" * 80)
-
-passed_count = sum(1 for r in results if r["passed"])
-failed_count = len(results) - passed_count
-
-print(f"\nTotal: {len(results)} tests")
-print(f"✅ Passed: {passed_count}")
-print(f"❌ Failed: {failed_count}")
-
-if failed_count > 0:
-    print("\nFailed tests:")
-    for r in results:
-        if not r["passed"]:
-            print(f"  ❌ {r['test']}")
-            if r["details"]:
-                print(f"     {r['details']}")
-
-# Save report
-report = {
-    "iteration": 11,
-    "engine": "tasks",
-    "timestamp": datetime.now().isoformat(),
-    "summary": {
-        "total": len(results),
-        "passed": passed_count,
-        "failed": failed_count
-    },
-    "tests": results
+results = {
+    "iteration": 12,
+    "test_name": "RBAC + Admin Engine V1",
+    "timestamp": datetime.utcnow().isoformat(),
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "tests": []
 }
 
-os.makedirs("/app/test_reports", exist_ok=True)
-try:
-    with open("/app/test_reports/iteration_11.json", "w") as f:
-        json.dump(report, f, indent=2)
-    print(f"\n✅ Report saved to /app/test_reports/iteration_11.json")
-except TypeError as e:
-    print(f"\n⚠️  Error saving JSON report: {e}")
-    # Save as text instead
-    with open("/app/test_reports/iteration_11.txt", "w") as f:
-        f.write(f"Iteration 11 Test Report\n")
-        f.write(f"Total: {len(results)}, Passed: {passed_count}, Failed: {failed_count}\n\n")
-        for r in results:
-            f.write(f"{'PASS' if r['passed'] else 'FAIL'}: {r['test']}\n")
-            if r['details']:
-                f.write(f"  Details: {r['details']}\n")
-    print(f"✅ Report saved as text to /app/test_reports/iteration_11.txt")
-print("=" * 80)
+def log_test(name, passed, response=None, error=None):
+    """Log test result"""
+    results["total"] += 1
+    if passed:
+        results["passed"] += 1
+        print(f"✅ {name}")
+    else:
+        results["failed"] += 1
+        print(f"❌ {name}")
+        if error:
+            print(f"   Error: {error}")
+        if response:
+            print(f"   Response: {response.status_code} - {response.text[:200]}")
+    
+    results["tests"].append({
+        "name": name,
+        "passed": passed,
+        "error": error,
+        "response_code": response.status_code if response else None,
+        "response_body": response.text[:500] if response else None
+    })
+
+def setup_admin_user():
+    """Bootstrap super_admin user crm@test.com"""
+    print("\n=== SETUP: Bootstrap super_admin user ===")
+    
+    # Try to signup crm@test.com
+    try:
+        resp = requests.post(f"{BACKEND_URL}/auth/signup", json={
+            "name": "CRM Admin",
+            "username": "crmadmin",
+            "email": "crm@test.com",
+            "password": "testpass123"
+        }, timeout=10)
+        
+        if resp.status_code == 200:
+            print("✅ Created crm@test.com user")
+        elif resp.status_code == 400 and "already exists" in resp.text.lower():
+            print("✅ crm@test.com user already exists")
+        else:
+            print(f"⚠️  Signup response: {resp.status_code} - {resp.text[:200]}")
+    except Exception as e:
+        print(f"⚠️  Signup error: {e}")
+    
+    # Promote to super_admin via direct DB update
+    try:
+        from motor.motor_asyncio import AsyncIOMotorClient
+        import asyncio
+        
+        async def promote():
+            client = AsyncIOMotorClient(os.environ.get('MONGO_URL', 'mongodb://localhost:27017'))
+            db = client.ruaa
+            result = await db.users.update_one(
+                {"email": "crm@test.com"},
+                {"$set": {"role": "super_admin"}}
+            )
+            print(f"✅ Promoted crm@test.com to super_admin (matched: {result.matched_count})")
+            client.close()
+        
+        asyncio.run(promote())
+    except Exception as e:
+        print(f"⚠️  DB promotion error: {e}")
+    
+    # Login and get token
+    try:
+        resp = requests.post(f"{BACKEND_URL}/auth/login", json={
+            "email": "crm@test.com",
+            "password": "testpass123"
+        }, timeout=10)
+        
+        if resp.status_code == 200:
+            data = resp.json()
+            token = data.get("token")
+            user_id = data.get("user", {}).get("id")
+            print(f"✅ Logged in as super_admin (token: {token[:20]}...)")
+            return token, user_id
+        else:
+            print(f"❌ Login failed: {resp.status_code} - {resp.text[:200]}")
+            return None, None
+    except Exception as e:
+        print(f"❌ Login error: {e}")
+        return None, None
+
+def run_tests():
+    """Run all RBAC + Admin Engine tests"""
+    
+    # Setup admin user
+    admin_token, admin_user_id = setup_admin_user()
+    if not admin_token:
+        print("\n❌ FATAL: Could not setup super_admin user. Aborting tests.")
+        return
+    
+    print("\n" + "="*60)
+    print("ITERATION 12 — RBAC + ADMIN ENGINE V1 TESTS")
+    print("="*60)
+    
+    # ============================================================
+    # PUBLIC ENDPOINTS
+    # ============================================================
+    print("\n### PUBLIC ENDPOINTS ###")
+    
+    # Test 1: GET /api/admin/roles
+    try:
+        resp = requests.get(f"{BACKEND_URL}/admin/roles", timeout=10)
+        data = resp.json() if resp.status_code == 200 else None
+        
+        if resp.status_code == 200 and isinstance(data, list) and len(data) == 10:
+            # Verify structure
+            first_role = data[0]
+            has_structure = all(k in first_role for k in ["key", "name", "color", "level"])
+            
+            # Verify specific roles
+            role_keys = [r["key"] for r in data]
+            expected_roles = ["super_admin", "ceo", "marketing_manager", "community_manager", 
+                            "company", "team_owner", "trainer", "creator", "client", "student"]
+            has_all_roles = all(r in role_keys for r in expected_roles)
+            
+            if has_structure and has_all_roles:
+                log_test("1. GET /admin/roles → 200 with 10 roles (key, name, color, level)", True, resp)
+            else:
+                log_test("1. GET /admin/roles → 200 but structure/roles incomplete", False, resp, 
+                        f"Structure OK: {has_structure}, All roles: {has_all_roles}")
+        else:
+            log_test("1. GET /admin/roles → 200 with 10 roles", False, resp, 
+                    f"Got {len(data) if data else 0} roles")
+    except Exception as e:
+        log_test("1. GET /admin/roles", False, error=str(e))
+    
+    # Test 2: GET /api/admin/me/permissions (with any auth token)
+    try:
+        resp = requests.get(f"{BACKEND_URL}/admin/me/permissions", 
+                          headers={"Authorization": f"Bearer {admin_token}"}, timeout=10)
+        data = resp.json() if resp.status_code == 200 else None
+        
+        if resp.status_code == 200 and data:
+            has_structure = all(k in data for k in ["role", "role_meta", "capabilities"])
+            is_super_admin = data.get("role") == "super_admin"
+            has_caps = isinstance(data.get("capabilities"), list) and len(data["capabilities"]) > 0
+            
+            if has_structure and is_super_admin and has_caps:
+                log_test("2. GET /admin/me/permissions (super_admin) → 200 with role, role_meta, capabilities", 
+                        True, resp)
+            else:
+                log_test("2. GET /admin/me/permissions → 200 but incomplete", False, resp,
+                        f"Structure: {has_structure}, Super admin: {is_super_admin}, Has caps: {has_caps}")
+        else:
+            log_test("2. GET /admin/me/permissions", False, resp)
+    except Exception as e:
+        log_test("2. GET /admin/me/permissions", False, error=str(e))
+    
+    # ============================================================
+    # RBAC GATING — Create fresh creator user
+    # ============================================================
+    print("\n### RBAC GATING (Creator gets 403) ###")
+    
+    creator_token = None
+    creator_user_id = None
+    
+    # Test 3: Create fresh signup (role=creator by default)
+    try:
+        import uuid
+        random_email = f"creator_{uuid.uuid4().hex[:8]}@test.com"
+        
+        resp = requests.post(f"{BACKEND_URL}/auth/signup", json={
+            "name": "Test Creator",
+            "username": f"creator_{uuid.uuid4().hex[:6]}",
+            "email": random_email,
+            "password": "testpass123"
+        }, timeout=10)
+        
+        if resp.status_code == 200:
+            data = resp.json()
+            creator_token = data.get("token")
+            creator_user_id = data.get("user", {}).get("id")
+            
+            # Verify default role is creator
+            me_resp = requests.get(f"{BACKEND_URL}/auth/me",
+                                  headers={"Authorization": f"Bearer {creator_token}"}, timeout=10)
+            if me_resp.status_code == 200:
+                user_data = me_resp.json()
+                role = user_data.get("role", "creator")
+                if role == "creator":
+                    log_test("3. Fresh signup → default role=creator", True, resp)
+                else:
+                    log_test("3. Fresh signup → default role=creator", False, resp, 
+                            f"Got role={role}")
+            else:
+                log_test("3. Fresh signup → verify role", False, me_resp)
+        else:
+            log_test("3. Fresh signup", False, resp)
+    except Exception as e:
+        log_test("3. Fresh signup", False, error=str(e))
+    
+    if not creator_token:
+        print("⚠️  Skipping creator RBAC tests (no creator token)")
+    else:
+        # Test 4: Creator GET /admin/users → 403
+        try:
+            resp = requests.get(f"{BACKEND_URL}/admin/users",
+                              headers={"Authorization": f"Bearer {creator_token}"}, timeout=10)
+            
+            if resp.status_code == 403:
+                log_test("4. Creator GET /admin/users → 403 (غير مصرح)", True, resp)
+            else:
+                log_test("4. Creator GET /admin/users → 403", False, resp, 
+                        f"Expected 403, got {resp.status_code}")
+        except Exception as e:
+            log_test("4. Creator GET /admin/users → 403", False, error=str(e))
+        
+        # Test 5: Creator GET /admin/dashboard → 403
+        try:
+            resp = requests.get(f"{BACKEND_URL}/admin/dashboard",
+                              headers={"Authorization": f"Bearer {creator_token}"}, timeout=10)
+            
+            if resp.status_code == 403:
+                log_test("5. Creator GET /admin/dashboard → 403", True, resp)
+            else:
+                log_test("5. Creator GET /admin/dashboard → 403", False, resp,
+                        f"Expected 403, got {resp.status_code}")
+        except Exception as e:
+            log_test("5. Creator GET /admin/dashboard → 403", False, error=str(e))
+        
+        # Test 6: Creator PUT /admin/users/{id}/role → 403
+        try:
+            resp = requests.put(f"{BACKEND_URL}/admin/users/{creator_user_id}/role",
+                              headers={"Authorization": f"Bearer {creator_token}"},
+                              json={"role": "trainer"}, timeout=10)
+            
+            if resp.status_code == 403:
+                log_test("6. Creator PUT /admin/users/{id}/role → 403", True, resp)
+            else:
+                log_test("6. Creator PUT /admin/users/{id}/role → 403", False, resp,
+                        f"Expected 403, got {resp.status_code}")
+        except Exception as e:
+            log_test("6. Creator PUT /admin/users/{id}/role → 403", False, error=str(e))
+    
+    # ============================================================
+    # SUPER_ADMIN OPERATIONS
+    # ============================================================
+    print("\n### SUPER_ADMIN OPERATIONS ###")
+    
+    # Test 7: Super_admin GET /admin/users → 200 with role_meta enriched
+    try:
+        resp = requests.get(f"{BACKEND_URL}/admin/users",
+                          headers={"Authorization": f"Bearer {admin_token}"}, timeout=10)
+        data = resp.json() if resp.status_code == 200 else None
+        
+        if resp.status_code == 200 and isinstance(data, list) and len(data) > 0:
+            first_user = data[0]
+            has_role_meta = "role_meta" in first_user
+            
+            if has_role_meta:
+                log_test("7. Super_admin GET /admin/users → 200 with role_meta enriched", True, resp)
+            else:
+                log_test("7. Super_admin GET /admin/users → 200 but no role_meta", False, resp)
+        else:
+            log_test("7. Super_admin GET /admin/users → 200", False, resp,
+                    f"Got {len(data) if data else 0} users")
+    except Exception as e:
+        log_test("7. Super_admin GET /admin/users → 200", False, error=str(e))
+    
+    # Test 8: Filter by role=creator
+    try:
+        resp = requests.get(f"{BACKEND_URL}/admin/users?role=creator",
+                          headers={"Authorization": f"Bearer {admin_token}"}, timeout=10)
+        data = resp.json() if resp.status_code == 200 else None
+        
+        if resp.status_code == 200 and isinstance(data, list):
+            # Verify all returned users have role=creator
+            all_creators = all(u.get("role") == "creator" for u in data)
+            
+            if all_creators:
+                log_test("8. GET /admin/users?role=creator → filtered correctly", True, resp)
+            else:
+                log_test("8. GET /admin/users?role=creator → filter failed", False, resp,
+                        "Some users don't have role=creator")
+        else:
+            log_test("8. GET /admin/users?role=creator", False, resp)
+    except Exception as e:
+        log_test("8. GET /admin/users?role=creator", False, error=str(e))
+    
+    # Test 9: Search q=crm
+    try:
+        resp = requests.get(f"{BACKEND_URL}/admin/users?q=crm",
+                          headers={"Authorization": f"Bearer {admin_token}"}, timeout=10)
+        data = resp.json() if resp.status_code == 200 else None
+        
+        if resp.status_code == 200 and isinstance(data, list):
+            # Should find crm@test.com
+            found_crm = any("crm" in u.get("email", "").lower() or 
+                          "crm" in u.get("name", "").lower() or
+                          "crm" in u.get("username", "").lower() for u in data)
+            
+            if found_crm:
+                log_test("9. GET /admin/users?q=crm → search working", True, resp)
+            else:
+                log_test("9. GET /admin/users?q=crm → search failed", False, resp,
+                        "crm@test.com not found in results")
+        else:
+            log_test("9. GET /admin/users?q=crm", False, resp)
+    except Exception as e:
+        log_test("9. GET /admin/users?q=crm", False, error=str(e))
+    
+    # Test 10: GET /admin/users/{id} with stats
+    try:
+        resp = requests.get(f"{BACKEND_URL}/admin/users/{admin_user_id}",
+                          headers={"Authorization": f"Bearer {admin_token}"}, timeout=10)
+        data = resp.json() if resp.status_code == 200 else None
+        
+        if resp.status_code == 200 and data:
+            has_stats = "stats" in data
+            if has_stats:
+                stats = data["stats"]
+                has_all_stats = all(k in stats for k in ["videos", "services", "orders_placed", "orders_received"])
+                
+                if has_all_stats:
+                    log_test("10. GET /admin/users/{id} → 200 with stats (videos, services, orders)", True, resp)
+                else:
+                    log_test("10. GET /admin/users/{id} → 200 but incomplete stats", False, resp,
+                            f"Missing stats keys")
+            else:
+                log_test("10. GET /admin/users/{id} → 200 but no stats", False, resp)
+        else:
+            log_test("10. GET /admin/users/{id}", False, resp)
+    except Exception as e:
+        log_test("10. GET /admin/users/{id}", False, error=str(e))
+    
+    # Test 11: GET /admin/dashboard
+    try:
+        resp = requests.get(f"{BACKEND_URL}/admin/dashboard",
+                          headers={"Authorization": f"Bearer {admin_token}"}, timeout=10)
+        data = resp.json() if resp.status_code == 200 else None
+        
+        if resp.status_code == 200 and data:
+            has_structure = all(k in data for k in ["users", "content", "business", "community"])
+            
+            if has_structure:
+                # Verify users.by_role has 10 items
+                by_role = data.get("users", {}).get("by_role", [])
+                has_10_roles = len(by_role) == 10
+                
+                if has_10_roles:
+                    log_test("11. GET /admin/dashboard → 200 with {users, content, business, community}", True, resp)
+                else:
+                    log_test("11. GET /admin/dashboard → 200 but by_role incomplete", False, resp,
+                            f"Got {len(by_role)} roles, expected 10")
+            else:
+                log_test("11. GET /admin/dashboard → 200 but structure incomplete", False, resp)
+        else:
+            log_test("11. GET /admin/dashboard", False, resp)
+    except Exception as e:
+        log_test("11. GET /admin/dashboard", False, error=str(e))
+    
+    # ============================================================
+    # USER MANAGEMENT
+    # ============================================================
+    print("\n### USER MANAGEMENT (Role Changes) ###")
+    
+    second_user_id = creator_user_id  # Use the creator we created earlier
+    second_user_token = creator_token
+    
+    if not second_user_id:
+        print("⚠️  Skipping user management tests (no second user)")
+    else:
+        # Test 12: Promote second user to marketing_manager
+        try:
+            resp = requests.put(f"{BACKEND_URL}/admin/users/{second_user_id}/role",
+                              headers={"Authorization": f"Bearer {admin_token}"},
+                              json={"role": "marketing_manager"}, timeout=10)
+            data = resp.json() if resp.status_code == 200 else None
+            
+            if resp.status_code == 200 and data:
+                new_role = data.get("new_role")
+                if new_role == "marketing_manager":
+                    log_test("12. Super_admin PUT /admin/users/{id}/role → 200 with new_role", True, resp)
+                else:
+                    log_test("12. Super_admin PUT /admin/users/{id}/role → 200 but wrong role", False, resp,
+                            f"Expected marketing_manager, got {new_role}")
+            else:
+                log_test("12. Super_admin PUT /admin/users/{id}/role", False, resp)
+        except Exception as e:
+            log_test("12. Super_admin PUT /admin/users/{id}/role", False, error=str(e))
+        
+        # Test 13: Verify promoted user has new capabilities
+        try:
+            # Login as promoted user to get fresh token
+            resp = requests.get(f"{BACKEND_URL}/admin/me/permissions",
+                              headers={"Authorization": f"Bearer {second_user_token}"}, timeout=10)
+            data = resp.json() if resp.status_code == 200 else None
+            
+            if resp.status_code == 200 and data:
+                role = data.get("role")
+                caps = data.get("capabilities", [])
+                
+                # Marketing manager should have admin.view_all_leads and marketing.manage_campaigns
+                has_leads_cap = "admin.view_all_leads" in caps
+                has_marketing_cap = "marketing.manage_campaigns" in caps
+                
+                if role == "marketing_manager" and has_leads_cap and has_marketing_cap:
+                    log_test("13. Promoted user GET /admin/me/permissions → has marketing_manager capabilities", 
+                            True, resp)
+                else:
+                    log_test("13. Promoted user GET /admin/me/permissions → missing capabilities", False, resp,
+                            f"Role: {role}, Has leads cap: {has_leads_cap}, Has marketing cap: {has_marketing_cap}")
+            else:
+                log_test("13. Promoted user GET /admin/me/permissions", False, resp)
+        except Exception as e:
+            log_test("13. Promoted user GET /admin/me/permissions", False, error=str(e))
+        
+        # Test 14: Super_admin can't demote self
+        try:
+            resp = requests.put(f"{BACKEND_URL}/admin/users/{admin_user_id}/role",
+                              headers={"Authorization": f"Bearer {admin_token}"},
+                              json={"role": "creator"}, timeout=10)
+            
+            if resp.status_code == 400:
+                log_test("14. Super_admin PUT self role to creator → 400 (can't demote self)", True, resp)
+            else:
+                log_test("14. Super_admin PUT self role to creator → 400", False, resp,
+                        f"Expected 400, got {resp.status_code}")
+        except Exception as e:
+            log_test("14. Super_admin PUT self role to creator → 400", False, error=str(e))
+        
+        # Test 15: Invalid role → 400
+        try:
+            resp = requests.put(f"{BACKEND_URL}/admin/users/{second_user_id}/role",
+                              headers={"Authorization": f"Bearer {admin_token}"},
+                              json={"role": "invalid_role"}, timeout=10)
+            
+            if resp.status_code == 400:
+                log_test("15. PUT /admin/users/{id}/role with invalid_role → 400", True, resp)
+            else:
+                log_test("15. PUT /admin/users/{id}/role with invalid_role → 400", False, resp,
+                        f"Expected 400, got {resp.status_code}")
+        except Exception as e:
+            log_test("15. PUT /admin/users/{id}/role with invalid_role → 400", False, error=str(e))
+    
+    # ============================================================
+    # BAN/UNBAN
+    # ============================================================
+    print("\n### BAN/UNBAN ###")
+    
+    if not second_user_id:
+        print("⚠️  Skipping ban/unban tests (no second user)")
+    else:
+        # Test 16: Ban user
+        try:
+            resp = requests.put(f"{BACKEND_URL}/admin/users/{second_user_id}/ban",
+                              headers={"Authorization": f"Bearer {admin_token}"},
+                              json={"banned": True, "reason": "spam"}, timeout=10)
+            data = resp.json() if resp.status_code == 200 else None
+            
+            if resp.status_code == 200 and data:
+                banned = data.get("banned")
+                if banned is True:
+                    # Verify by GET user
+                    get_resp = requests.get(f"{BACKEND_URL}/admin/users/{second_user_id}",
+                                          headers={"Authorization": f"Bearer {admin_token}"}, timeout=10)
+                    get_data = get_resp.json() if get_resp.status_code == 200 else None
+                    
+                    if get_data:
+                        is_banned = get_data.get("is_banned")
+                        banned_reason = get_data.get("banned_reason")
+                        
+                        if is_banned is True and banned_reason == "spam":
+                            log_test("16. Super_admin PUT /admin/users/{id}/ban → 200, verified is_banned=true, reason=spam", 
+                                    True, resp)
+                        else:
+                            log_test("16. Super_admin PUT /admin/users/{id}/ban → 200 but verification failed", False, resp,
+                                    f"is_banned: {is_banned}, reason: {banned_reason}")
+                    else:
+                        log_test("16. Super_admin PUT /admin/users/{id}/ban → 200 but GET failed", False, get_resp)
+                else:
+                    log_test("16. Super_admin PUT /admin/users/{id}/ban → 200 but banned=false", False, resp)
+            else:
+                log_test("16. Super_admin PUT /admin/users/{id}/ban", False, resp)
+        except Exception as e:
+            log_test("16. Super_admin PUT /admin/users/{id}/ban", False, error=str(e))
+        
+        # Test 17: Unban user
+        try:
+            resp = requests.put(f"{BACKEND_URL}/admin/users/{second_user_id}/ban",
+                              headers={"Authorization": f"Bearer {admin_token}"},
+                              json={"banned": False}, timeout=10)
+            data = resp.json() if resp.status_code == 200 else None
+            
+            if resp.status_code == 200 and data:
+                banned = data.get("banned")
+                if banned is False:
+                    log_test("17. Super_admin PUT /admin/users/{id}/ban (unban) → 200", True, resp)
+                else:
+                    log_test("17. Super_admin PUT /admin/users/{id}/ban (unban) → 200 but banned=true", False, resp)
+            else:
+                log_test("17. Super_admin PUT /admin/users/{id}/ban (unban)", False, resp)
+        except Exception as e:
+            log_test("17. Super_admin PUT /admin/users/{id}/ban (unban)", False, error=str(e))
+        
+        # Test 18: Can't ban self
+        try:
+            resp = requests.put(f"{BACKEND_URL}/admin/users/{admin_user_id}/ban",
+                              headers={"Authorization": f"Bearer {admin_token}"},
+                              json={"banned": True}, timeout=10)
+            
+            if resp.status_code == 400:
+                log_test("18. Super_admin PUT self ban → 400 (can't ban self)", True, resp)
+            else:
+                log_test("18. Super_admin PUT self ban → 400", False, resp,
+                        f"Expected 400, got {resp.status_code}")
+        except Exception as e:
+            log_test("18. Super_admin PUT self ban → 400", False, error=str(e))
+    
+    # ============================================================
+    # AUDIT LOG
+    # ============================================================
+    print("\n### AUDIT LOG ###")
+    
+    # Test 19: GET /admin/audit
+    try:
+        resp = requests.get(f"{BACKEND_URL}/admin/audit",
+                          headers={"Authorization": f"Bearer {admin_token}"}, timeout=10)
+        data = resp.json() if resp.status_code == 200 else None
+        
+        if resp.status_code == 200 and isinstance(data, list):
+            if len(data) > 0:
+                # Verify structure: should have actor/target enriched
+                first_log = data[0]
+                has_structure = all(k in first_log for k in ["actor_id", "target_id", "action", "created_at"])
+                has_enrichment = "actor" in first_log and "target" in first_log
+                
+                if has_structure and has_enrichment:
+                    # Verify we have logs from role change and ban actions
+                    actions = [log.get("action") for log in data]
+                    has_change_role = "change_role" in actions
+                    has_ban = "ban" in actions or "unban" in actions
+                    
+                    if has_change_role or has_ban:
+                        log_test("19. GET /admin/audit → 200 with logs (actor/target enriched, change_role/ban actions)", 
+                                True, resp)
+                    else:
+                        log_test("19. GET /admin/audit → 200 but missing expected actions", False, resp,
+                                f"Actions: {actions}")
+                else:
+                    log_test("19. GET /admin/audit → 200 but structure incomplete", False, resp,
+                            f"Structure: {has_structure}, Enrichment: {has_enrichment}")
+            else:
+                log_test("19. GET /admin/audit → 200 but empty", False, resp, "No audit logs found")
+        else:
+            log_test("19. GET /admin/audit", False, resp)
+    except Exception as e:
+        log_test("19. GET /admin/audit", False, error=str(e))
+    
+    # ============================================================
+    # ROUTE SANITY
+    # ============================================================
+    print("\n### ROUTE SANITY ###")
+    
+    # Test 20: GET /admin/ping
+    try:
+        resp = requests.get(f"{BACKEND_URL}/admin/ping", timeout=10)
+        data = resp.json() if resp.status_code == 200 else None
+        
+        if resp.status_code == 200 and data:
+            engine = data.get("engine")
+            status = data.get("status")
+            
+            if engine == "admin" and status == "active":
+                log_test("20. GET /admin/ping → 200 (backwards compat)", True, resp)
+            else:
+                log_test("20. GET /admin/ping → 200 but wrong data", False, resp,
+                        f"engine: {engine}, status: {status}")
+        else:
+            log_test("20. GET /admin/ping", False, resp)
+    except Exception as e:
+        log_test("20. GET /admin/ping", False, error=str(e))
+    
+    # ============================================================
+    # SUMMARY
+    # ============================================================
+    print("\n" + "="*60)
+    print(f"TESTS COMPLETE: {results['passed']}/{results['total']} passed")
+    print("="*60)
+    
+    # Save report
+    os.makedirs("/app/test_reports", exist_ok=True)
+    report_path = "/app/test_reports/iteration_12.json"
+    with open(report_path, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"\n📄 Report saved to {report_path}")
+    
+    return results
+
+if __name__ == "__main__":
+    try:
+        results = run_tests()
+        sys.exit(0 if results["failed"] == 0 else 1)
+    except Exception as e:
+        print(f"\n❌ FATAL ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)

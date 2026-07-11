@@ -1,0 +1,150 @@
+{
+  "iteration": 12,
+  "test_name": "RBAC + Admin Engine V1",
+  "timestamp": "2026-07-11T23:57:12.409915",
+  "total": 20,
+  "passed": 20,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "1. GET /admin/roles \u2192 200 with 10 roles (key, name, color, level)",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "[{\"key\":\"super_admin\",\"name\":\"\u0645\u062f\u064a\u0631 \u0623\u0639\u0644\u0649\",\"color\":\"#EF4444\",\"level\":100},{\"key\":\"ceo\",\"name\":\"\u0631\u0626\u064a\u0633 \u062a\u0646\u0641\u064a\u0630\u064a\",\"color\":\"#8B5CF6\",\"level\":90},{\"key\":\"marketing_manager\",\"name\":\"\u0645\u062f\u064a\u0631 \u062a\u0633\u0648\u064a\u0642\",\"color\":\"#D1795F\",\"level\":70},{\"key\":\"community_manager\",\"name\":\"\u0645\u062f\u064a\u0631 \u0645\u062c\u062a\u0645\u0639\",\"color\":\"#F59E0B\",\"level\":70},{\"key\":\"company\",\"name\":\"\u0634\u0631\u0643\u0629\",\"color\":\"#57769D\",\"level\":60},{\"key\":\"team_owner\",\"name\":\"\u0642\u0627\u0626\u062f \u0641\u0631\u064a\u0642\",\"color\":\"#06B6D4\",\"level\":50},{\"key\":\"trainer\",\"name\":\"\u0645\u062f\u0631\u0651\u0628\",\"color\":\"#C3E0A5\",\"level\":40},{\"key\":\"creator\",\""
+    },
+    {
+      "name": "2. GET /admin/me/permissions (super_admin) \u2192 200 with role, role_meta, capabilities",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "{\"role\":\"super_admin\",\"role_meta\":{\"key\":\"super_admin\",\"name\":\"\u0645\u062f\u064a\u0631 \u0623\u0639\u0644\u0649\",\"color\":\"#EF4444\",\"level\":100},\"capabilities\":[\"admin.view_all_users\",\"admin.change_user_role\",\"admin.ban_users\",\"admin.view_platform_stats\",\"admin.view_all_leads\",\"community.moderate\",\"marketing.manage_campaigns\",\"academy.create_courses\",\"business.use_crm\",\"business.use_content_os\",\"business.use_tasks\"]}"
+    },
+    {
+      "name": "3. Fresh signup \u2192 default role=creator",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "{\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTEwNTZkYzYtNmNlYy00YTNiLTg0MjQtOTJkN2VhZjdkZGQ4IiwiZXhwIjoxNzg2NDA2MjMzfQ.6uqiuqawe5jFcm8OvRQyNfpdtdWgmsAC9A13LFbyBpk\",\"user\":{\"id\":\"51056dc6-6cec-4a3b-8424-92d7eaf7ddd8\",\"email\":\"creator_1acd9752@test.com\",\"username\":\"creator_2dd7ab\",\"name\":\"Test Creator\",\"bio\":\"\",\"avatar_url\":\"\",\"role\":\"creator\",\"looking_for\":[],\"skills\":[],\"years_experience\":0,\"intro_video_url\":\"\",\"certifications\":[],\"portfolio\":[],\"is_creator\":true,\"followers\":0"
+    },
+    {
+      "name": "4. Creator GET /admin/users \u2192 403 (\u063a\u064a\u0631 \u0645\u0635\u0631\u062d)",
+      "passed": true,
+      "error": null,
+      "response_code": null,
+      "response_body": null
+    },
+    {
+      "name": "5. Creator GET /admin/dashboard \u2192 403",
+      "passed": true,
+      "error": null,
+      "response_code": null,
+      "response_body": null
+    },
+    {
+      "name": "6. Creator PUT /admin/users/{id}/role \u2192 403",
+      "passed": true,
+      "error": null,
+      "response_code": null,
+      "response_body": null
+    },
+    {
+      "name": "7. Super_admin GET /admin/users \u2192 200 with role_meta enriched",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "[{\"id\":\"51056dc6-6cec-4a3b-8424-92d7eaf7ddd8\",\"email\":\"creator_1acd9752@test.com\",\"username\":\"creator_2dd7ab\",\"name\":\"Test Creator\",\"bio\":\"\",\"avatar_url\":\"\",\"role\":\"creator\",\"looking_for\":[],\"skills\":[],\"years_experience\":0,\"intro_video_url\":\"\",\"certifications\":[],\"portfolio\":[],\"is_creator\":true,\"followers\":0,\"following\":0,\"created_at\":\"2026-07-11T23:57:13.742752+00:00\",\"role_meta\":{\"key\":\"creator\",\"name\":\"\u0635\u0627\u0646\u0639 \u0645\u062d\u062a\u0648\u0649\",\"color\":\"#D1795F\",\"level\":30}},{\"id\":\"8233b6ad-e030-4d36-b64a-1ec5c74a6413\",\""
+    },
+    {
+      "name": "8. GET /admin/users?role=creator \u2192 filtered correctly",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "[{\"id\":\"51056dc6-6cec-4a3b-8424-92d7eaf7ddd8\",\"email\":\"creator_1acd9752@test.com\",\"username\":\"creator_2dd7ab\",\"name\":\"Test Creator\",\"bio\":\"\",\"avatar_url\":\"\",\"role\":\"creator\",\"looking_for\":[],\"skills\":[],\"years_experience\":0,\"intro_video_url\":\"\",\"certifications\":[],\"portfolio\":[],\"is_creator\":true,\"followers\":0,\"following\":0,\"created_at\":\"2026-07-11T23:57:13.742752+00:00\",\"role_meta\":{\"key\":\"creator\",\"name\":\"\u0635\u0627\u0646\u0639 \u0645\u062d\u062a\u0648\u0649\",\"color\":\"#D1795F\",\"level\":30}},{\"id\":\"8233b6ad-e030-4d36-b64a-1ec5c74a6413\",\""
+    },
+    {
+      "name": "9. GET /admin/users?q=crm \u2192 search working",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "[{\"id\":\"da302660-351a-48ed-a9f6-44e7517dd23a\",\"email\":\"crm_user2_20260711222909@test.com\",\"username\":\"crmuser2_20260711222909\",\"name\":\"CRM User 2\",\"bio\":\"\",\"avatar_url\":\"\",\"role\":\"creator\",\"looking_for\":[],\"skills\":[],\"years_experience\":0,\"intro_video_url\":\"\",\"certifications\":[],\"portfolio\":[],\"is_creator\":true,\"followers\":0,\"following\":0,\"created_at\":\"2026-07-11T22:29:10.273593+00:00\",\"role_meta\":{\"key\":\"creator\",\"name\":\"\u0635\u0627\u0646\u0639 \u0645\u062d\u062a\u0648\u0649\",\"color\":\"#D1795F\",\"level\":30}},{\"id\":\"6585c033-a115-4784-8db0-"
+    },
+    {
+      "name": "10. GET /admin/users/{id} \u2192 200 with stats (videos, services, orders)",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "{\"id\":\"98f6471a-7029-45b9-9728-76382618b83a\",\"email\":\"crm@test.com\",\"username\":\"crm_tester\",\"name\":\"CRM Tester\",\"bio\":\"\",\"avatar_url\":\"\",\"role\":\"super_admin\",\"looking_for\":[],\"skills\":[],\"years_experience\":0,\"intro_video_url\":\"\",\"certifications\":[],\"portfolio\":[],\"is_creator\":true,\"followers\":0,\"following\":0,\"created_at\":\"2026-07-11T22:17:56.991623+00:00\",\"role_meta\":{\"key\":\"super_admin\",\"name\":\"\u0645\u062f\u064a\u0631 \u0623\u0639\u0644\u0649\",\"color\":\"#EF4444\",\"level\":100},\"stats\":{\"videos\":0,\"services\":0,\"orders_placed\":0,\"orders_"
+    },
+    {
+      "name": "11. GET /admin/dashboard \u2192 200 with {users, content, business, community}",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "{\"users\":{\"total\":23,\"banned\":0,\"by_role\":[{\"key\":\"super_admin\",\"name\":\"\u0645\u062f\u064a\u0631 \u0623\u0639\u0644\u0649\",\"color\":\"#EF4444\",\"level\":100,\"count\":1},{\"key\":\"ceo\",\"name\":\"\u0631\u0626\u064a\u0633 \u062a\u0646\u0641\u064a\u0630\u064a\",\"color\":\"#8B5CF6\",\"level\":90,\"count\":0},{\"key\":\"marketing_manager\",\"name\":\"\u0645\u062f\u064a\u0631 \u062a\u0633\u0648\u064a\u0642\",\"color\":\"#D1795F\",\"level\":70,\"count\":0},{\"key\":\"community_manager\",\"name\":\"\u0645\u062f\u064a\u0631 \u0645\u062c\u062a\u0645\u0639\",\"color\":\"#F59E0B\",\"level\":70,\"count\":0},{\"key\":\"company\",\"name\":\"\u0634\u0631\u0643\u0629\",\"color\":\"#57769D\",\"level\":60,\"count\":0},{\"key\":\"team_owner\",\"name\":\"\u0642\u0627\u0626\u062f \u0641\u0631\u064a\u0642\",\"color\":\"#06B6D4\","
+    },
+    {
+      "name": "12. Super_admin PUT /admin/users/{id}/role \u2192 200 with new_role",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "{\"ok\":true,\"new_role\":\"marketing_manager\"}"
+    },
+    {
+      "name": "13. Promoted user GET /admin/me/permissions \u2192 has marketing_manager capabilities",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "{\"role\":\"marketing_manager\",\"role_meta\":{\"key\":\"marketing_manager\",\"name\":\"\u0645\u062f\u064a\u0631 \u062a\u0633\u0648\u064a\u0642\",\"color\":\"#D1795F\",\"level\":70},\"capabilities\":[\"admin.view_all_leads\",\"marketing.manage_campaigns\",\"business.use_crm\",\"business.use_content_os\",\"business.use_tasks\"]}"
+    },
+    {
+      "name": "14. Super_admin PUT self role to creator \u2192 400 (can't demote self)",
+      "passed": true,
+      "error": null,
+      "response_code": null,
+      "response_body": null
+    },
+    {
+      "name": "15. PUT /admin/users/{id}/role with invalid_role \u2192 400",
+      "passed": true,
+      "error": null,
+      "response_code": null,
+      "response_body": null
+    },
+    {
+      "name": "16. Super_admin PUT /admin/users/{id}/ban \u2192 200, verified is_banned=true, reason=spam",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "{\"ok\":true,\"banned\":true}"
+    },
+    {
+      "name": "17. Super_admin PUT /admin/users/{id}/ban (unban) \u2192 200",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "{\"ok\":true,\"banned\":false}"
+    },
+    {
+      "name": "18. Super_admin PUT self ban \u2192 400 (can't ban self)",
+      "passed": true,
+      "error": null,
+      "response_code": null,
+      "response_body": null
+    },
+    {
+      "name": "19. GET /admin/audit \u2192 200 with logs (actor/target enriched, change_role/ban actions)",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "[{\"id\":\"f81983cd6aca42288b244153ac7782e0\",\"actor_id\":\"98f6471a-7029-45b9-9728-76382618b83a\",\"target_id\":\"51056dc6-6cec-4a3b-8424-92d7eaf7ddd8\",\"action\":\"unban\",\"meta\":{\"reason\":\"\"},\"created_at\":\"2026-07-11T23:57:15.621778+00:00\",\"actor\":{\"username\":\"crm_tester\",\"name\":\"CRM Tester\"},\"target\":{\"username\":\"creator_2dd7ab\",\"name\":\"Test Creator\"}},{\"id\":\"bb3bbd5602464ef98d89a1727a3b97d2\",\"actor_id\":\"98f6471a-7029-45b9-9728-76382618b83a\",\"target_id\":\"51056dc6-6cec-4a3b-8424-92d7eaf7ddd8\",\"action\":\"ban"
+    },
+    {
+      "name": "20. GET /admin/ping \u2192 200 (backwards compat)",
+      "passed": true,
+      "error": null,
+      "response_code": 200,
+      "response_body": "{\"engine\":\"admin\",\"status\":\"active\",\"version\":\"v1\"}"
+    }
+  ]
+}

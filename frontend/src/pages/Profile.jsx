@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video, CheckSquare } from "lucide-react";
+import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video, CheckSquare, ShieldAlert } from "lucide-react";
 
 export default function Profile() {
     const { username } = useParams();
@@ -139,6 +139,23 @@ export default function Profile() {
                             رسالة
                         </button>
                     </div>
+                )}
+
+                {isMe && user?.role === "super_admin" && (
+                    <button
+                        data-testid="open-admin-btn"
+                        onClick={() => navigate("/admin")}
+                        className="mt-3 w-full bg-gradient-to-r from-red-500/10 to-red-500/5 hover:from-red-500/20 hover:to-red-500/10 border border-red-500/30 rounded-2xl p-3 transition flex items-center gap-3"
+                    >
+                        <div className="w-10 h-10 rounded-xl bg-red-500 flex items-center justify-center flex-shrink-0">
+                            <ShieldAlert className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1 text-start">
+                            <div className="font-heading font-bold text-white">لوحة المدير</div>
+                            <div className="text-[10px] text-white/60 font-body">إدارة المستخدمين والصلاحيات</div>
+                        </div>
+                        <ArrowLeft className="w-4 h-4 text-red-400" />
+                    </button>
                 )}
 
                 {isMe && (
