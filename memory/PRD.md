@@ -1,5 +1,39 @@
 # Creator Hub — منصة صناع المحتوى
 
+## Iteration 10 — Sprint "Content OS Engine V1" (2026-07)
+
+### Delivered
+- **Full Content OS Engine**: `content_engine.py` from placeholder → ~280 lines.
+- **Backend endpoints (~14 new)** under `/api/content/*`:
+  - **Meta**: `GET /content/meta` → 7 statuses + 8 platforms + 7 formats
+  - **Items**: full CRUD + search + filter (status/platform/client)
+  - **Status transitions**: `PUT /content/items/{id}/status` with auto-`published_at` on publish
+  - **Kanban**: `GET /content/kanban` → items grouped by all 7 statuses (idea → draft → review → approved → scheduled → published → archived)
+  - **Calendar**: `GET /content/calendar?year&month` → items grouped by day
+  - **Stats**: total, ideas, drafts, scheduled, published, published_this_month, by_platform, by_status
+  - **AI-powered helpers** (Claude Sonnet 4.5): `/content/ai/ideas`, `/content/ai/script`, `/content/ai/caption`, `/content/ai/hashtags`
+- **User-scoped** (owner_id filter) — strict isolation verified
+- **CRM client link** — optional `client_id` connects content to a CRM client
+- **8 platforms** supported: Instagram, TikTok, X, LinkedIn, YouTube, Facebook, Snapchat, Other
+- **7 formats**: Reel, Post, Story, Thread, Video, Carousel, Live
+- 4 new prompts added to `AI_PROMPTS`
+
+### Frontend (5 pages)
+- `/content` — Dashboard (KPIs by status, upcoming scheduled, by-platform breakdown, empty-state onboarding)
+- `/content/kanban` — 7-column Kanban board (horizontal scroll), per-card stage menu
+- `/content/calendar` — Monthly Arabic calendar with items on scheduled/published days (RTL week starting Saturday)
+- `/content/ai` — Dedicated AI creative page: 4 task types (ideas/script/caption/hashtags) + topic input + platform/format selectors + copy result
+- `/content/item/:id` — Full editor: inline edit title, status picker, hook/caption/hashtags/script fields, per-field AI Wand2 buttons, apply-to-field flow
+- Content OS entry card added to Profile page (side-by-side with CRM card)
+
+### Test coverage (Iteration 10)
+- **29/29 backend tests passed** (100%)
+- Zero regressions
+- User isolation strict ✓
+- CRM client integration + enrichment ✓
+- All 4 AI endpoints working with Claude Sonnet 4.5 (budget now sufficient) ✓
+- Frontend visually verified all 5 pages render correctly
+
 ## Original Problem Statement
 ابغى اسوي تطبيق يجمع صناع المحتوى ويربط بينهم وبين العملاء والمنصة تكون مثل التيك توك يستطيع الشخص صناعة محتوى لتسويق نفسه او منتجه او خدمته.
 

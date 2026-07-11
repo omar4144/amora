@@ -105,6 +105,18 @@
 user_problem_statement: "تحويل Ruaa من منصة صنّاع محتوى إلى وكالة تسويق رقمية + نظام تشغيل إبداعي. البداية: (أ) إصلاح تشغيل المشروع، (ب) Landing Page جديد للوكالة بشعار 'ندشن قصة حب جديدة مع عميلك'، (ج) إعادة هيكلة إلى Engines، ثم إضافة CRM، Content OS، Tasks، AI everywhere، Digital Twin، RBAC."
 
 backend:
+  - task: "Content OS Engine V1 — CRUD + Kanban + Calendar + AI + Stats"
+    implemented: true
+    working: "NA"
+    file: "backend/engines/content_engine.py, backend/core/schemas.py, backend/core/deps.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Iteration 10. Rewrote content_engine.py from placeholder (5 lines) to ~280 lines with full Content OS. Endpoints: GET /content/meta (statuses+platforms+formats), GET/POST/GET/PUT/DELETE /content/items, PUT /content/items/{id}/status (transition), GET /content/kanban (grouped by status), GET /content/calendar?year=&month=, GET /content/stats, POST /content/ai/{ideas,script,caption,hashtags}. Added constants CONTENT_STATUSES (7), CONTENT_PLATFORMS (8), CONTENT_FORMATS (7). Added 4 AI_PROMPTS (content_ideas, content_script, content_caption, content_hashtags). User-scoped. Optional link to CRM client_id. Manual test: signup + create item + kanban + stats + status move all working. Note: earlier had UnicodeEncodeError from surrogate emoji chars — fixed by removing icons field. Frontend built (5 pages under /content/*). Needs full backend test."
+
   - task: "CRM Engine V1 — Clients + Deals + Pipeline + Activities + Stats"
     implemented: true
     working: true
