@@ -54,3 +54,44 @@
 
 ## Remaining Backlog
 - P2: earnings withdrawal flow (payout to creator bank), notifications real-time via websockets, video thumbnails, message media/images
+
+## Iteration 7 — Sprint "Agency Rebrand" (2026-07)
+Vision pivot from "Creator Platform" → "Digital Marketing Agency × Creative Operating System".
+Slogan: **"ندشن قصة حب جديدة مع عميلك"** (We launch a new love story with your client).
+
+### Delivered
+- **New Agency Landing Page at /** (public, full-width desktop responsive). 8 sections:
+  1. Fixed TopNav (logo + menu + CTA)
+  2. Hero (huge slogan, dual CTAs, trust indicators, parallax bg image, animated grid + glow)
+  3. Manifesto/About (crossed-out competitors, our philosophy, stats)
+  4. What We Offer (4 emotional service cards: Brand, Content, Marketing, Growth)
+  5. Love Stories (3 testimonial case studies with metrics)
+  6. Vision 2030 (5-year roadmap timeline)
+  7. Ruaa Principles (8 grid cards)
+  8. Contact form (POST /api/leads) + Footer
+- **Framer Motion animations** on scroll (fade-in, parallax, opacity fade)
+- **Routing restructured**: `/` = Landing, `/feed` = mobile TikTok Feed, `/auth` redirects to `/feed` after login
+- **Backend `/api/leads`** (public POST + admin-only GET) with EmailStr validation
+- **Backend restart & full re-init**: emergentintegrations Storage OK, Communities seeded, all previous endpoints intact (7/8 regression pass — only AI blocked by LLM budget which is infra, not code)
+
+### Test coverage (Iteration 7)
+- Leads endpoint: 5/5 ✅ (valid, invalid email, missing field, unauth, non-admin)
+- Regression: 7/8 ✅ (only /api/ai/assist blocked by budget)
+
+## Remaining Roadmap (per Manus report 2026-07)
+### P0 — Engine Restructure (backend refactor)
+- Split `server.py` (1240 lines) into 14 Engine modules under `backend/engines/`
+- Modules: Social, Marketplace, Community, Incubator, Business, CRM, Content, AI, Academy, Events, Booking, Analytics, Admin, Payment
+
+### P1 — New Engines (Missing Modules)
+- **CRM Engine**: Clients + Leads + Pipeline + Contracts + Invoices + Projects
+- **Content OS Engine**: Content Calendar + Idea Gen + Scriptwriting + Review/Approval + Publishing + Analytics
+- **Tasks Engine**: Tasks + Kanban Boards + Calendar + Deadlines + Team Assign
+- **AI Everywhere**: Hooks, Bio enhancement, price suggestion, deal close prediction, project idea development
+- **RBAC**: 10 roles (super_admin, ceo, marketing_manager, community_manager, company, creator, trainer, student, client, team_owner) + role-based dashboards
+- **Digital Twin (Booking Engine)**: Meeting rooms, studio bookings + Stripe + QR entry
+- **Economic**: Pro/Business subscriptions, AI credits, featured services, Academy monetization, SaaS tier
+
+### P2 — Nice-to-have
+- WebSockets real-time notifications, video thumbnails, message media, earnings withdrawal, video effects/filters
+
