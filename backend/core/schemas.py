@@ -132,6 +132,46 @@ class LeadCreate(BaseModel):
     story: str
 
 
+# ==================== CONTENT OS ====================
+class ContentCreate(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    platform: str = "instagram"
+    format: str = "post"
+    status: Optional[str] = "idea"
+    scheduled_at: Optional[str] = None  # ISO datetime
+    caption: Optional[str] = ""
+    hook: Optional[str] = ""
+    script: Optional[str] = ""
+    hashtags: Optional[str] = ""
+    tags: Optional[List[str]] = []
+    client_id: Optional[str] = None  # optional link to CRM client
+
+
+class ContentUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    platform: Optional[str] = None
+    format: Optional[str] = None
+    scheduled_at: Optional[str] = None
+    caption: Optional[str] = None
+    hook: Optional[str] = None
+    script: Optional[str] = None
+    hashtags: Optional[str] = None
+    tags: Optional[List[str]] = None
+    client_id: Optional[str] = None
+
+
+class ContentStatusMove(BaseModel):
+    status: str
+
+
+class ContentAIRequest(BaseModel):
+    topic: str  # topic/context for ideas OR content title for script
+    platform: Optional[str] = "instagram"
+    format: Optional[str] = "reel"
+
+
 class ClientCreate(BaseModel):
     name: str
     email: Optional[str] = ""

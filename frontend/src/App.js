@@ -32,6 +32,12 @@ import CRMClients from "@/pages/crm/CRMClients";
 import CRMDeals from "@/pages/crm/CRMDeals";
 import CRMDealDetail from "@/pages/crm/CRMDealDetail";
 import CRMActivities from "@/pages/crm/CRMActivities";
+import ContentShell from "@/pages/content/ContentShell";
+import ContentDashboard from "@/pages/content/ContentDashboard";
+import ContentKanban from "@/pages/content/ContentKanban";
+import ContentCalendar from "@/pages/content/ContentCalendar";
+import ContentDetail from "@/pages/content/ContentDetail";
+import ContentAI from "@/pages/content/ContentAI";
 
 const Protected = ({ children }) => {
     const { user, loading } = useAuth();
@@ -87,6 +93,15 @@ function App() {
                                 <Route path="deals/:id" element={<CRMDealDetail />} />
                                 <Route path="activities" element={<CRMActivities />} />
                             </Route>
+
+                            {/* Content OS Engine */}
+                            <Route path="/content" element={<Protected><ContentShell /></Protected>}>
+                                <Route index element={<ContentDashboard />} />
+                                <Route path="kanban" element={<ContentKanban />} />
+                                <Route path="calendar" element={<ContentCalendar />} />
+                                <Route path="ai" element={<ContentAI />} />
+                            </Route>
+                            <Route path="/content/item/:id" element={<Protected><ContentDetail /></Protected>} />
                         </Route>
                     </Routes>
                 </AuthProvider>

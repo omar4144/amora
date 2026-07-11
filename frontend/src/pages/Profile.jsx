@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft } from "lucide-react";
+import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video } from "lucide-react";
 
 export default function Profile() {
     const { username } = useParams();
@@ -142,20 +142,34 @@ export default function Profile() {
                 )}
 
                 {isMe && (
-                    <button
-                        data-testid="open-crm-btn"
-                        onClick={() => navigate("/crm")}
-                        className="mt-3 w-full bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-4 transition flex items-center gap-3 group"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-[#E3FF00] flex items-center justify-center flex-shrink-0">
-                            <Briefcase className="w-5 h-5 text-black" />
-                        </div>
-                        <div className="flex-1 text-start">
-                            <div className="font-heading font-bold text-white">CRM — إدارة عملائك</div>
-                            <div className="text-xs text-white/60 font-body">تتبّع صفقاتك، عملاءك، وأنشطتك</div>
-                        </div>
-                        <ArrowLeft className="w-4 h-4 text-[#E3FF00] group-hover:-translate-x-1 transition" />
-                    </button>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                            data-testid="open-crm-btn"
+                            onClick={() => navigate("/crm")}
+                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex items-center gap-2 group"
+                        >
+                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center flex-shrink-0">
+                                <Briefcase className="w-4 h-4 text-black" />
+                            </div>
+                            <div className="flex-1 text-start min-w-0">
+                                <div className="font-heading font-bold text-white text-sm">CRM</div>
+                                <div className="text-[10px] text-white/60 font-body truncate">إدارة عملائك</div>
+                            </div>
+                        </button>
+                        <button
+                            data-testid="open-content-btn"
+                            onClick={() => navigate("/content")}
+                            className="bg-gradient-to-r from-[#E3FF00]/10 to-[#E3FF00]/5 hover:from-[#E3FF00]/20 hover:to-[#E3FF00]/10 border border-[#E3FF00]/30 rounded-2xl p-3 transition flex items-center gap-2 group"
+                        >
+                            <div className="w-9 h-9 rounded-xl bg-[#E3FF00] flex items-center justify-center flex-shrink-0">
+                                <Video className="w-4 h-4 text-black" />
+                            </div>
+                            <div className="flex-1 text-start min-w-0">
+                                <div className="font-heading font-bold text-white text-sm">Content OS</div>
+                                <div className="text-[10px] text-white/60 font-body truncate">تشغيل محتواك</div>
+                            </div>
+                        </button>
+                    </div>
                 )}
 
                 {isMe && earnings && (

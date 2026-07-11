@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Iteration 9 — CRM Engine V1 Backend Test
-Tests ~33 scenarios: CRM meta, Clients CRUD, Deals CRUD, Activities, Stats, User isolation, Legacy leads, Cascade delete
+Iteration 10 — Content OS Engine V1 — Full Backend Test
+Tests all 29 scenarios from review request.
 """
 import requests
 import json
@@ -9,35 +9,39 @@ import sys
 from datetime import datetime
 
 # Backend URL from frontend/.env
-BASE_URL = "https://f4c8f2f1-4587-4442-842d-9074b7d8c5fd.preview.emergentagent.com/api"
+BASE_URL = "https://doc-restore-3.preview.emergentagent.com/api"
 
 # Test results
 results = {
-    "timestamp": datetime.utcnow().isoformat(),
     "total": 0,
     "passed": 0,
     "failed": 0,
-    "scenarios": []
+    "skipped": 0,
+    "tests": []
 }
 
-def log_test(name, passed, details=""):
+def log_test(name, status, details=""):
+    """Log test result"""
     results["total"] += 1
-    if passed:
-        results["passed"] += 1
-        print(f"✅ {name}")
-    else:
-        results["failed"] += 1
-        print(f"❌ {name}")
-        if details:
-            print(f"   {details}")
-    results["scenarios"].append({
+    results["tests"].append({
         "name": name,
-        "passed": passed,
+        "status": status,
         "details": details
     })
+    if status == "PASS":
+        results["passed"] += 1
+        print(f"✅ {name}")
+    elif status == "FAIL":
+        results["failed"] += 1
+        print(f"❌ {name}: {details}")
+    elif status == "SKIP":
+        results["skipped"] += 1
+        print(f"⏭️  {name}: {details}")
+    if details and status != "SKIP":
+        print(f"   {details}")
 
 def signup_user(email, password, name, username):
-    """Helper to signup a new user"""
+    """Create a new user"""
     resp = requests.post(f"{BASE_URL}/auth/signup", json={
         "email": email,
         "password": password,
@@ -49,528 +53,544 @@ def signup_user(email, password, name, username):
         return resp.json()["token"]
     return None
 
-def auth_headers(token):
+def login_user(email, password):
+    """Login existing user"""
+    resp = requests.post(f"{BASE_URL}/auth/login", json={
+        "email": email,
+        "password": password
+    })
+    if resp.status_code == 200:
+        return resp.json()["token"]
+    return None
+
+def headers(token):
+    """Return auth headers"""
     return {"Authorization": f"Bearer {token}"}
 
 # ═══════════════════════════════════════════════════════════════
-# SETUP: Create two users for isolation testing
+# MAIN TEST SUITE
 # ═══════════════════════════════════════════════════════════════
-print("\n🔧 SETUP: Creating test users...")
-timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-user1_email = f"crm_user1_{timestamp}@test.com"
-user2_email = f"crm_user2_{timestamp}@test.com"
 
-token1 = signup_user(user1_email, "testpass123", "CRM User 1", f"crmuser1_{timestamp}")
-token2 = signup_user(user2_email, "testpass123", "CRM User 2", f"crmuser2_{timestamp}")
+print("=" * 70)
+print("ITERATION 10 — CONTENT OS ENGINE V1 — FULL BACKEND TEST")
+print("=" * 70)
 
-if not token1 or not token2:
-    print("❌ Failed to create test users")
+# Create first test user
+print("\n🔐 Setting up test users...")
+user1_email = f"content_test_user1_{datetime.now().timestamp()}@test.com"
+user1_token = signup_user(user1_email, "testpass123", "Content User 1", f"contentuser1_{int(datetime.now().timestamp())}")
+if not user1_token:
+    print("❌ Failed to create user1")
     sys.exit(1)
-
-print(f"✅ User 1: {user1_email}")
-print(f"✅ User 2: {user2_email}")
-
-# Store IDs for later
-client_id = None
-deal_id = None
-activity_id = None
+print(f"✅ User1 created: {user1_email}")
 
 # ═══════════════════════════════════════════════════════════════
-# 1. CRM META — GET /api/crm/stages
+# TEST 1: META
 # ═══════════════════════════════════════════════════════════════
-print("\n📋 CRM META")
-resp = requests.get(f"{BASE_URL}/crm/stages")
+print("\n" + "=" * 70)
+print("META ENDPOINT")
+print("=" * 70)
+
+resp = requests.get(f"{BASE_URL}/content/meta")
 if resp.status_code == 200:
-    stages = resp.json()
-    if len(stages) == 7 and all(k in stages[0] for k in ["key", "name", "probability", "color"]):
-        expected_keys = ["new", "contacted", "qualified", "proposal", "negotiation", "won", "lost"]
-        actual_keys = [s["key"] for s in stages]
-        if actual_keys == expected_keys:
-            log_test("1. GET /crm/stages → 200 with 7 stages", True)
-        else:
-            log_test("1. GET /crm/stages → 200 with 7 stages", False, f"Keys mismatch: {actual_keys}")
-    else:
-        log_test("1. GET /crm/stages → 200 with 7 stages", False, f"Invalid structure: {stages}")
-else:
-    log_test("1. GET /crm/stages → 200 with 7 stages", False, f"Status {resp.status_code}")
-
-# ═══════════════════════════════════════════════════════════════
-# CLIENTS CRUD (User 1)
-# ═══════════════════════════════════════════════════════════════
-print("\n👥 CLIENTS CRUD")
-
-# 2. GET /crm/clients empty initially
-resp = requests.get(f"{BASE_URL}/crm/clients", headers=auth_headers(token1))
-if resp.status_code == 200 and resp.json() == []:
-    log_test("2. GET /crm/clients → 200 empty list initially", True)
-else:
-    log_test("2. GET /crm/clients → 200 empty list initially", False, f"Status {resp.status_code}, body: {resp.text[:200]}")
-
-# 3. POST /crm/clients — create Alba Cafe
-resp = requests.post(f"{BASE_URL}/crm/clients", headers=auth_headers(token1), json={
-    "name": "Alba Cafe",
-    "email": "info@alba.com",
-    "company": "Alba LLC",
-    "industry": "F&B"
-})
-if resp.status_code == 200:
-    client = resp.json()
-    if "id" in client and "owner_id" in client and client.get("deals_count") == 0:
-        client_id = client["id"]
-        log_test("3. POST /crm/clients → 200 with id + owner_id + deals_count:0", True)
-    else:
-        log_test("3. POST /crm/clients → 200 with id + owner_id + deals_count:0", False, f"Missing fields: {client}")
-else:
-    log_test("3. POST /crm/clients → 200 with id + owner_id + deals_count:0", False, f"Status {resp.status_code}")
-
-# 4. GET /crm/clients → 1 client
-resp = requests.get(f"{BASE_URL}/crm/clients", headers=auth_headers(token1))
-if resp.status_code == 200:
-    clients = resp.json()
-    if len(clients) == 1 and clients[0].get("deals_count") == 0:
-        log_test("4. GET /crm/clients → 200 with 1 client, deals_count:0", True)
-    else:
-        log_test("4. GET /crm/clients → 200 with 1 client, deals_count:0", False, f"Count: {len(clients)}")
-else:
-    log_test("4. GET /crm/clients → 200 with 1 client, deals_count:0", False, f"Status {resp.status_code}")
-
-# 5. GET /crm/clients/{id} → with deals:[] activities:[]
-if client_id:
-    resp = requests.get(f"{BASE_URL}/crm/clients/{client_id}", headers=auth_headers(token1))
-    if resp.status_code == 200:
-        client = resp.json()
-        if "deals" in client and "activities" in client and client["deals"] == [] and client["activities"] == []:
-            log_test("5. GET /crm/clients/{id} → 200 with deals:[] activities:[]", True)
-        else:
-            log_test("5. GET /crm/clients/{id} → 200 with deals:[] activities:[]", False, f"Missing fields: {client.keys()}")
-    else:
-        log_test("5. GET /crm/clients/{id} → 200 with deals:[] activities:[]", False, f"Status {resp.status_code}")
-else:
-    log_test("5. GET /crm/clients/{id} → 200 with deals:[] activities:[]", False, "No client_id")
-
-# 6. PUT /crm/clients/{id} — update industry
-if client_id:
-    resp = requests.put(f"{BASE_URL}/crm/clients/{client_id}", headers=auth_headers(token1), json={
-        "industry": "Restaurants"
-    })
-    if resp.status_code == 200:
-        client = resp.json()
-        if client.get("industry") == "Restaurants":
-            log_test("6. PUT /crm/clients/{id} → 200 updated", True)
-        else:
-            log_test("6. PUT /crm/clients/{id} → 200 updated", False, f"Industry not updated: {client.get('industry')}")
-    else:
-        log_test("6. PUT /crm/clients/{id} → 200 updated", False, f"Status {resp.status_code}")
-else:
-    log_test("6. PUT /crm/clients/{id} → 200 updated", False, "No client_id")
-
-# 7. GET /crm/clients?q=alba → finds by name
-resp = requests.get(f"{BASE_URL}/crm/clients?q=alba", headers=auth_headers(token1))
-if resp.status_code == 200:
-    clients = resp.json()
-    if len(clients) == 1 and "Alba" in clients[0].get("name", ""):
-        log_test("7. GET /crm/clients?q=alba → 200 finds by name", True)
-    else:
-        log_test("7. GET /crm/clients?q=alba → 200 finds by name", False, f"Count: {len(clients)}")
-else:
-    log_test("7. GET /crm/clients?q=alba → 200 finds by name", False, f"Status {resp.status_code}")
-
-# 8. GET /crm/clients?status=inactive → empty
-resp = requests.get(f"{BASE_URL}/crm/clients?status=inactive", headers=auth_headers(token1))
-if resp.status_code == 200 and resp.json() == []:
-    log_test("8. GET /crm/clients?status=inactive → 200 empty", True)
-else:
-    log_test("8. GET /crm/clients?status=inactive → 200 empty", False, f"Status {resp.status_code}, body: {resp.text[:200]}")
-
-# ═══════════════════════════════════════════════════════════════
-# DEALS CRUD
-# ═══════════════════════════════════════════════════════════════
-print("\n💼 DEALS CRUD")
-
-# 10. POST /crm/deals — create deal
-if client_id:
-    resp = requests.post(f"{BASE_URL}/crm/deals", headers=auth_headers(token1), json={
-        "title": "Brand redesign",
-        "client_id": client_id,
-        "value": 5000,
-        "stage": "proposal"
-    })
-    if resp.status_code == 200:
-        deal = resp.json()
-        if "id" in deal and deal.get("probability") == 50 and deal.get("closed_at") is None and "client" in deal:
-            deal_id = deal["id"]
-            log_test("10. POST /crm/deals → 200 with probability:50, closed_at:null, client enriched", True)
-        else:
-            log_test("10. POST /crm/deals → 200 with probability:50, closed_at:null, client enriched", False, f"Fields: {deal.keys()}")
-    else:
-        log_test("10. POST /crm/deals → 200 with probability:50, closed_at:null, client enriched", False, f"Status {resp.status_code}")
-else:
-    log_test("10. POST /crm/deals → 200 with probability:50, closed_at:null, client enriched", False, "No client_id")
-
-# 11. POST /crm/deals with invalid client_id → 404
-resp = requests.post(f"{BASE_URL}/crm/deals", headers=auth_headers(token1), json={
-    "title": "Invalid deal",
-    "client_id": "invalid-client-id-12345",
-    "value": 1000,
-    "stage": "new"
-})
-if resp.status_code == 404:
-    log_test("11. POST /crm/deals with invalid client_id → 404", True)
-else:
-    log_test("11. POST /crm/deals with invalid client_id → 404", False, f"Status {resp.status_code}")
-
-# 12. POST /crm/deals with invalid stage → 400
-if client_id:
-    resp = requests.post(f"{BASE_URL}/crm/deals", headers=auth_headers(token1), json={
-        "title": "Bad stage deal",
-        "client_id": client_id,
-        "value": 1000,
-        "stage": "invalid_stage"
-    })
-    if resp.status_code == 400:
-        log_test("12. POST /crm/deals with invalid stage → 400", True)
-    else:
-        log_test("12. POST /crm/deals with invalid stage → 400", False, f"Status {resp.status_code}")
-else:
-    log_test("12. POST /crm/deals with invalid stage → 400", False, "No client_id")
-
-# 13. GET /crm/deals → 1 deal
-resp = requests.get(f"{BASE_URL}/crm/deals", headers=auth_headers(token1))
-if resp.status_code == 200:
-    deals = resp.json()
-    if len(deals) == 1:
-        log_test("13. GET /crm/deals → 200 with 1 deal", True)
-    else:
-        log_test("13. GET /crm/deals → 200 with 1 deal", False, f"Count: {len(deals)}")
-else:
-    log_test("13. GET /crm/deals → 200 with 1 deal", False, f"Status {resp.status_code}")
-
-# 14. GET /crm/deals?stage=proposal → 1
-resp = requests.get(f"{BASE_URL}/crm/deals?stage=proposal", headers=auth_headers(token1))
-if resp.status_code == 200:
-    deals = resp.json()
-    if len(deals) == 1:
-        log_test("14. GET /crm/deals?stage=proposal → 200 with 1", True)
-    else:
-        log_test("14. GET /crm/deals?stage=proposal → 200 with 1", False, f"Count: {len(deals)}")
-else:
-    log_test("14. GET /crm/deals?stage=proposal → 200 with 1", False, f"Status {resp.status_code}")
-
-# 15. GET /crm/deals?stage=won → empty
-resp = requests.get(f"{BASE_URL}/crm/deals?stage=won", headers=auth_headers(token1))
-if resp.status_code == 200 and resp.json() == []:
-    log_test("15. GET /crm/deals?stage=won → 200 empty", True)
-else:
-    log_test("15. GET /crm/deals?stage=won → 200 empty", False, f"Status {resp.status_code}, body: {resp.text[:200]}")
-
-# 16. GET /crm/deals/{id} → with activities (should have 1 auto-created)
-if deal_id:
-    resp = requests.get(f"{BASE_URL}/crm/deals/{deal_id}", headers=auth_headers(token1))
-    if resp.status_code == 200:
-        deal = resp.json()
-        if "activities" in deal and len(deal["activities"]) >= 1:
-            # Check if auto-created activity exists
-            auto_activity = [a for a in deal["activities"] if "تم إنشاء الصفقة" in a.get("title", "")]
-            if auto_activity:
-                log_test("16. GET /crm/deals/{id} → 200 with activities (1 auto-created)", True)
+    data = resp.json()
+    if "statuses" in data and "platforms" in data and "formats" in data:
+        if len(data["statuses"]) == 7 and len(data["platforms"]) == 8 and len(data["formats"]) == 7:
+            # Check structure
+            has_structure = all(
+                "key" in s and "name" in s and "color" in s 
+                for s in data["statuses"]
+            ) and all(
+                "key" in p and "name" in p and "color" in p 
+                for p in data["platforms"]
+            ) and all(
+                "key" in f and "name" in f 
+                for f in data["formats"]
+            )
+            if has_structure:
+                log_test("1. GET /content/meta", "PASS", "Returns 7 statuses, 8 platforms, 7 formats with correct structure")
             else:
-                log_test("16. GET /crm/deals/{id} → 200 with activities (1 auto-created)", False, f"No auto-activity found")
+                log_test("1. GET /content/meta", "FAIL", "Missing required fields in meta objects")
         else:
-            log_test("16. GET /crm/deals/{id} → 200 with activities (1 auto-created)", False, f"Activities: {deal.get('activities')}")
+            log_test("1. GET /content/meta", "FAIL", f"Wrong counts: statuses={len(data['statuses'])}, platforms={len(data['platforms'])}, formats={len(data['formats'])}")
     else:
-        log_test("16. GET /crm/deals/{id} → 200 with activities (1 auto-created)", False, f"Status {resp.status_code}")
+        log_test("1. GET /content/meta", "FAIL", "Missing statuses/platforms/formats keys")
 else:
-    log_test("16. GET /crm/deals/{id} → 200 with activities (1 auto-created)", False, "No deal_id")
+    log_test("1. GET /content/meta", "FAIL", f"Status {resp.status_code}")
 
-# 17. PUT /crm/deals/{id} — update value
-if deal_id:
-    resp = requests.put(f"{BASE_URL}/crm/deals/{deal_id}", headers=auth_headers(token1), json={
-        "value": 6000
-    })
-    if resp.status_code == 200:
-        deal = resp.json()
-        if deal.get("value") == 6000:
-            log_test("17. PUT /crm/deals/{id} → 200 updated value", True)
-        else:
-            log_test("17. PUT /crm/deals/{id} → 200 updated value", False, f"Value: {deal.get('value')}")
-    else:
-        log_test("17. PUT /crm/deals/{id} → 200 updated value", False, f"Status {resp.status_code}")
+# ═══════════════════════════════════════════════════════════════
+# TESTS 2-17: ITEMS CRUD
+# ═══════════════════════════════════════════════════════════════
+print("\n" + "=" * 70)
+print("ITEMS CRUD")
+print("=" * 70)
+
+# Test 2: Empty list initially
+resp = requests.get(f"{BASE_URL}/content/items", headers=headers(user1_token))
+if resp.status_code == 200 and resp.json() == []:
+    log_test("2. GET /content/items (empty)", "PASS", "Returns empty list for new user")
 else:
-    log_test("17. PUT /crm/deals/{id} → 200 updated value", False, "No deal_id")
+    log_test("2. GET /content/items (empty)", "FAIL", f"Status {resp.status_code} or not empty: {resp.json()}")
 
-# 18. PUT /crm/deals/{id}/stage → won
-if deal_id:
-    resp = requests.put(f"{BASE_URL}/crm/deals/{deal_id}/stage", headers=auth_headers(token1), json={
-        "stage": "won"
-    })
-    if resp.status_code == 200:
-        deal = resp.json()
-        if deal.get("stage") == "won" and deal.get("probability") == 100 and deal.get("closed_at") is not None:
-            log_test("18. PUT /crm/deals/{id}/stage → won (stage:won, probability:100, closed_at NOT null)", True)
-        else:
-            log_test("18. PUT /crm/deals/{id}/stage → won (stage:won, probability:100, closed_at NOT null)", False, f"Stage: {deal.get('stage')}, prob: {deal.get('probability')}, closed: {deal.get('closed_at')}")
-    else:
-        log_test("18. PUT /crm/deals/{id}/stage → won (stage:won, probability:100, closed_at NOT null)", False, f"Status {resp.status_code}")
-else:
-    log_test("18. PUT /crm/deals/{id}/stage → won (stage:won, probability:100, closed_at NOT null)", False, "No deal_id")
-
-# 19. PUT /crm/deals/{id}/stage → lost
-if deal_id:
-    resp = requests.put(f"{BASE_URL}/crm/deals/{deal_id}/stage", headers=auth_headers(token1), json={
-        "stage": "lost"
-    })
-    if resp.status_code == 200:
-        deal = resp.json()
-        if deal.get("stage") == "lost" and deal.get("closed_at") is not None:
-            log_test("19. PUT /crm/deals/{id}/stage → lost (closed_at updates)", True)
-        else:
-            log_test("19. PUT /crm/deals/{id}/stage → lost (closed_at updates)", False, f"Stage: {deal.get('stage')}, closed: {deal.get('closed_at')}")
-    else:
-        log_test("19. PUT /crm/deals/{id}/stage → lost (closed_at updates)", False, f"Status {resp.status_code}")
-else:
-    log_test("19. PUT /crm/deals/{id}/stage → lost (closed_at updates)", False, "No deal_id")
-
-# 20. GET /crm/deals/pipeline → dict keyed by stage
-resp = requests.get(f"{BASE_URL}/crm/deals/pipeline", headers=auth_headers(token1))
+# Test 3: Create valid item
+item1_data = {
+    "title": "5 Marketing Tips",
+    "description": "For reels",
+    "platform": "instagram",
+    "format": "reel",
+    "status": "idea",
+    "hook": "You know what?"
+}
+resp = requests.post(f"{BASE_URL}/content/items", json=item1_data, headers=headers(user1_token))
 if resp.status_code == 200:
-    pipeline = resp.json()
-    if len(pipeline) == 7 and "lost" in pipeline:
-        lost_stage = pipeline["lost"]
-        if "deals" in lost_stage and "count" in lost_stage and "total_value" in lost_stage:
-            # Deal should be in lost now
-            if lost_stage["count"] >= 1:
-                log_test("20. GET /crm/deals/pipeline → 200 dict with 7 stages, deal in 'lost'", True)
-            else:
-                log_test("20. GET /crm/deals/pipeline → 200 dict with 7 stages, deal in 'lost'", False, f"Lost count: {lost_stage['count']}")
-        else:
-            log_test("20. GET /crm/deals/pipeline → 200 dict with 7 stages, deal in 'lost'", False, f"Lost stage missing fields: {lost_stage.keys()}")
+    item1 = resp.json()
+    if "id" in item1 and "owner_id" in item1 and item1["title"] == "5 Marketing Tips":
+        item1_id = item1["id"]
+        log_test("3. POST /content/items (valid)", "PASS", f"Created item with id={item1_id}, owner_id set, all defaults applied")
     else:
-        log_test("20. GET /crm/deals/pipeline → 200 dict with 7 stages, deal in 'lost'", False, f"Pipeline keys: {pipeline.keys()}")
+        log_test("3. POST /content/items (valid)", "FAIL", "Missing id/owner_id or wrong data")
 else:
-    log_test("20. GET /crm/deals/pipeline → 200 dict with 7 stages, deal in 'lost'", False, f"Status {resp.status_code}")
+    log_test("3. POST /content/items (valid)", "FAIL", f"Status {resp.status_code}: {resp.text}")
 
-# ═══════════════════════════════════════════════════════════════
-# ACTIVITIES
-# ═══════════════════════════════════════════════════════════════
-print("\n📝 ACTIVITIES")
-
-# 21. POST /crm/activities — create call activity
-if deal_id:
-    resp = requests.post(f"{BASE_URL}/crm/activities", headers=auth_headers(token1), json={
-        "type": "call",
-        "title": "Discussed contract",
-        "deal_id": deal_id
-    })
-    if resp.status_code == 200:
-        activity = resp.json()
-        if "id" in activity:
-            activity_id = activity["id"]
-            log_test("21. POST /crm/activities → 200", True)
-        else:
-            log_test("21. POST /crm/activities → 200", False, f"Missing id: {activity}")
-    else:
-        log_test("21. POST /crm/activities → 200", False, f"Status {resp.status_code}")
-else:
-    log_test("21. POST /crm/activities → 200", False, "No deal_id")
-
-# 22. POST /crm/activities with invalid type → 400
-if deal_id:
-    resp = requests.post(f"{BASE_URL}/crm/activities", headers=auth_headers(token1), json={
-        "type": "bad",
-        "title": "Invalid activity",
-        "deal_id": deal_id
-    })
-    if resp.status_code == 400:
-        log_test("22. POST /crm/activities with invalid type → 400", True)
-    else:
-        log_test("22. POST /crm/activities with invalid type → 400", False, f"Status {resp.status_code}")
-else:
-    log_test("22. POST /crm/activities with invalid type → 400", False, "No deal_id")
-
-# 23. POST /crm/activities with no client_id and no deal_id → 400
-resp = requests.post(f"{BASE_URL}/crm/activities", headers=auth_headers(token1), json={
-    "type": "note",
-    "title": "Orphan activity"
-})
+# Test 4: Invalid status
+resp = requests.post(f"{BASE_URL}/content/items", json={
+    "title": "Test",
+    "platform": "instagram",
+    "format": "post",
+    "status": "bad"
+}, headers=headers(user1_token))
 if resp.status_code == 400:
-    log_test("23. POST /crm/activities with no client_id and no deal_id → 400", True)
+    log_test("4. POST /content/items (invalid status)", "PASS", "Returns 400 for invalid status")
 else:
-    log_test("23. POST /crm/activities with no client_id and no deal_id → 400", False, f"Status {resp.status_code}")
+    log_test("4. POST /content/items (invalid status)", "FAIL", f"Expected 400, got {resp.status_code}")
 
-# 24. GET /crm/activities → should have auto-logs + manual call
-resp = requests.get(f"{BASE_URL}/crm/activities", headers=auth_headers(token1))
+# Test 5: Invalid platform
+resp = requests.post(f"{BASE_URL}/content/items", json={
+    "title": "Test",
+    "platform": "myspace",
+    "format": "post",
+    "status": "idea"
+}, headers=headers(user1_token))
+if resp.status_code == 400:
+    log_test("5. POST /content/items (invalid platform)", "PASS", "Returns 400 for invalid platform")
+else:
+    log_test("5. POST /content/items (invalid platform)", "FAIL", f"Expected 400, got {resp.status_code}")
+
+# Test 6: Invalid format
+resp = requests.post(f"{BASE_URL}/content/items", json={
+    "title": "Test",
+    "platform": "instagram",
+    "format": "podcast",
+    "status": "idea"
+}, headers=headers(user1_token))
+if resp.status_code == 400:
+    log_test("6. POST /content/items (invalid format)", "PASS", "Returns 400 for invalid format")
+else:
+    log_test("6. POST /content/items (invalid format)", "FAIL", f"Expected 400, got {resp.status_code}")
+
+# Test 7: Create CRM client first, then item with client_id
+crm_client_data = {
+    "name": "Test Cafe",
+    "email": "cafe@test.com",
+    "company": "Test Cafe LLC",
+    "industry": "Food & Beverage"
+}
+resp = requests.post(f"{BASE_URL}/crm/clients", json=crm_client_data, headers=headers(user1_token))
 if resp.status_code == 200:
-    activities = resp.json()
-    # Should have at least: 1 auto-created on deal creation + 2 stage changes (won, lost) + 1 manual call = 4+
-    if len(activities) >= 4:
-        # Check enrichment
-        if all("client_name" in a or "deal_title" in a for a in activities):
-            log_test("24. GET /crm/activities → 200 with auto-logs + manual, enriched", True)
-        else:
-            log_test("24. GET /crm/activities → 200 with auto-logs + manual, enriched", False, "Missing enrichment")
-    else:
-        log_test("24. GET /crm/activities → 200 with auto-logs + manual, enriched", False, f"Count: {len(activities)}")
-else:
-    log_test("24. GET /crm/activities → 200 with auto-logs + manual, enriched", False, f"Status {resp.status_code}")
-
-# 25. GET /crm/activities?deal_id={id} → filtered
-if deal_id:
-    resp = requests.get(f"{BASE_URL}/crm/activities?deal_id={deal_id}", headers=auth_headers(token1))
+    client_id = resp.json()["id"]
+    # Now create item with client_id
+    resp = requests.post(f"{BASE_URL}/content/items", json={
+        "title": "Cafe Promo",
+        "platform": "instagram",
+        "format": "post",
+        "status": "idea",
+        "client_id": client_id
+    }, headers=headers(user1_token))
     if resp.status_code == 200:
-        activities = resp.json()
-        if len(activities) >= 4:  # auto-created + 2 stage changes + manual call
-            log_test("25. GET /crm/activities?deal_id={id} → 200 filtered", True)
+        item_with_client = resp.json()
+        if item_with_client.get("client_id") == client_id:
+            log_test("7. POST /content/items (with client_id)", "PASS", f"Item created with client_id={client_id}")
         else:
-            log_test("25. GET /crm/activities?deal_id={id} → 200 filtered", False, f"Count: {len(activities)}")
+            log_test("7. POST /content/items (with client_id)", "FAIL", "client_id not set correctly")
     else:
-        log_test("25. GET /crm/activities?deal_id={id} → 200 filtered", False, f"Status {resp.status_code}")
+        log_test("7. POST /content/items (with client_id)", "FAIL", f"Status {resp.status_code}")
 else:
-    log_test("25. GET /crm/activities?deal_id={id} → 200 filtered", False, "No deal_id")
+    log_test("7. POST /content/items (with client_id)", "FAIL", "Failed to create CRM client first")
 
-# 26. DELETE /crm/activities/{id} → 200
-if activity_id:
-    resp = requests.delete(f"{BASE_URL}/crm/activities/{activity_id}", headers=auth_headers(token1))
-    if resp.status_code == 200:
-        log_test("26. DELETE /crm/activities/{id} → 200", True)
-    else:
-        log_test("26. DELETE /crm/activities/{id} → 200", False, f"Status {resp.status_code}")
+# Test 8: Non-existent client_id
+resp = requests.post(f"{BASE_URL}/content/items", json={
+    "title": "Test",
+    "platform": "instagram",
+    "format": "post",
+    "status": "idea",
+    "client_id": "non-existent-uuid"
+}, headers=headers(user1_token))
+if resp.status_code == 404:
+    log_test("8. POST /content/items (non-existent client_id)", "PASS", "Returns 404 for non-existent client")
 else:
-    log_test("26. DELETE /crm/activities/{id} → 200", False, "No activity_id")
+    log_test("8. POST /content/items (non-existent client_id)", "FAIL", f"Expected 404, got {resp.status_code}")
+
+# Test 9: GET item with client populated
+if 'item_with_client' in locals():
+    resp = requests.get(f"{BASE_URL}/content/items/{item_with_client['id']}", headers=headers(user1_token))
+    if resp.status_code == 200:
+        item = resp.json()
+        if "client" in item and item["client"] is not None:
+            log_test("9. GET /content/items/{id} (with client)", "PASS", "Client field populated correctly")
+        else:
+            log_test("9. GET /content/items/{id} (with client)", "FAIL", "Client field not populated")
+    else:
+        log_test("9. GET /content/items/{id} (with client)", "FAIL", f"Status {resp.status_code}")
+else:
+    log_test("9. GET /content/items/{id} (with client)", "SKIP", "No item with client created")
+
+# Test 10: List items (should have 2 now)
+resp = requests.get(f"{BASE_URL}/content/items", headers=headers(user1_token))
+if resp.status_code == 200:
+    items = resp.json()
+    if len(items) >= 2:
+        log_test("10. GET /content/items (list)", "PASS", f"Returns {len(items)} items")
+    else:
+        log_test("10. GET /content/items (list)", "FAIL", f"Expected at least 2 items, got {len(items)}")
+else:
+    log_test("10. GET /content/items (list)", "FAIL", f"Status {resp.status_code}")
+
+# Test 11: Filter by status
+resp = requests.get(f"{BASE_URL}/content/items?status=idea", headers=headers(user1_token))
+if resp.status_code == 200:
+    items = resp.json()
+    if all(item["status"] == "idea" for item in items):
+        log_test("11. GET /content/items?status=idea", "PASS", f"Filtered {len(items)} items with status=idea")
+    else:
+        log_test("11. GET /content/items?status=idea", "FAIL", "Some items don't have status=idea")
+else:
+    log_test("11. GET /content/items?status=idea", "FAIL", f"Status {resp.status_code}")
+
+# Test 12: Filter by platform
+resp = requests.get(f"{BASE_URL}/content/items?platform=instagram", headers=headers(user1_token))
+if resp.status_code == 200:
+    items = resp.json()
+    if all(item["platform"] == "instagram" for item in items):
+        log_test("12. GET /content/items?platform=instagram", "PASS", f"Filtered {len(items)} items with platform=instagram")
+    else:
+        log_test("12. GET /content/items?platform=instagram", "FAIL", "Some items don't have platform=instagram")
+else:
+    log_test("12. GET /content/items?platform=instagram", "FAIL", f"Status {resp.status_code}")
+
+# Test 13: Search by query
+resp = requests.get(f"{BASE_URL}/content/items?q=marketing", headers=headers(user1_token))
+if resp.status_code == 200:
+    items = resp.json()
+    # Should find "5 Marketing Tips"
+    if len(items) >= 1:
+        log_test("13. GET /content/items?q=marketing", "PASS", f"Search found {len(items)} items")
+    else:
+        log_test("13. GET /content/items?q=marketing", "FAIL", "Search didn't find expected items")
+else:
+    log_test("13. GET /content/items?q=marketing", "FAIL", f"Status {resp.status_code}")
+
+# Test 14: Update item
+if 'item1_id' in locals():
+    resp = requests.put(f"{BASE_URL}/content/items/{item1_id}", json={
+        "caption": "New caption for marketing tips"
+    }, headers=headers(user1_token))
+    if resp.status_code == 200:
+        updated = resp.json()
+        if updated.get("caption") == "New caption for marketing tips":
+            log_test("14. PUT /content/items/{id}", "PASS", "Item updated successfully")
+        else:
+            log_test("14. PUT /content/items/{id}", "FAIL", "Caption not updated")
+    else:
+        log_test("14. PUT /content/items/{id}", "FAIL", f"Status {resp.status_code}")
+else:
+    log_test("14. PUT /content/items/{id}", "SKIP", "No item1_id available")
+
+# Test 15: Move status to published
+if 'item1_id' in locals():
+    resp = requests.put(f"{BASE_URL}/content/items/{item1_id}/status", json={
+        "status": "published"
+    }, headers=headers(user1_token))
+    if resp.status_code == 200:
+        updated = resp.json()
+        if updated.get("status") == "published" and updated.get("published_at") is not None:
+            log_test("15. PUT /content/items/{id}/status (published)", "PASS", "Status moved to published, published_at set")
+        else:
+            log_test("15. PUT /content/items/{id}/status (published)", "FAIL", f"Status={updated.get('status')}, published_at={updated.get('published_at')}")
+    else:
+        log_test("15. PUT /content/items/{id}/status (published)", "FAIL", f"Status {resp.status_code}")
+else:
+    log_test("15. PUT /content/items/{id}/status (published)", "SKIP", "No item1_id available")
+
+# Test 16: Invalid status move
+if 'item1_id' in locals():
+    resp = requests.put(f"{BASE_URL}/content/items/{item1_id}/status", json={
+        "status": "bad"
+    }, headers=headers(user1_token))
+    if resp.status_code == 400:
+        log_test("16. PUT /content/items/{id}/status (invalid)", "PASS", "Returns 400 for invalid status")
+    else:
+        log_test("16. PUT /content/items/{id}/status (invalid)", "FAIL", f"Expected 400, got {resp.status_code}")
+else:
+    log_test("16. PUT /content/items/{id}/status (invalid)", "SKIP", "No item1_id available")
+
+# Test 17: Delete item
+if 'item1_id' in locals():
+    resp = requests.delete(f"{BASE_URL}/content/items/{item1_id}", headers=headers(user1_token))
+    if resp.status_code == 200:
+        # Verify it's deleted
+        resp = requests.get(f"{BASE_URL}/content/items/{item1_id}", headers=headers(user1_token))
+        if resp.status_code == 404:
+            log_test("17. DELETE /content/items/{id}", "PASS", "Item deleted successfully")
+        else:
+            log_test("17. DELETE /content/items/{id}", "FAIL", "Item still exists after delete")
+    else:
+        log_test("17. DELETE /content/items/{id}", "FAIL", f"Status {resp.status_code}")
+else:
+    log_test("17. DELETE /content/items/{id}", "SKIP", "No item1_id available")
 
 # ═══════════════════════════════════════════════════════════════
-# STATS DASHBOARD
+# TEST 18: KANBAN
 # ═══════════════════════════════════════════════════════════════
-print("\n📊 STATS DASHBOARD")
+print("\n" + "=" * 70)
+print("KANBAN VIEW")
+print("=" * 70)
 
-# 27. GET /crm/stats → comprehensive KPIs
-resp = requests.get(f"{BASE_URL}/crm/stats", headers=auth_headers(token1))
+resp = requests.get(f"{BASE_URL}/content/kanban", headers=headers(user1_token))
+if resp.status_code == 200:
+    kanban = resp.json()
+    # Should have all 7 status keys
+    expected_keys = ["idea", "draft", "review", "approved", "scheduled", "published", "archived"]
+    if all(key in kanban for key in expected_keys):
+        # Check structure
+        valid_structure = all(
+            "key" in kanban[k] and "name" in kanban[k] and "color" in kanban[k] and 
+            "items" in kanban[k] and "count" in kanban[k]
+            for k in expected_keys
+        )
+        if valid_structure:
+            log_test("18. GET /content/kanban", "PASS", "Returns all 7 status columns with correct structure")
+        else:
+            log_test("18. GET /content/kanban", "FAIL", "Missing required fields in kanban columns")
+    else:
+        log_test("18. GET /content/kanban", "FAIL", f"Missing status keys. Got: {list(kanban.keys())}")
+else:
+    log_test("18. GET /content/kanban", "FAIL", f"Status {resp.status_code}")
+
+# ═══════════════════════════════════════════════════════════════
+# TESTS 19-21: CALENDAR
+# ═══════════════════════════════════════════════════════════════
+print("\n" + "=" * 70)
+print("CALENDAR VIEW")
+print("=" * 70)
+
+# Test 19: Create item with scheduled_at
+scheduled_item_data = {
+    "title": "Scheduled Post",
+    "platform": "instagram",
+    "format": "post",
+    "status": "scheduled",
+    "scheduled_at": "2026-08-15T10:00:00"
+}
+resp = requests.post(f"{BASE_URL}/content/items", json=scheduled_item_data, headers=headers(user1_token))
+if resp.status_code == 200:
+    scheduled_item = resp.json()
+    log_test("19. Create item with scheduled_at", "PASS", f"Created scheduled item for 2026-08-15")
+else:
+    log_test("19. Create item with scheduled_at", "FAIL", f"Status {resp.status_code}")
+
+# Test 20: GET calendar for August 2026
+resp = requests.get(f"{BASE_URL}/content/calendar?year=2026&month=8", headers=headers(user1_token))
+if resp.status_code == 200:
+    calendar = resp.json()
+    if calendar.get("year") == 2026 and calendar.get("month") == 8:
+        if "2026-08-15" in calendar.get("days", {}):
+            if calendar.get("count", 0) >= 1:
+                log_test("20. GET /content/calendar?year=2026&month=8", "PASS", f"Returns calendar with scheduled item on 2026-08-15, count={calendar['count']}")
+            else:
+                log_test("20. GET /content/calendar?year=2026&month=8", "FAIL", "Count is 0")
+        else:
+            log_test("20. GET /content/calendar?year=2026&month=8", "FAIL", f"2026-08-15 not in days. Days: {list(calendar.get('days', {}).keys())}")
+    else:
+        log_test("20. GET /content/calendar?year=2026&month=8", "FAIL", f"Wrong year/month: {calendar.get('year')}/{calendar.get('month')}")
+else:
+    log_test("20. GET /content/calendar?year=2026&month=8", "FAIL", f"Status {resp.status_code}")
+
+# Test 21: GET calendar for January 2026 (no items)
+resp = requests.get(f"{BASE_URL}/content/calendar?year=2026&month=1", headers=headers(user1_token))
+if resp.status_code == 200:
+    calendar = resp.json()
+    if calendar.get("days") == {} and calendar.get("count") == 0:
+        log_test("21. GET /content/calendar?year=2026&month=1 (empty)", "PASS", "Returns empty calendar for month with no items")
+    else:
+        log_test("21. GET /content/calendar?year=2026&month=1 (empty)", "FAIL", f"Expected empty, got days={calendar.get('days')}, count={calendar.get('count')}")
+else:
+    log_test("21. GET /content/calendar?year=2026&month=1 (empty)", "FAIL", f"Status {resp.status_code}")
+
+# ═══════════════════════════════════════════════════════════════
+# TEST 22: STATS
+# ═══════════════════════════════════════════════════════════════
+print("\n" + "=" * 70)
+print("STATS")
+print("=" * 70)
+
+resp = requests.get(f"{BASE_URL}/content/stats", headers=headers(user1_token))
 if resp.status_code == 200:
     stats = resp.json()
-    required_fields = [
-        "clients_total", "clients_active", "deals_total", "deals_active",
-        "deals_won", "deals_lost", "pipeline_value", "weighted_pipeline",
-        "won_value", "avg_deal_size", "win_rate", "by_stage"
-    ]
-    if all(f in stats for f in required_fields):
-        if len(stats["by_stage"]) == 7:
-            log_test("27. GET /crm/stats → 200 with all KPIs + by_stage (7 items)", True)
+    required_fields = ["total", "ideas", "drafts", "scheduled", "published", "published_this_month", "by_platform", "by_status"]
+    if all(field in stats for field in required_fields):
+        # Check by_platform has 8 items and by_status has 7 items
+        if len(stats["by_platform"]) == 8 and len(stats["by_status"]) == 7:
+            log_test("22. GET /content/stats", "PASS", f"Returns all KPIs: total={stats['total']}, ideas={stats['ideas']}, drafts={stats['drafts']}, scheduled={stats['scheduled']}, published={stats['published']}, by_platform=8, by_status=7")
         else:
-            log_test("27. GET /crm/stats → 200 with all KPIs + by_stage (7 items)", False, f"by_stage count: {len(stats['by_stage'])}")
+            log_test("22. GET /content/stats", "FAIL", f"Wrong counts: by_platform={len(stats['by_platform'])}, by_status={len(stats['by_status'])}")
     else:
-        missing = [f for f in required_fields if f not in stats]
-        log_test("27. GET /crm/stats → 200 with all KPIs + by_stage (7 items)", False, f"Missing fields: {missing}")
+        log_test("22. GET /content/stats", "FAIL", f"Missing required fields. Got: {list(stats.keys())}")
 else:
-    log_test("27. GET /crm/stats → 200 with all KPIs + by_stage (7 items)", False, f"Status {resp.status_code}")
+    log_test("22. GET /content/stats", "FAIL", f"Status {resp.status_code}")
 
 # ═══════════════════════════════════════════════════════════════
-# USER ISOLATION (critical!)
+# TESTS 23-26: AI ENDPOINTS
 # ═══════════════════════════════════════════════════════════════
-print("\n🔒 USER ISOLATION")
+print("\n" + "=" * 70)
+print("AI ENDPOINTS (may fail with 500 if budget exceeded)")
+print("=" * 70)
 
-# 28. Second user GET /crm/clients → empty
-resp = requests.get(f"{BASE_URL}/crm/clients", headers=auth_headers(token2))
-if resp.status_code == 200 and resp.json() == []:
-    log_test("28. Second user GET /crm/clients → 200 EMPTY (isolation working)", True)
-else:
-    log_test("28. Second user GET /crm/clients → 200 EMPTY (isolation working)", False, f"Status {resp.status_code}, body: {resp.text[:200]}")
-
-# 29. Second user tries GET /crm/clients/{first_user_client_id} → 404
-if client_id:
-    resp = requests.get(f"{BASE_URL}/crm/clients/{client_id}", headers=auth_headers(token2))
-    if resp.status_code == 404:
-        log_test("29. Second user GET /crm/clients/{first_user_client_id} → 404", True)
-    else:
-        log_test("29. Second user GET /crm/clients/{first_user_client_id} → 404", False, f"Status {resp.status_code}")
-else:
-    log_test("29. Second user GET /crm/clients/{first_user_client_id} → 404", False, "No client_id")
-
-# 30. Second user tries PUT /crm/deals/{first_user_deal_id}/stage → 404
-if deal_id:
-    resp = requests.put(f"{BASE_URL}/crm/deals/{deal_id}/stage", headers=auth_headers(token2), json={
-        "stage": "won"
-    })
-    if resp.status_code == 404:
-        log_test("30. Second user PUT /crm/deals/{first_user_deal_id}/stage → 404", True)
-    else:
-        log_test("30. Second user PUT /crm/deals/{first_user_deal_id}/stage → 404", False, f"Status {resp.status_code}")
-else:
-    log_test("30. Second user PUT /crm/deals/{first_user_deal_id}/stage → 404", False, "No deal_id")
-
-# ═══════════════════════════════════════════════════════════════
-# LEGACY LEADS (should still work)
-# ═══════════════════════════════════════════════════════════════
-print("\n📧 LEGACY LEADS")
-
-# 31. POST /leads → 200
-resp = requests.post(f"{BASE_URL}/leads", json={
-    "name": "Legacy Lead",
-    "email": "legacy@test.com",
-    "story": "Testing legacy leads endpoint"
-})
+# Test 23: AI ideas
+resp = requests.post(f"{BASE_URL}/content/ai/ideas", json={
+    "topic": "مقهى متخصص",
+    "platform": "instagram",
+    "format": "reel"
+}, headers=headers(user1_token))
 if resp.status_code == 200:
-    lead = resp.json()
-    if lead.get("success") and "id" in lead:
-        log_test("31. POST /leads → 200 (legacy endpoint working)", True)
+    data = resp.json()
+    if "result" in data:
+        log_test("23. POST /content/ai/ideas", "PASS", "Returns AI-generated ideas")
     else:
-        log_test("31. POST /leads → 200 (legacy endpoint working)", False, f"Response: {lead}")
+        log_test("23. POST /content/ai/ideas", "FAIL", "Missing result field")
+elif resp.status_code == 500:
+    log_test("23. POST /content/ai/ideas", "SKIP", "500 error (expected if EMERGENT_LLM_KEY budget exceeded)")
 else:
-    log_test("31. POST /leads → 200 (legacy endpoint working)", False, f"Status {resp.status_code}")
+    log_test("23. POST /content/ai/ideas", "FAIL", f"Unexpected status {resp.status_code}")
 
-# 32. GET /leads unauth → 401
-resp = requests.get(f"{BASE_URL}/leads")
-if resp.status_code == 401:
-    log_test("32. GET /leads unauth → 401", True)
+# Test 24: AI script
+resp = requests.post(f"{BASE_URL}/content/ai/script", json={
+    "topic": "5 tips",
+    "platform": "tiktok",
+    "format": "reel"
+}, headers=headers(user1_token))
+if resp.status_code == 200:
+    data = resp.json()
+    if "result" in data:
+        log_test("24. POST /content/ai/script", "PASS", "Returns AI-generated script")
+    else:
+        log_test("24. POST /content/ai/script", "FAIL", "Missing result field")
+elif resp.status_code == 500:
+    log_test("24. POST /content/ai/script", "SKIP", "500 error (expected if EMERGENT_LLM_KEY budget exceeded)")
 else:
-    log_test("32. GET /leads unauth → 401", False, f"Status {resp.status_code}")
+    log_test("24. POST /content/ai/script", "FAIL", f"Unexpected status {resp.status_code}")
+
+# Test 25: AI caption
+resp = requests.post(f"{BASE_URL}/content/ai/caption", json={
+    "topic": "my caption"
+}, headers=headers(user1_token))
+if resp.status_code == 200:
+    data = resp.json()
+    if "result" in data:
+        log_test("25. POST /content/ai/caption", "PASS", "Returns improved caption")
+    else:
+        log_test("25. POST /content/ai/caption", "FAIL", "Missing result field")
+elif resp.status_code == 500:
+    log_test("25. POST /content/ai/caption", "SKIP", "500 error (expected if EMERGENT_LLM_KEY budget exceeded)")
+else:
+    log_test("25. POST /content/ai/caption", "FAIL", f"Unexpected status {resp.status_code}")
+
+# Test 26: AI hashtags
+resp = requests.post(f"{BASE_URL}/content/ai/hashtags", json={
+    "topic": "marketing content",
+    "platform": "instagram"
+}, headers=headers(user1_token))
+if resp.status_code == 200:
+    data = resp.json()
+    if "result" in data:
+        log_test("26. POST /content/ai/hashtags", "PASS", "Returns AI-generated hashtags")
+    else:
+        log_test("26. POST /content/ai/hashtags", "FAIL", "Missing result field")
+elif resp.status_code == 500:
+    log_test("26. POST /content/ai/hashtags", "SKIP", "500 error (expected if EMERGENT_LLM_KEY budget exceeded)")
+else:
+    log_test("26. POST /content/ai/hashtags", "FAIL", f"Unexpected status {resp.status_code}")
 
 # ═══════════════════════════════════════════════════════════════
-# CASCADE DELETE
+# TESTS 27-28: USER ISOLATION
 # ═══════════════════════════════════════════════════════════════
-print("\n🗑️  CASCADE DELETE")
+print("\n" + "=" * 70)
+print("USER ISOLATION (CRITICAL)")
+print("=" * 70)
 
-# 33. DELETE client → all deals and activities gone
-if client_id:
-    resp = requests.delete(f"{BASE_URL}/crm/clients/{client_id}", headers=auth_headers(token1))
-    if resp.status_code == 200:
-        # Verify deals are gone
-        resp_deals = requests.get(f"{BASE_URL}/crm/deals", headers=auth_headers(token1))
-        resp_stats = requests.get(f"{BASE_URL}/crm/stats", headers=auth_headers(token1))
-        if resp_deals.status_code == 200 and resp_stats.status_code == 200:
-            deals = resp_deals.json()
-            stats = resp_stats.json()
-            if len(deals) == 0 and stats.get("clients_total") == 0:
-                log_test("33. DELETE client → cascade delete works (deals + activities gone, stats updated)", True)
-            else:
-                log_test("33. DELETE client → cascade delete works (deals + activities gone, stats updated)", False, f"Deals: {len(deals)}, clients_total: {stats.get('clients_total')}")
+# Create second user
+user2_email = f"content_test_user2_{datetime.now().timestamp()}@test.com"
+user2_token = signup_user(user2_email, "testpass123", "Content User 2", f"contentuser2_{int(datetime.now().timestamp())}")
+if not user2_token:
+    log_test("27. Create second user", "FAIL", "Failed to create user2")
+    log_test("28. User isolation check", "SKIP", "No user2 token")
+else:
+    print(f"✅ User2 created: {user2_email}")
+    
+    # Test 27: Second user should see empty list
+    resp = requests.get(f"{BASE_URL}/content/items", headers=headers(user2_token))
+    if resp.status_code == 200 and resp.json() == []:
+        log_test("27. GET /content/items (user2 empty)", "PASS", "User2 sees empty list (strict isolation)")
+    else:
+        log_test("27. GET /content/items (user2 empty)", "FAIL", f"User2 sees {len(resp.json())} items (should be 0)")
+    
+    # Test 28: Second user cannot access first user's item
+    if 'item_with_client' in locals():
+        first_user_item_id = item_with_client['id']
+        resp = requests.get(f"{BASE_URL}/content/items/{first_user_item_id}", headers=headers(user2_token))
+        if resp.status_code == 404:
+            log_test("28. GET /content/items/{first_user_item_id} (user2)", "PASS", "User2 gets 404 for user1's item (strict isolation)")
         else:
-            log_test("33. DELETE client → cascade delete works (deals + activities gone, stats updated)", False, "Failed to verify")
+            log_test("28. GET /content/items/{first_user_item_id} (user2)", "FAIL", f"User2 got status {resp.status_code} (should be 404)")
     else:
-        log_test("33. DELETE client → cascade delete works (deals + activities gone, stats updated)", False, f"Status {resp.status_code}")
+        log_test("28. GET /content/items/{first_user_item_id} (user2)", "SKIP", "No first user item available")
+
+# ═══════════════════════════════════════════════════════════════
+# TEST 29: LEGACY PING
+# ═══════════════════════════════════════════════════════════════
+print("\n" + "=" * 70)
+print("LEGACY ENDPOINT")
+print("=" * 70)
+
+resp = requests.get(f"{BASE_URL}/content/ping")
+if resp.status_code == 200:
+    data = resp.json()
+    if data.get("engine") == "content" and data.get("status") == "active" and data.get("version") == "v1":
+        log_test("29. GET /content/ping", "PASS", "Returns correct ping response")
+    else:
+        log_test("29. GET /content/ping", "FAIL", f"Wrong response: {data}")
 else:
-    log_test("33. DELETE client → cascade delete works (deals + activities gone, stats updated)", False, "No client_id")
+    log_test("29. GET /content/ping", "FAIL", f"Status {resp.status_code}")
 
 # ═══════════════════════════════════════════════════════════════
 # SUMMARY
 # ═══════════════════════════════════════════════════════════════
-print("\n" + "="*60)
-print(f"📊 FINAL RESULTS: {results['passed']}/{results['total']} tests passed")
-print("="*60)
+print("\n" + "=" * 70)
+print("TEST SUMMARY")
+print("=" * 70)
+print(f"Total: {results['total']}")
+print(f"✅ Passed: {results['passed']}")
+print(f"❌ Failed: {results['failed']}")
+print(f"⏭️  Skipped: {results['skipped']}")
 
-if results["failed"] > 0:
-    print("\n❌ FAILED TESTS:")
-    for s in results["scenarios"]:
-        if not s["passed"]:
-            print(f"  - {s['name']}")
-            if s["details"]:
-                print(f"    {s['details']}")
-
-# Save report
+# Save JSON report
 import os
 os.makedirs("/app/test_reports", exist_ok=True)
-with open("/app/test_reports/iteration_9.json", "w") as f:
+with open("/app/test_reports/iteration_10.json", "w") as f:
     json.dump(results, f, indent=2)
-
-print(f"\n✅ Report saved to /app/test_reports/iteration_9.json")
+print(f"\n📄 Report saved to /app/test_reports/iteration_10.json")
 
 # Exit with appropriate code
-sys.exit(0 if results["failed"] == 0 else 1)
+if results['failed'] > 0:
+    sys.exit(1)
+else:
+    sys.exit(0)

@@ -135,6 +135,21 @@ backend:
         agent: "testing"
         comment: "✅ FULL REGRESSION PASS COMPLETE - 54/56 tests passed, 2 skipped (expected). Comprehensive testing of all 18 engines: (1) Sanity 6/6: root endpoint with 18 engines, analytics/platform with all counts, admin/content/tasks/booking pings. (2) Auth 3/3: signup, login, me. (3) Social 4/5: feed, get user, update profile, follow toggle (video view skipped - no videos). (4) Marketplace 9/9: create service, list user services, get service, create order, my orders, reviewed-ids, create project-request, list project-requests, apply to project-request. (5) Community 6/6: list 10 communities, get artists, join toggle, create post, list posts, like post. (6) Team 4/4: create, list, get, join toggle. (7) Incubator 4/4: stages (7), create idea with overall=0, list ideas, update stage with overall=14. (8) AI 1/1: assist skipped (budget exceeded - expected). (9) Notification 5/5: list notifications, mark-seen, conversations, send message, get messages. (10) Search 2/2: explore creators, search query. (11) Events 4/4: create, list, register with code, my tickets. (12) Academy 4/4: create course, list, enroll, my enrolled. (13) CRM 3/3: leads post valid, get no-auth 401, get non-admin 403. ZERO REGRESSIONS detected. All endpoints working correctly after refactor. Report: /app/test_reports/iteration_8.json"
 
+  - task: "Content OS Engine V1 — Content Calendar + Kanban + AI Ideas/Script/Caption/Hashtags"
+    implemented: true
+    working: true
+    file: "backend/engines/content_engine.py, backend/core/schemas.py, backend/core/deps.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Iteration 10. Rewrote content_engine.py from placeholder to ~319 lines with full Content OS Engine: (1) Meta endpoint returns 7 statuses (idea/draft/review/approved/scheduled/published/archived), 8 platforms (instagram/tiktok/twitter/linkedin/youtube/facebook/snapchat/other), 7 formats (reel/post/story/thread/video/carousel/live). (2) Items CRUD user-scoped with owner_id filter: create/list/get/update/delete content items with validation for status/platform/format, optional client_id link to CRM clients with enrichment, search by title/caption/description, filter by status/platform/client_id. (3) Status move endpoint with auto-published_at timestamp when moving to published. (4) Kanban view groups items by all 7 statuses with count. (5) Calendar view filters by scheduled_at OR published_at within year/month, groups by day (YYYY-MM-DD). (6) Stats dashboard with KPIs: total/ideas/drafts/scheduled/published/published_this_month + by_platform (8) + by_status (7). (7) AI helpers: content_ideas, content_script, content_caption, content_hashtags using EMERGENT_LLM_KEY. (8) Legacy /content/ping endpoint preserved. All endpoints under /api/content/*. Needs full backend test."
+      - working: true
+        agent: "testing"
+        comment: "✅ FULL CONTENT OS ENGINE TEST COMPLETE - 29/29 tests PASSED. Comprehensive testing of all Content OS endpoints: (1) Meta 1/1: GET /content/meta returns 7 statuses, 8 platforms, 7 formats with correct structure (key/name/color). (2) Items CRUD 16/16: empty list initially, create valid item with owner_id + all defaults, invalid status→400, invalid platform→400, invalid format→400, create with client_id (CRM integration working), non-existent client_id→404, GET item with client enriched, list 2 items, filter by status=idea, filter by platform=instagram, search q=marketing, update caption, move status to published (published_at set correctly), invalid status move→400, delete item→404 after deletion. (3) Kanban 1/1: returns all 7 status columns with {key,name,color,items,count} structure. (4) Calendar 3/3: create item with scheduled_at=2026-08-15T10:00:00, GET calendar year=2026 month=8 returns item on 2026-08-15 with count=1, GET calendar year=2026 month=1 returns empty days={} count=0. (5) Stats 1/1: returns all KPIs (total, ideas, drafts, scheduled, published, published_this_month) + by_platform (8 items) + by_status (7 items). (6) AI 4/4: POST /content/ai/ideas→200 with result, POST /content/ai/script→200 with result, POST /content/ai/caption→200 with result, POST /content/ai/hashtags→200 with result (all AI endpoints working, EMERGENT_LLM_KEY budget sufficient). (7) User Isolation 2/2: second user sees empty list, second user GET first_user_item→404 (strict isolation verified). (8) Legacy 1/1: GET /content/ping returns {engine:content, status:active, version:v1}. ZERO FAILURES. All CRUD operations working, user-scoping strict, client enrichment working, kanban/calendar/stats logic correct, AI integration working, validation robust. Report: /app/test_reports/iteration_10.json"
+
   - task: "Create /api/leads endpoint for landing page contact form"
     implemented: true
     working: true
@@ -193,12 +208,12 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "2.0"
-  test_sequence: 10
+  test_sequence: 11
   run_ui: false
 
 test_plan:
   current_focus:
-    - "CRM Engine V1 — Clients + Deals + Pipeline + Activities + Stats"
+    - "Content OS Engine V1 — Content Calendar + Kanban + AI Ideas/Script/Caption/Hashtags"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -212,3 +227,5 @@ agent_communication:
     message: "Iteration 8 FULL REGRESSION PASS COMPLETE. ✅ 54/56 tests PASSED, 2 skipped (expected). Tested all 18 engines comprehensively: Sanity (6), Auth (3), Social (4), Marketplace (9), Community (6), Team (4), Incubator (4), AI (1 skipped), Notification (5), Search (2), Events (4), Academy (4), CRM (3). ZERO REGRESSIONS detected from the monolithic → modular refactor. All endpoints working correctly. The refactor was successful with NO functional changes. Report: /app/test_reports/iteration_8.json. Backend is production-ready."
   - agent: "testing"
     message: "Iteration 9 CRM ENGINE V1 TESTING COMPLETE. ✅ 32/32 tests PASSED. Comprehensive testing of full CRM implementation: (1) CRM Meta: stages endpoint returns 7 stages correctly. (2) Clients CRUD: all 7 scenarios passed (create, list, get, update, search, filter, empty state). (3) Deals CRUD: all 11 scenarios passed (create with enrichment, validation, filtering, pipeline view, stage transitions with auto-activity logging, probability + closed_at updates). (4) Activities: all 6 scenarios passed (create, validation, enrichment with client_name/deal_title, filtering, delete). (5) Stats Dashboard: comprehensive KPIs computing correctly (clients, deals, pipeline_value, weighted_pipeline, won_value, avg_deal_size, win_rate, by_stage breakdown). (6) User Isolation: STRICT isolation verified - users cannot access each other's data (404 responses). (7) Legacy Leads: preserved and working. (8) Cascade Delete: verified - deleting client removes all associated deals + activities. ZERO FAILURES. All CRUD operations working, user-scoping strict, auto-activity logging on deal creation and stage moves working perfectly, stats accurate. Report: /app/test_reports/iteration_9.json. CRM Engine V1 is PRODUCTION-READY."
+  - agent: "testing"
+    message: "Iteration 10 CONTENT OS ENGINE V1 TESTING COMPLETE. ✅ 29/29 tests PASSED. Comprehensive testing of full Content OS implementation: (1) Meta: GET /content/meta returns 7 statuses, 8 platforms, 7 formats with correct structure. (2) Items CRUD 16/16: all scenarios passed including empty list, create with validation (status/platform/format), CRM client integration with enrichment, filtering (status/platform), search (title/caption/description), update, status move with auto-published_at, delete. (3) Kanban 1/1: returns all 7 status columns with correct structure {key,name,color,items,count}. (4) Calendar 3/3: scheduled_at filtering working, groups by day correctly, empty months return empty. (5) Stats 1/1: all KPIs computing correctly (total, ideas, drafts, scheduled, published, published_this_month, by_platform 8 items, by_status 7 items). (6) AI 4/4: all AI endpoints working (ideas, script, caption, hashtags) - EMERGENT_LLM_KEY budget sufficient. (7) User Isolation 2/2: STRICT isolation verified - users cannot access each other's content items. (8) Legacy 1/1: /content/ping preserved. ZERO FAILURES. All CRUD operations working, user-scoping strict, client enrichment working, kanban/calendar/stats logic correct, AI integration working, validation robust. Report: /app/test_reports/iteration_10.json. Content OS Engine V1 is PRODUCTION-READY."

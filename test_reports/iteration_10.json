@@ -1,0 +1,153 @@
+{
+  "total": 29,
+  "passed": 29,
+  "failed": 0,
+  "skipped": 0,
+  "tests": [
+    {
+      "name": "1. GET /content/meta",
+      "status": "PASS",
+      "details": "Returns 7 statuses, 8 platforms, 7 formats with correct structure"
+    },
+    {
+      "name": "2. GET /content/items (empty)",
+      "status": "PASS",
+      "details": "Returns empty list for new user"
+    },
+    {
+      "name": "3. POST /content/items (valid)",
+      "status": "PASS",
+      "details": "Created item with id=3d890136-9d54-4fc0-85f0-68a173371701, owner_id set, all defaults applied"
+    },
+    {
+      "name": "4. POST /content/items (invalid status)",
+      "status": "PASS",
+      "details": "Returns 400 for invalid status"
+    },
+    {
+      "name": "5. POST /content/items (invalid platform)",
+      "status": "PASS",
+      "details": "Returns 400 for invalid platform"
+    },
+    {
+      "name": "6. POST /content/items (invalid format)",
+      "status": "PASS",
+      "details": "Returns 400 for invalid format"
+    },
+    {
+      "name": "7. POST /content/items (with client_id)",
+      "status": "PASS",
+      "details": "Item created with client_id=9441357b-2087-466b-a390-e7c298b2d439"
+    },
+    {
+      "name": "8. POST /content/items (non-existent client_id)",
+      "status": "PASS",
+      "details": "Returns 404 for non-existent client"
+    },
+    {
+      "name": "9. GET /content/items/{id} (with client)",
+      "status": "PASS",
+      "details": "Client field populated correctly"
+    },
+    {
+      "name": "10. GET /content/items (list)",
+      "status": "PASS",
+      "details": "Returns 2 items"
+    },
+    {
+      "name": "11. GET /content/items?status=idea",
+      "status": "PASS",
+      "details": "Filtered 2 items with status=idea"
+    },
+    {
+      "name": "12. GET /content/items?platform=instagram",
+      "status": "PASS",
+      "details": "Filtered 2 items with platform=instagram"
+    },
+    {
+      "name": "13. GET /content/items?q=marketing",
+      "status": "PASS",
+      "details": "Search found 1 items"
+    },
+    {
+      "name": "14. PUT /content/items/{id}",
+      "status": "PASS",
+      "details": "Item updated successfully"
+    },
+    {
+      "name": "15. PUT /content/items/{id}/status (published)",
+      "status": "PASS",
+      "details": "Status moved to published, published_at set"
+    },
+    {
+      "name": "16. PUT /content/items/{id}/status (invalid)",
+      "status": "PASS",
+      "details": "Returns 400 for invalid status"
+    },
+    {
+      "name": "17. DELETE /content/items/{id}",
+      "status": "PASS",
+      "details": "Item deleted successfully"
+    },
+    {
+      "name": "18. GET /content/kanban",
+      "status": "PASS",
+      "details": "Returns all 7 status columns with correct structure"
+    },
+    {
+      "name": "19. Create item with scheduled_at",
+      "status": "PASS",
+      "details": "Created scheduled item for 2026-08-15"
+    },
+    {
+      "name": "20. GET /content/calendar?year=2026&month=8",
+      "status": "PASS",
+      "details": "Returns calendar with scheduled item on 2026-08-15, count=1"
+    },
+    {
+      "name": "21. GET /content/calendar?year=2026&month=1 (empty)",
+      "status": "PASS",
+      "details": "Returns empty calendar for month with no items"
+    },
+    {
+      "name": "22. GET /content/stats",
+      "status": "PASS",
+      "details": "Returns all KPIs: total=2, ideas=1, drafts=0, scheduled=1, published=0, by_platform=8, by_status=7"
+    },
+    {
+      "name": "23. POST /content/ai/ideas",
+      "status": "PASS",
+      "details": "Returns AI-generated ideas"
+    },
+    {
+      "name": "24. POST /content/ai/script",
+      "status": "PASS",
+      "details": "Returns AI-generated script"
+    },
+    {
+      "name": "25. POST /content/ai/caption",
+      "status": "PASS",
+      "details": "Returns improved caption"
+    },
+    {
+      "name": "26. POST /content/ai/hashtags",
+      "status": "PASS",
+      "details": "Returns AI-generated hashtags"
+    },
+    {
+      "name": "27. GET /content/items (user2 empty)",
+      "status": "PASS",
+      "details": "User2 sees empty list (strict isolation)"
+    },
+    {
+      "name": "28. GET /content/items/{first_user_item_id} (user2)",
+      "status": "PASS",
+      "details": "User2 gets 404 for user1's item (strict isolation)"
+    },
+    {
+      "name": "29. GET /content/ping",
+      "status": "PASS",
+      "details": "Returns correct ping response"
+    }
+  ]
+}

@@ -44,6 +44,41 @@ DEAL_STAGES = [
 ]
 DEAL_STAGE_KEYS = [s["key"] for s in DEAL_STAGES]
 
+# Content OS constants
+CONTENT_STATUSES = [
+    {"key": "idea",       "name": "\u0641\u0643\u0631\u0629",       "color": "#94A3B8"},
+    {"key": "draft",      "name": "\u0645\u0633\u0648\u062f\u0651\u0629",     "color": "#3B82F6"},
+    {"key": "review",     "name": "\u0645\u0631\u0627\u062c\u0639\u0629",     "color": "#F59E0B"},
+    {"key": "approved",   "name": "\u0645\u0639\u062a\u0645\u062f\u0629",     "color": "#8B5CF6"},
+    {"key": "scheduled",  "name": "\u0645\u062c\u062f\u0648\u0644\u0629",     "color": "#06B6D4"},
+    {"key": "published",  "name": "\u0645\u0646\u0634\u0648\u0631\u0629",     "color": "#10B981"},
+    {"key": "archived",   "name": "\u0645\u0624\u0631\u0634\u0641\u0629",     "color": "#6B7280"},
+]
+CONTENT_STATUS_KEYS = [s["key"] for s in CONTENT_STATUSES]
+
+CONTENT_PLATFORMS = [
+    {"key": "instagram", "name": "\u0625\u0646\u0633\u062a\u0642\u0631\u0627\u0645", "color": "#E1306C"},
+    {"key": "tiktok",    "name": "\u062a\u064a\u0643 \u062a\u0648\u0643",         "color": "#000000"},
+    {"key": "twitter",   "name": "X (\u062a\u0648\u064a\u062a\u0631)",     "color": "#1DA1F2"},
+    {"key": "linkedin",  "name": "\u0644\u064a\u0646\u0643\u062f\u0625\u0646",       "color": "#0A66C2"},
+    {"key": "youtube",   "name": "\u064a\u0648\u062a\u064a\u0648\u0628",         "color": "#FF0000"},
+    {"key": "facebook",  "name": "\u0641\u064a\u0633\u0628\u0648\u0643",         "color": "#1877F2"},
+    {"key": "snapchat",  "name": "\u0633\u0646\u0627\u0628",           "color": "#FFFC00"},
+    {"key": "other",     "name": "\u0623\u062e\u0631\u0649",             "color": "#6B7280"},
+]
+
+CONTENT_FORMATS = [
+    {"key": "reel",     "name": "\u0631\u064a\u0644\u0632"},
+    {"key": "post",     "name": "\u0645\u0646\u0634\u0648\u0631"},
+    {"key": "story",    "name": "\u0642\u0635\u0629"},
+    {"key": "thread",   "name": "\u062b\u0631\u064a\u062f"},
+    {"key": "video",    "name": "\u0641\u064a\u062f\u064a\u0648"},
+    {"key": "carousel", "name": "\u0643\u0627\u0631\u0648\u0633\u064a\u0644"},
+    {"key": "live",     "name": "\u0628\u062b \u0645\u0628\u0627\u0634\u0631"},
+]
+CONTENT_FORMAT_KEYS = [f["key"] for f in CONTENT_FORMATS]
+
+
 
 logger = logging.getLogger("ruaa")
 
@@ -187,6 +222,11 @@ AI_PROMPTS = {
     "suggest_price": "أنت مسعّر خدمات إبداعية في السوق العربي. بناء على وصف الخدمة اقترح سعرين: ودّي (Starter) وعادل (Standard) وممتاز (Premium) بالدولار مع تبرير قصير لكل واحد.",
     "deal_close": "أنت خبير مبيعات B2B. بناء على معطيات صفقة، توقّع احتمال إغلاقها 0-100% ولخّص السبب في 3 نقاط عربية.",
     "improve_bio": "حسّن نص الـ Bio الحالي للمستخدم مع الحفاظ على شخصيته. اجعله أكثر جذباً وإقناعاً.",
+    # Content OS specific
+    "content_ideas": "أنت خبير محتوى سوشيال ميديا عربي. من الموضوع/السياق التالي، اقترح 8 أفكار محتوى مميّزة قابلة للتنفيذ. لكل فكرة: عنوان مغرٍ (5-8 كلمات) + وصف قصير (سطر واحد) + Hook مقترح + المنصة الأنسب. رقّم الأفكار بترتيب من الأقوى.",
+    "content_script": "أنت كاتب سيناريو محتوى قصير. اكتب سيناريو كامل جاهز للتنفيذ (30-60 ثانية) للفكرة التالية. قسّم إلى: Hook (0-3s) — Body (المحتوى الأساسي مقسّم لمشاهد) — CTA (خاتمة قوية). استخدم لغة عربية عصرية.",
+    "content_caption": "أنت خبير كتابة captions. حسّن الـ caption التالي ليصبح أكثر جذباً وتفاعلاً — احتفظ بالمعنى الأساسي لكن اجعله أقوى وأمتع للقارئ. أعد الـ caption المحسّن فقط.",
+    "content_hashtags": "أنت خبير SEO سوشيال. اقترح 15-20 هاشتاق مناسب (مزيج بين واسع الانتشار ومتخصّص وعربي وإنجليزي) للمحتوى التالي. ضعها في سطر واحد مفصولة بمسافات.",
 }
 
 
