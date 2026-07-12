@@ -141,7 +141,7 @@ export default function Profile() {
                     </div>
                 )}
 
-                {isMe && user?.role === "super_admin" && (
+                {isMe && me?.role === "super_admin" && (
                     <button
                         data-testid="open-admin-btn"
                         onClick={() => navigate("/admin")}
