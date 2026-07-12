@@ -1,4 +1,17 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 13 — Hotfix: Profile page crash on "حسابي" nav (2026-02)
+
+### Bug fixed
+- **Symptom**: Clicking bottom-nav "حسابي" (data-testid=nav-profile) redirected to an error/blank page.
+- **Root cause**: `/app/frontend/src/pages/Profile.jsx` line 144 referenced undefined `user?.role` (aliased as `me` from `useAuth()` on line 10), throwing `ReferenceError: user is not defined` and crashing the whole Profile component.
+- **Fix**: Replaced `user?.role === "super_admin"` → `me?.role === "super_admin"`.
+
+### Verification
+- Testing agent (iteration_13.json) — 9/9 frontend checks PASS (100%).
+- Verified for both super_admin (admin button visible) and freshly signed-up creator (admin button hidden).
+- Bottom-nav regression on /feed, /workspace, /explore — no console/page errors.
+
+
 
 ## Iteration 10 — Sprint "Content OS Engine V1" (2026-07)
 
