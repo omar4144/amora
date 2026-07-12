@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Home, Compass, PlusSquare, Briefcase, User } from "lucide-react";
+import { Home, Compass, PlusSquare, Briefcase, User, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const NavItem = ({ to, icon: Icon, label, testId }) => (
@@ -21,7 +21,7 @@ export default function Layout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const isFeed = location.pathname === "/feed";
+    const isFeed = location.pathname === "/feed" || location.pathname === "/workspace";
 
     const goProfile = () => {
         if (!user) return navigate("/auth");
@@ -40,7 +40,7 @@ export default function Layout() {
                 className="fixed bottom-0 inset-x-0 mx-auto max-w-md bg-black/95 backdrop-blur-xl border-t border-white/10 flex justify-around items-center h-16 z-50"
             >
                 <NavItem to="/feed" icon={Home} label="الرئيسية" testId="nav-home" />
-                <NavItem to="/marketplace" icon={Briefcase} label="السوق" testId="nav-marketplace" />
+                <NavItem to="/workspace" icon={LayoutDashboard} label="عملي" testId="nav-workspace" />
                 <NavItem to="/upload" icon={PlusSquare} label="نشر" testId="nav-upload" />
                 <NavItem to="/explore" icon={Compass} label="اكتشف" testId="nav-explore" />
                 <button

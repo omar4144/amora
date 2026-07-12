@@ -48,6 +48,7 @@ import AdminShell from "@/pages/admin/AdminShell";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminAudit from "@/pages/admin/AdminAudit";
+import Workspace from "@/pages/Workspace";
 
 const Protected = ({ children }) => {
     const { user, loading } = useAuth();
@@ -74,6 +75,7 @@ function App() {
 
                         {/* App routes with mobile Layout */}
                         <Route element={<Layout />}>
+                            <Route path="/workspace" element={<Protected><Workspace /></Protected>} />
                             <Route path="/feed" element={<Feed />} />
                             <Route path="/explore" element={<Explore />} />
                             <Route path="/upload" element={<Protected><Upload /></Protected>} />
