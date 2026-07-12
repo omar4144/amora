@@ -55,7 +55,7 @@ export default function CRMDealDetail() {
                 probability: deal.probability,
                 client: deal.client?.name,
                 notes: deal.notes,
-                days_since_update: Math.floor((Date.now() - new Date(deal.updated_at).getTime()) / 86400000),
+                days_since_update: deal.updated_at ? Math.floor((Date.now() - new Date(deal.updated_at).getTime()) / 86400000) : 0,
                 activities_count: (deal.activities || []).length,
             }, null, 2);
             const r = await api.post("/ai/assist", { task: "deal_close", context: ctx });

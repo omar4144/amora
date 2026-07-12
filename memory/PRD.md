@@ -1,4 +1,23 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 15 — Phase 1: Cross-Engine Linking + AI Everywhere (2026-02)
+
+### Delivered
+- **New page `/crm/clients/:id` (CRMClientDetail.jsx)** — 4-tab cross-engine view (Deals / Content / Tasks / Activities) with counts, empty-state CTAs, and click-through to detail pages of every engine. Consumes `/api/workspace/related?client_id=`.
+- **CRMClients.jsx** — client cards now navigate to detail via `open-client-<id>`.
+- **App.js** — new route `/crm/clients/:id`.
+- **CRMDealDetail.jsx enhancements**:
+  - New AI card 'تنبؤ إغلاق الصفقة' (data-testid `deal-ai-predict`, button `predict-close-btn`, result `prediction-result`) — Claude Sonnet 4.5 via `/api/ai/assist` (task=deal_close).
+  - Related tasks + related content sections (`deal-task-<id>`, `deal-content-<id>`) via `/workspace/related?deal_id=`.
+- **ContentDetail.jsx enhancements**:
+  - `linked-client-card` at top (visible when content has `client_id`) — click navigates to Client Detail.
+  - `content-task-<id>` list — tasks linked to the content item.
+- **EditProfile.jsx** — new `improve-bio-btn` (uses `improve_bio`/`profile_bio` AI prompts) that populates/enhances the bio textarea via Claude.
+
+### Verification (iteration_15.json)
+- Backend: 8/8 pytest — workspace/related (client_id, deal_id, content_id), crm/clients/{id}, ai/assist (deal_close, improve_bio, profile_bio), morning-brief — **100% PASS**.
+- Frontend: Playwright E2E — cross-engine navigation, AI prediction (~5s Arabic response), Improve Bio (~8s Arabic response), all data-testids verified, no console errors, no regression on morning brief or profile route — **100% PASS**.
+
+
 ## Iteration 14 — Morning Brief (مساعد بدء اليوم) (2026-02)
 
 ### Delivered
