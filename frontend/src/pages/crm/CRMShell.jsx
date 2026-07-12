@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, NavLink, Outlet, useLocation } from "react-router-dom";
-import { Briefcase, Users, KanbanSquare, Activity, LayoutDashboard, ArrowRight } from "lucide-react";
+import { Briefcase, Users, KanbanSquare, Activity, LayoutDashboard, ArrowRight, FileText } from "lucide-react";
 
 // Shared CRM shell layout — top-tab nav + Outlet
 export default function CRMShell() {
@@ -11,6 +11,7 @@ export default function CRMShell() {
         { to: "/crm", icon: LayoutDashboard, label: "لوحة التحكم", end: true },
         { to: "/crm/clients", icon: Users, label: "العملاء" },
         { to: "/crm/deals", icon: KanbanSquare, label: "الصفقات" },
+        { to: "/crm/invoices", icon: FileText, label: "الفواتير" },
         { to: "/crm/activities", icon: Activity, label: "الأنشطة" },
     ];
 

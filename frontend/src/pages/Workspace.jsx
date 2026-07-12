@@ -6,7 +6,7 @@ import {
     Users, Briefcase, Video, CheckSquare, ShieldAlert,
     AlertCircle, Clock, Rocket, TrendingUp,
     Plus, ArrowLeft, Sparkles, Home, Calendar as CalIcon,
-    RefreshCw, Wand2,
+    RefreshCw, Wand2, Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,11 +45,13 @@ export default function Workspace() {
     const [showQuickAdd, setShowQuickAdd] = useState(false);
     const [brief, setBrief] = useState(null);
     const [briefLoading, setBriefLoading] = useState(false);
+    const [billing, setBilling] = useState(null);
     const nav = useNavigate();
 
     useEffect(() => {
         api.get("/workspace/today").then((r) => { setData(r.data); setLoading(false); })
             .catch(() => { setLoading(false); nav("/auth"); });
+        api.get("/billing/me").then((r) => setBilling(r.data)).catch(() => {});
     }, [nav]);
 
     const loadBrief = async (force = false) => {
@@ -90,6 +92,19 @@ export default function Workspace() {
                         <h1 className="font-heading font-black text-xl text-white">{greet()}، {user?.name}</h1>
                         <p className="text-xs text-white/60 font-body">مركز عملك الموحّد</p>
                     </div>
+                    {billing && (
+                        <button
+                            data-testid="credits-chip"
+                            onClick={() => nav("/billing")}
+                            className="bg-white/5 border border-white/10 hover:border-[#D1795F]/40 rounded-full px-3 py-1.5 flex items-center gap-1.5 transition"
+                            title={`خطة: ${billing.plan.name}`}
+                        >
+                            <Wallet className="w-3.5 h-3.5 text-[#D1795F]" />
+                            <span className="text-[10px] text-white font-heading font-bold">
+                                {billing.credits_remaining}<span className="text-white/50">/{billing.credits_total}</span>
+                            </span>
+                        </button>
+                    )}
                 </div>
             </div>
 

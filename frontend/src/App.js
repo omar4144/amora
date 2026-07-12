@@ -33,6 +33,10 @@ import CRMClientDetail from "@/pages/crm/CRMClientDetail";
 import CRMDeals from "@/pages/crm/CRMDeals";
 import CRMDealDetail from "@/pages/crm/CRMDealDetail";
 import CRMActivities from "@/pages/crm/CRMActivities";
+import Invoices from "@/pages/crm/Invoices";
+import InvoiceDetail from "@/pages/crm/InvoiceDetail";
+import Pricing from "@/pages/Pricing";
+import Billing from "@/pages/Billing";
 import ContentShell from "@/pages/content/ContentShell";
 import ContentDashboard from "@/pages/content/ContentDashboard";
 import ContentKanban from "@/pages/content/ContentKanban";
@@ -106,7 +110,13 @@ function App() {
                                 <Route path="deals" element={<CRMDeals />} />
                                 <Route path="deals/:id" element={<CRMDealDetail />} />
                                 <Route path="activities" element={<CRMActivities />} />
+                                <Route path="invoices" element={<Invoices />} />
+                                <Route path="invoices/:id" element={<InvoiceDetail />} />
                             </Route>
+
+                            {/* Billing */}
+                            <Route path="/pricing" element={<Protected><Pricing /></Protected>} />
+                            <Route path="/billing" element={<Protected><Billing /></Protected>} />
 
                             {/* Content OS Engine */}
                             <Route path="/content" element={<Protected><ContentShell /></Protected>}>

@@ -34,6 +34,8 @@ from engines import (
     tasks_engine,
     booking_engine,
     workspace_engine,
+    invoice_engine,
+    billing_engine,
 )
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -49,6 +51,7 @@ for eng in [
     notification_engine, search_engine, events_engine, academy_engine,
     crm_engine, admin_engine, analytics_engine,
     content_engine, tasks_engine, booking_engine, workspace_engine,
+    invoice_engine, billing_engine,
 ]:
     api_router.include_router(eng.router)
 

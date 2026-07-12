@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
+import { API } from "@/lib/api";
 import { toast } from "sonner";
-import { ArrowRight, Building2, DollarSign, Calendar, Trash2, MessageSquare, Phone, Mail, Users2 as UsersIcon, StickyNote, ArrowLeftRight, CheckSquare, Video, Wand2, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRight, Building2, DollarSign, Calendar, Trash2, MessageSquare, Phone, Mail, Users2 as UsersIcon, StickyNote, ArrowLeftRight, CheckSquare, Video, Wand2, Sparkles, TrendingUp, FileText, FileSignature } from "lucide-react";
 
 const ACT_ICONS = {
     note: StickyNote,
@@ -95,6 +96,27 @@ export default function CRMDealDetail() {
         nav("/crm/deals");
     };
 
+    const createInvoice = async () => {
+        try {
+            const r = await api.post(`/crm/deals/${id}/create-invoice`);
+            toast.success("تم إنشاء الفاتورة");
+            nav(`/crm/invoices/${r.data.id}`);
+        } catch (e) { toast.error(e.response?.data?.detail || "خطأ"); }
+    };
+
+    const downloadContract = () => {
+        const token = localStorage.getItem("token");
+        fetch(`${API}/crm/deals/${id}/contract-pdf`, { headers: { Authorization: `Bearer ${token}` } })
+            .then((r) => r.blob())
+            .then((b) => {
+                const url = URL.createObjectURL(b);
+                const a = document.createElement("a");
+                a.href = url; a.download = `contract-${id.slice(0,8)}.pdf`;
+                a.click(); URL.revokeObjectURL(url);
+            })
+            .catch(() => toast.error("تعذّر تحميل العقد"));
+    };
+
     const currentStage = stages.find((s) => s.key === deal.stage);
 
     return (
@@ -152,6 +174,36 @@ export default function CRMDealDetail() {
                         </button>
                     ))}
                 </div>
+            </div>
+
+            {/* Quick actions: create invoice + contract PDF */}
+            <div className="grid grid-cols-2 gap-2">
+                <button
+                    data-testid="create-invoice-btn"
+                    onClick={createInvoice}
+                    className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-3 flex items-center gap-2 transition text-start active:scale-[0.98]"
+                >
+                    <div className="w-9 h-9 rounded-xl bg-[#D1795F]/20 text-[#D1795F] flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <div className="font-heading font-bold text-sm text-white">إنشاء فاتورة</div>
+                        <div className="text-[10px] text-white/50">من بيانات الصفقة</div>
+                    </div>
+                </button>
+                <button
+                    data-testid="download-contract-btn"
+                    onClick={downloadContract}
+                    className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-3 flex items-center gap-2 transition text-start active:scale-[0.98]"
+                >
+                    <div className="w-9 h-9 rounded-xl bg-[#57769D]/20 text-[#57769D] flex items-center justify-center flex-shrink-0">
+                        <FileSignature className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <div className="font-heading font-bold text-sm text-white">عقد PDF</div>
+                        <div className="text-[10px] text-white/50">تحميل جاهز للتوقيع</div>
+                    </div>
+                </button>
             </div>
 
             {/* AI: Deal close prediction */}

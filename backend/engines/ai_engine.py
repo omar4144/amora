@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from core.deps import current_user, EMERGENT_LLM_KEY, AI_PROMPTS
 from core.schemas import AIRequest
+from engines.billing_engine import consume_credit
 
 router = APIRouter(tags=["ai"])
 logger = logging.getLogger("ruaa.ai")
@@ -15,6 +16,9 @@ async def ai_assist(data: AIRequest, user=Depends(current_user)):
     system_prompt = AI_PROMPTS.get(data.task)
     if not system_prompt:
         raise HTTPException(400, "نوع المهمة غير مدعوم")
+    # Credit gate
+    if not await consume_credit(user["id"], 1):
+        raise HTTPException(402, "استنفدت رصيد AI الشهري — رقّي خطتك من صفحة الأسعار")
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         chat = LlmChat(

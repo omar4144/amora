@@ -267,6 +267,10 @@ async def _ai_call(task_key: str, context: str, user_id: str) -> str:
     system_prompt = AI_PROMPTS.get(task_key)
     if not system_prompt:
         raise HTTPException(400, f"مهمة {task_key} غير معرّفة")
+    # Credit gate
+    from engines.billing_engine import consume_credit
+    if not await consume_credit(user_id, 1):
+        raise HTTPException(402, "استنفدت رصيد AI الشهري — رقّي خطتك من صفحة الأسعار")
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         chat = LlmChat(

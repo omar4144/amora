@@ -2,20 +2,37 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { Plus, X, ArrowRight, ArrowLeftRight } from "lucide-react";
+import { Plus, X, ArrowRight, ArrowLeftRight, Link2 } from "lucide-react";
 
 function TaskForm({ meta, boardId, initial, onSubmit, onClose }) {
     const [form, setForm] = useState(initial || {
         title: "", description: "", status: "todo", priority: "medium", due_date: "", checklist: [],
+        client_id: "", deal_id: "", content_item_id: "",
     });
     const [busy, setBusy] = useState(false);
     const [newCheck, setNewCheck] = useState("");
+    const [showLink, setShowLink] = useState(false);
+    const [links, setLinks] = useState({ clients: [], deals: [], content: [] });
+
+    useEffect(() => {
+        Promise.all([
+            api.get("/crm/clients").catch(() => ({ data: [] })),
+            api.get("/crm/deals").catch(() => ({ data: [] })),
+            api.get("/content/items").catch(() => ({ data: [] })),
+        ]).then(([c, d, ci]) => setLinks({ clients: c.data, deals: d.data, content: ci.data }));
+    }, []);
 
     const submit = async (e) => {
         e.preventDefault();
         if (!form.title.trim()) return toast.error("العنوان مطلوب");
         setBusy(true);
-        try { await onSubmit({ ...form, board_id: boardId }); onClose(); }
+        try {
+            const payload = { ...form, board_id: boardId };
+            // strip empty link ids so backend stores null
+            ["client_id", "deal_id", "content_item_id"].forEach((k) => { if (!payload[k]) delete payload[k]; });
+            await onSubmit(payload);
+            onClose();
+        }
         catch { toast.error("خطأ"); }
         finally { setBusy(false); }
     };
@@ -45,6 +62,44 @@ function TaskForm({ meta, boardId, initial, onSubmit, onClose }) {
                         </select>
                     </div>
                     <input type="date" value={form.due_date?.slice(0,10) || ""} onChange={(e) => setForm({...form, due_date: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none" />
+
+                    {/* Quick Link — cross-engine */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+                        <button
+                            type="button"
+                            data-testid="toggle-quick-link"
+                            onClick={() => setShowLink(!showLink)}
+                            className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-white/70 hover:bg-white/5 transition"
+                        >
+                            <span className="flex items-center gap-1.5">
+                                <Link2 className="w-3.5 h-3.5 text-[#D1795F]" />
+                                ربط سريع
+                                {(form.client_id || form.deal_id || form.content_item_id) && (
+                                    <span className="text-[9px] bg-[#D1795F] text-white px-1.5 py-0.5 rounded-full">
+                                        {[form.client_id, form.deal_id, form.content_item_id].filter(Boolean).length}
+                                    </span>
+                                )}
+                            </span>
+                            <span className="text-white/40">{showLink ? "−" : "+"}</span>
+                        </button>
+                        {showLink && (
+                            <div className="p-3 pt-0 space-y-2">
+                                <select data-testid="link-client" value={form.client_id} onChange={(e) => setForm({ ...form, client_id: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                                    <option value="">— بدون عميل —</option>
+                                    {links.clients.map((c) => <option key={c.id} value={c.id}>👤 {c.name}{c.company ? ` (${c.company})` : ""}</option>)}
+                                </select>
+                                <select data-testid="link-deal" value={form.deal_id} onChange={(e) => setForm({ ...form, deal_id: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                                    <option value="">— بدون صفقة —</option>
+                                    {links.deals.map((d) => <option key={d.id} value={d.id}>💼 {d.title} — ${d.value}</option>)}
+                                </select>
+                                <select data-testid="link-content" value={form.content_item_id} onChange={(e) => setForm({ ...form, content_item_id: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                                    <option value="">— بدون محتوى —</option>
+                                    {links.content.map((ci) => <option key={ci.id} value={ci.id}>🎬 {ci.title} — {ci.platform}</option>)}
+                                </select>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Checklist */}
                     <div className="space-y-2">
                         <label className="text-xs text-white/50">قائمة المراجعة</label>
