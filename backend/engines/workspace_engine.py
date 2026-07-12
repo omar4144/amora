@@ -344,3 +344,91 @@ async def morning_brief(force: bool = Query(False), user=Depends(current_user)):
         upsert=True,
     )
     return {**brief, "from_cache": False}
+
+
+# ==================== WEEKLY RECOMMENDATIONS ====================
+@router.post("/workspace/recommendations")
+async def weekly_recommendations(force: bool = Query(False), user=Depends(current_user)):
+    """AI-generated personalized growth tips based on onboarding data + usage stats. Cached weekly."""
+    uid = user["id"]
+    now = datetime.now(timezone.utc)
+    week_key = now.strftime("%Y-W%V")
+
+    if not force:
+        cached = await db.workspace_recos.find_one({"user_id": uid, "week": week_key}, {"_id": 0})
+        if cached:
+            return {**cached, "from_cache": True}
+
+    # gather usage stats
+    stats = {
+        "clients": await db.crm_clients.count_documents({"owner_id": uid}),
+        "deals": await db.crm_deals.count_documents({"owner_id": uid}),
+        "won_deals": await db.crm_deals.count_documents({"owner_id": uid, "stage": "won"}),
+        "invoices": await db.invoices.count_documents({"owner_id": uid}),
+        "content_items": await db.content_items.count_documents({"owner_id": uid}),
+        "published_content": await db.content_items.count_documents({"owner_id": uid, "status": "published"}),
+        "tasks": await db.tasks.count_documents({"owner_id": uid}),
+        "communities_joined": await db.community_members.count_documents({"user_id": uid}),
+        "services_offered": await db.services.count_documents({"seller_id": uid}) if "services" in await db.list_collection_names() else 0,
+    }
+
+    payload = {
+        "primary_goal": user.get("primary_goal") or "all",
+        "interests": user.get("interests") or [],
+        "experience_level": user.get("experience_level") or "intermediate",
+        "user_name": user.get("name", ""),
+        "stats": stats,
+    }
+
+    recos = []
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"{uid}-reco-{week_key}",
+            system_message=AI_PROMPTS["recommendations"],
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+        msg = UserMessage(text=json.dumps(payload, ensure_ascii=False))
+        reply = await chat.send_message(msg)
+        parsed = _parse_ai_json(reply)
+        if parsed and isinstance(parsed.get("recommendations"), list):
+            recos = parsed["recommendations"][:3]
+    except Exception as e:
+        logger.error(f"recommendations AI error: {e}")
+
+    # Deterministic fallback tuned to primary_goal + stats
+    if not recos:
+        goal = payload["primary_goal"]
+        interests = payload["interests"]
+        recos = []
+        if goal == "crm" and stats["clients"] == 0:
+            recos.append({"title": "أضف أول عميل في CRM", "why": "أنت اخترت CRM كهدف — نبدأ ببناء قاعدة عملائك", "action_label": "أضف عميل", "engine": "crm", "priority": "high"})
+        if goal == "content" and stats["content_items"] == 0:
+            recos.append({"title": "ولّد أفكار محتوى بالذكاء", "why": "استغل مساعد Claude لتخطيط أسبوعك الإبداعي", "action_label": "ابدأ", "engine": "content", "priority": "high"})
+        if goal == "tasks" and stats["tasks"] == 0:
+            recos.append({"title": "أنشئ لوحة كانبان الأولى", "why": "نظّم يومك ومهامك في مكان واحد", "action_label": "أنشئ لوحة", "engine": "tasks", "priority": "high"})
+        if "marketplace" in interests and stats["services_offered"] == 0:
+            recos.append({"title": "أضف أول خدمة للبيع", "why": "اهتمامك بالسوق يستحق البدء", "action_label": "أضف خدمة", "engine": "marketplace", "priority": "medium"})
+        if "community" in interests and stats["communities_joined"] < 2:
+            recos.append({"title": "انضم لمجتمعين على الأقل", "why": "المجتمعات مصدر إلهام وشراكات", "action_label": "استعرض", "engine": "community", "priority": "medium"})
+        if not recos:
+            recos = [
+                {"title": "اكتب سيرتك الذاتية بالذكاء", "why": "افتح فرص التواصل بملف احترافي", "action_label": "حسّن Bio", "engine": "social", "priority": "medium"},
+                {"title": "استكشف السوق", "why": "ابحث عن فرص جديدة", "action_label": "اذهب", "engine": "marketplace", "priority": "low"},
+                {"title": "انضم لمجتمعك المفضّل", "why": "ابنِ شبكة علاقات نوعية", "action_label": "استعرض", "engine": "community", "priority": "low"},
+            ]
+        recos = recos[:3]
+
+    doc = {
+        "user_id": uid,
+        "week": week_key,
+        "recommendations": recos,
+        "generated_at": now_iso(),
+    }
+    await db.workspace_recos.update_one(
+        {"user_id": uid, "week": week_key},
+        {"$set": doc},
+        upsert=True,
+    )
+    return {**doc, "from_cache": False}
+

@@ -1,0 +1,37 @@
+{
+  "summary": "Iteration 20 — 'لوحة توصيات ذكية شخصية' (Personalized Weekly Recommendations) end-to-end verified. Backend: 9/9 pytest cases green (auth 401/403, first-call schema + from_cache=false, second call from_cache=true with identical content, force=true regenerates, personalization differences across primary_goal, deterministic-fallback for no-onboarding user, regression on /workspace/today, /workspace/morning-brief, /billing/me, and super_admin fetch). Frontend: full E2E on 390x844 mobile — login as super_admin → /workspace → recos-card renders below morning-brief-card with 3 items (reco-0/1/2), each with title + why + action-label chip + priority dot (red=high, amber=medium) + engine icon. Refresh button fires POST /workspace/recommendations?force=true, spinner animates, card re-renders, sonner toast 'تم تحديث التوصيات' verified. Click-through routes verified: marketplace→/marketplace, tasks→/tasks/boards, content→/content/kanban. Regression clean: morning-brief-card + credits-chip + bottom nav all intact.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration20_recommendations.py",
+    "/app/test_reports/pytest/iteration20_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "workspace_engine.py L372: `db.list_collection_names()` is invoked on EVERY /workspace/recommendations call (even cache-miss) purely to guard the services.count_documents call. This is an O(admin-metadata) query per user per week — but still wasteful. Recommend a one-shot module-level probe or a try/except around the count_documents itself. Non-blocking.",
+    "workspace_engine.py L358: cache lookup uses `%Y-W%V` ISO week key. `%V` requires POSIX 2001+; safe on Linux glibc but on macOS/BSD Python it can behave differently. Not a runtime bug here (server is Linux) but portability note.",
+    "Workspace.jsx L201: `{recos?.recommendations?.length > 0 && ...}` — the recos card is completely hidden until data arrives. Consider showing a skeleton (like Morning Brief) so users know AI is 'thinking' during the ~4-8s cold call. Minor UX.",
+    "Workspace.jsx recos error handler is silent (`catch {}`). If the backend ever 500s (never observed), the user would see nothing at all. Consider a subtle inline error state or at minimum a `toast.error` on non-2xx.",
+    "AI_PROMPTS['recommendations'] does not enforce diversity across the 3 recos — the smoke test happened to return marketplace/community/content which is nicely varied, but the current admin cache returned marketplace/tasks/content which is also fine. Non-blocking.",
+    "workspace_engine.py `_parse_ai_json` is shared with morning-brief and requires 'summary'/'focus' keys. It relies on the last-chance `{...}` extraction path for recommendations JSON. Works, but consider a schema-aware parser per feature (or Pydantic model)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration20_recommendations.py (NEW — 9 pytest cases across TestAuth, TestRecommendationsFlow, TestPersonalization, TestFallback, TestRegression)"
+  ],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "100% — all 8 acceptance points verified"},
+  "test_credentials": "Super admin crm@test.com / testpass123. Fresh users created per-test as TESTreco*@test.com / testpass123.",
+  "seed_data_creation": "Created ~8 TEST_ users during backend run (recoflow*, recoforce*, recoAcrm*, recoBcnt*, reconoonb*). Each gets onboarded to different goals and receives a cached workspace_recos doc for week 2026-W28. Super admin already has 2 clients/2 deals/5 invoices/1 content/6 communities (from prior iterations, not modified).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The recommendations feature is fully functional. AI call latency observed: 4-6s cold. Cache is (user_id, week=%Y-W%V) unique — force=true bypasses. Frontend workflow: loadRecos runs after workspace/today loads, sets state, card renders when array non-empty. Reuse /app/backend/tests/test_iteration20_recommendations.py as regression baseline. Note: previous iterations 18/19 test files still work as regression (test_iteration19_onboarding.py covers /auth/onboarding which we depend on here). During test I observed one flaky click where reco-1 briefly navigated to /upload — investigation showed it was a race with the refresh spinner overlay; a direct JS-triggered click on reco-1 correctly navigated per the engine→route map. No code fix needed but if you see this again, wait for [data-testid=recos-refresh] to have no `animate-spin` class before clicking a reco.",
+  "rca of the issue": {
+    "flow_verified": "Login → /workspace → GET /workspace/today loads → useEffect fires loadBrief(false) + loadRecos(false) in parallel. Both POST endpoints check DB cache (workspace_briefs by date, workspace_recos by week). Cache hit returns immediately with from_cache=true. Cache miss: gathers user context (usage stats + onboarding fields), calls Claude Sonnet 4.5 via LlmChat, parses JSON, falls back to deterministic list if AI returns invalid JSON. Result cached and returned with from_cache=false. Frontend: recos state populated → recos-card renders below morning-brief-card. Refresh button re-fires with ?force=true, sonner toast shows on success. Click-through nav uses engineMeta[engine].route lookup, defaulting to /crm if engine unknown."
+  }
+}

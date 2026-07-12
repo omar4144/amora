@@ -6,7 +6,7 @@ import {
     Users, Briefcase, Video, CheckSquare, ShieldAlert,
     AlertCircle, Clock, Rocket, TrendingUp,
     Plus, ArrowLeft, Sparkles, Home, Calendar as CalIcon,
-    RefreshCw, Wand2, Wallet,
+    RefreshCw, Wand2, Wallet, Compass, GraduationCap, ShoppingBag, MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,6 +46,8 @@ export default function Workspace() {
     const [brief, setBrief] = useState(null);
     const [briefLoading, setBriefLoading] = useState(false);
     const [billing, setBilling] = useState(null);
+    const [recos, setRecos] = useState(null);
+    const [recosBusy, setRecosBusy] = useState(false);
     const nav = useNavigate();
 
     useEffect(() => {
@@ -53,6 +55,17 @@ export default function Workspace() {
             .catch(() => { setLoading(false); nav("/auth"); });
         api.get("/billing/me").then((r) => setBilling(r.data)).catch(() => {});
     }, [nav]);
+
+    const loadRecos = async (force = false) => {
+        setRecosBusy(true);
+        try {
+            const r = await api.post(`/workspace/recommendations${force ? "?force=true" : ""}`);
+            setRecos(r.data);
+            if (force) toast.success("تم تحديث التوصيات");
+        } catch {
+            /* silent — fallback in backend handles it */
+        } finally { setRecosBusy(false); }
+    };
 
     const loadBrief = async (force = false) => {
         setBriefLoading(true);
@@ -69,6 +82,7 @@ export default function Workspace() {
 
     useEffect(() => {
         if (data && user) loadBrief(false);
+        if (data && user) loadRecos(false);
     }, [data, user]);
 
     if (loading || !data) return <div className="p-8 text-white/50 text-center">جارٍ التحميل...</div>;
@@ -182,6 +196,70 @@ export default function Workspace() {
                         </>
                     )}
                 </div>
+
+                {/* Personalized weekly recommendations */}
+                {recos?.recommendations?.length > 0 && (
+                    <div data-testid="recos-card" className="rounded-2xl bg-gradient-to-br from-[#C3E0A5]/10 via-transparent to-[#57769D]/10 border border-[#C3E0A5]/25 p-5 relative overflow-hidden">
+                        <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-[#C3E0A5]/10 rounded-full blur-3xl pointer-events-none" />
+                        <div className="flex items-start justify-between gap-3 mb-3 relative">
+                            <div className="flex items-center gap-2">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C3E0A5] to-[#57769D] flex items-center justify-center">
+                                    <Compass className="w-4 h-4 text-black" />
+                                </div>
+                                <div>
+                                    <h3 className="font-heading font-black text-base text-white">توصيات خاصة بك</h3>
+                                    <p className="text-[10px] text-white/50 font-body">مخصّصة حسب هدفك واستخدامك</p>
+                                </div>
+                            </div>
+                            <button
+                                data-testid="recos-refresh"
+                                onClick={() => loadRecos(true)}
+                                disabled={recosBusy}
+                                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition disabled:opacity-50"
+                                title="تحديث"
+                            >
+                                <RefreshCw className={`w-3.5 h-3.5 text-white/70 ${recosBusy ? "animate-spin" : ""}`} />
+                            </button>
+                        </div>
+
+                        <div className="space-y-2 relative">
+                            {recos.recommendations.map((r, i) => {
+                                const engineMeta = {
+                                    crm:         { icon: Briefcase,       color: "#D1795F", route: "/crm" },
+                                    content:     { icon: Video,            color: "#57769D", route: "/content/kanban" },
+                                    tasks:       { icon: CheckSquare,      color: "#C3E0A5", route: "/tasks/boards" },
+                                    marketplace: { icon: ShoppingBag,      color: "#F59E0B", route: "/marketplace" },
+                                    community:   { icon: MessageCircle,    color: "#8B5CF6", route: "/communities" },
+                                    academy:     { icon: GraduationCap,    color: "#06B6D4", route: "/academy" },
+                                    social:      { icon: Users,             color: "#EC4899", route: "/profile/edit" },
+                                };
+                                const meta = engineMeta[r.engine] || engineMeta.crm;
+                                const Icon = meta.icon;
+                                const priorityDot = r.priority === "high" ? "bg-red-400" : r.priority === "medium" ? "bg-amber-400" : "bg-white/30";
+                                return (
+                                    <button
+                                        key={i}
+                                        data-testid={`reco-${i}`}
+                                        onClick={() => nav(meta.route)}
+                                        className="w-full text-start bg-black/40 hover:bg-black/60 border border-white/10 rounded-xl p-3 flex items-start gap-3 transition group"
+                                    >
+                                        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 relative" style={{ backgroundColor: `${meta.color}25`, color: meta.color }}>
+                                            <Icon className="w-4 h-4" />
+                                            <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${priorityDot}`} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-heading font-semibold text-white line-clamp-1">{r.title}</div>
+                                            {r.why && <div className="text-[10px] text-white/50 mt-0.5 line-clamp-2 font-body">{r.why}</div>}
+                                        </div>
+                                        <div className="text-[10px] font-heading font-bold px-2 py-1 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: `${meta.color}20`, color: meta.color }}>
+                                            {r.action_label || "ابدأ"}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Onboarding */}
                 {data.is_new_user && (
