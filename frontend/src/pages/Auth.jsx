@@ -21,10 +21,16 @@ export default function Auth() {
         e.preventDefault();
         setLoading(true);
         try {
-            if (mode === "login") { await login(form.email, form.password); }
-            else { await signup(form); }
+            let result;
+            if (mode === "login") { result = await login(form.email, form.password); }
+            else { result = await signup(form); }
             toast.success("أهلاً بك في أمورا");
-            navigate("/feed");
+            // First-time users go through onboarding; existing users go to feed
+            const u = result?.user || result || {};
+            // First-time signup ALWAYS goes to onboarding.
+            // Login goes to /onboarding only if the user's `onboarding_completed` flag is explicitly false (new schema).
+            const isNew = mode === "signup" || u.onboarding_completed === false;
+            navigate(isNew ? "/onboarding" : "/feed");
         } catch (err) {
             toast.error(err?.response?.data?.detail || "حدث خطأ ما");
         } finally { setLoading(false); }

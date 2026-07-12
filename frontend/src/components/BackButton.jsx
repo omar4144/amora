@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
  * Universal back button — navigates to previous entry or a sensible fallback.
  * Hidden on top-level routes where the bottom nav already handles navigation.
  */
-const HIDDEN_ON = new Set(["/", "/feed", "/workspace", "/explore", "/upload", "/auth"]);
+const HIDDEN_ON = new Set(["/", "/feed", "/workspace", "/explore", "/upload", "/auth", "/onboarding"]);
 
 export default function BackButton({ fallback = -1, className = "", label = "رجوع" }) {
     const navigate = useNavigate();

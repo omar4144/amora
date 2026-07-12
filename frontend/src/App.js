@@ -37,6 +37,7 @@ import Invoices from "@/pages/crm/Invoices";
 import InvoiceDetail from "@/pages/crm/InvoiceDetail";
 import Pricing from "@/pages/Pricing";
 import Billing from "@/pages/Billing";
+import Onboarding from "@/pages/Onboarding";
 import ContentShell from "@/pages/content/ContentShell";
 import ContentDashboard from "@/pages/content/ContentDashboard";
 import ContentKanban from "@/pages/content/ContentKanban";
@@ -77,6 +78,7 @@ function App() {
                         {/* Public agency landing page — full-width, no mobile Layout */}
                         <Route path="/" element={<Landing />} />
                         <Route path="/auth" element={<Auth />} />
+                        <Route path="/onboarding" element={<Protected><Onboarding /></Protected>} />
 
                         {/* App routes with mobile Layout */}
                         <Route element={<Layout />}>
