@@ -1,4 +1,24 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 14 — Morning Brief (مساعد بدء اليوم) (2026-02)
+
+### Delivered
+- **Backend endpoint**: `POST /api/workspace/morning-brief` — AI-powered daily kickoff.
+  - Gathers user's day (overdue tasks, due-today, upcoming content, stale deals).
+  - Sends compact JSON context to Claude Sonnet 4.5 (via emergentintegrations + EMERGENT_LLM_KEY).
+  - Returns `{user_id, date, summary (Arabic), focus: [{title, why, engine, ref_id}]×3, from_cache}`.
+  - Cached per `{user_id, date}` in `db.workspace_briefs`; `?force=true` regenerates.
+  - Deterministic fallback if AI parsing fails.
+- **AI prompt**: New `morning_brief` entry in `AI_PROMPTS` — warm Arabic, JSON-only output.
+- **Frontend**: New Morning Brief card at the top of `/workspace`.
+  - Auto-loads on mount, refresh button (`RefreshCw` spinner), sonner toast on refresh.
+  - Focus items are clickable and route to CRM/Tasks/Content engines (ref_id → detail; else engine root).
+  - Data-testids: `morning-brief-card`, `morning-brief-summary`, `morning-brief-refresh`, `morning-focus-0/1/2`.
+
+### Verification (iteration_14.json)
+- Backend: 4/4 pytest (auth 401, cache miss, cache hit, force=true) — 100% PASS.
+- Frontend: Playwright E2E — card renders, Arabic summary populated, 3 focus items clickable, refresh spinner + toast, no console errors, workspace regression intact — 100% PASS.
+
+
 ## Iteration 13 — Hotfix: Profile page crash on "حسابي" nav (2026-02)
 
 ### Bug fixed
