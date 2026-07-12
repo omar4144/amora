@@ -11,8 +11,8 @@ export default function Events() {
     const [items, setItems] = useState([]); const [show, setShow] = useState(false);
     const [f, setF] = useState({title:"",description:"",kind:"workshop",date:"",location:"",price:0,capacity:50});
     const { user } = useAuth(); const navigate = useNavigate();
-    const load = () => api.get("/events").then(r=>setItems(r.data));
-    useEffect(load, []);
+    const load = () => api.get("/events").then(r=>setItems(r.data)).catch(() => {});
+    useEffect(() => { load(); }, []);
 
     const create = async (e) => { e.preventDefault();
         if(!user) return navigate("/auth");
@@ -25,7 +25,7 @@ export default function Events() {
         catch(err){ toast.error(err?.response?.data?.detail||"خطأ"); } };
 
     return (
-        <div className="p-6 pt-8 font-body pb-24" data-testid="events-page">
+        <div className="p-6 pt-16 font-body pb-24" data-testid="events-page">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2"><Calendar className="w-6 h-6 text-[#D1795F]"/><h1 className="text-2xl font-heading font-black">الفعاليات</h1></div>
                 <button data-testid="new-event-btn" onClick={()=>user?setShow(true):navigate("/auth")} className="bg-[#D1795F] text-white font-heading font-bold rounded-full px-4 py-2 text-sm flex items-center gap-1"><Plus className="w-4 h-4"/>فعالية</button>

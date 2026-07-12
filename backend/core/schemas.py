@@ -28,6 +28,7 @@ class ProfileUpdate(BaseModel):
     intro_video_url: Optional[str] = None
     certifications: Optional[List[Dict]] = None
     portfolio: Optional[List[Dict]] = None
+    avatar_url: Optional[str] = None
 
 
 # ==================== MARKETPLACE ====================

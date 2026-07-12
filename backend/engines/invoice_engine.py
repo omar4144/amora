@@ -226,7 +226,7 @@ def _make_pdf(kind: str, title: str, meta: dict, body: dict, footer: str = "") -
     c.rect(0, H - 90, W, 90, fill=1, stroke=0)
     c.setFillColor(colors.white)
     c.setFont(arabic_bold, 26)
-    c.drawRightString(W - 40, H - 55, ar("Ru'ya"))
+    c.drawRightString(W - 40, H - 55, ar("Amora"))
     c.setFont(arabic_font, 12)
     c.drawRightString(W - 40, H - 75, ar("نظام تشغيل إبداعي"))
     c.setFont(arabic_bold, 18)
@@ -320,7 +320,7 @@ def _make_pdf(kind: str, title: str, meta: dict, body: dict, footer: str = "") -
     # Footer
     c.setFont(arabic_font, 9)
     c.setFillColor(colors.HexColor("#888888"))
-    c.drawCentredString(W / 2, 30, ar(footer or f"Ru'ya · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}"))
+    c.drawCentredString(W / 2, 30, ar(footer or f"Amora · {datetime.now(timezone.utc).strftime('%Y-%m-%d')}"))
     c.save()
     return buf.getvalue()
 
@@ -344,7 +344,7 @@ async def invoice_pdf(invoice_id: str, user=Depends(current_user)):
             meta["الشركة"] = client["company"]
     if inv.get("due_date"):
         meta["تاريخ الاستحقاق"] = inv["due_date"][:10]
-    pdf_bytes = _make_pdf("invoice", inv.get("title", "فاتورة"), meta, inv, f"{user.get('name','')} · Ru'ya")
+    pdf_bytes = _make_pdf("invoice", inv.get("title", "فاتورة"), meta, inv, f"{user.get('name','')} · Amora")
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",
@@ -376,7 +376,7 @@ async def deal_contract_pdf(deal_id: str, user=Depends(current_user)):
     ]
     meta = {"رقم الصفقة": d.get("id", "")[:8], "التاريخ": today, "المرحلة": d.get("stage", "")}
     body = {"paragraphs": paragraphs, "notes": f"توقيع المزود: {signer_name}    |    توقيع العميل: {client_name}"}
-    pdf_bytes = _make_pdf("contract", "عقد اتفاقية خدمة", meta, body, f"Ru'ya · Contract · {today}")
+    pdf_bytes = _make_pdf("contract", "عقد اتفاقية خدمة", meta, body, f"Amora · Contract · {today}")
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",

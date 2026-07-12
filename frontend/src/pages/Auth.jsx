@@ -23,7 +23,7 @@ export default function Auth() {
         try {
             if (mode === "login") { await login(form.email, form.password); }
             else { await signup(form); }
-            toast.success("أهلاً بك في رؤى");
+            toast.success("أهلاً بك في أمورا");
             navigate("/feed");
         } catch (err) {
             toast.error(err?.response?.data?.detail || "حدث خطأ ما");
@@ -36,10 +36,12 @@ export default function Auth() {
             <div className="absolute -bottom-20 -end-20 w-64 h-64 rounded-full bg-[#D1795F]/5 blur-3xl" />
 
             <div className="relative">
-                <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-8 h-8 text-[#D1795F]" />
-                    <h1 className="text-4xl font-heading font-black">رؤى</h1>
-                    <span className="text-xs text-neutral-500 self-end mb-2">Ru'ya</span>
+                <div className="flex items-center gap-3 mb-2">
+                    <img src="/amora-logo.png" alt="Amora" className="w-14 h-14 rounded-2xl object-cover" data-testid="amora-logo" />
+                    <div>
+                        <h1 className="text-4xl font-heading font-black leading-none">أمورا</h1>
+                        <span className="text-xs text-neutral-500 font-heading tracking-wider">Amora</span>
+                    </div>
                 </div>
                 <p className="text-neutral-400 mb-8 font-body">
                     المنصة الرقمية للمواهب والمشاريع والشركات

@@ -14,8 +14,8 @@ export default function Teams() {
     const { user } = useAuth();
     const navigate = useNavigate();
 
-    const load = () => api.get("/teams").then((r) => setItems(r.data));
-    useEffect(load, []);
+    const load = () => api.get("/teams").then((r) => setItems(r.data)).catch(() => {});
+    useEffect(() => { load(); }, []);
 
     const create = async (e) => {
         e.preventDefault();
@@ -29,7 +29,7 @@ export default function Teams() {
     };
 
     return (
-        <div className="p-6 pt-8 font-body" data-testid="teams-page">
+        <div className="p-6 pt-16 font-body pb-24" data-testid="teams-page">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2"><UsersRound className="w-6 h-6 text-[#D1795F]" /><h1 className="text-3xl font-heading font-black">الفرق</h1></div>
                 <button data-testid="new-team-btn" onClick={() => user ? setShow(true) : navigate("/auth")} className="bg-[#D1795F] text-white font-heading font-bold rounded-full px-4 py-2 text-sm flex items-center gap-1"><Plus className="w-4 h-4" /> فريق</button>
@@ -43,7 +43,9 @@ export default function Teams() {
                             <span className="text-[10px] bg-[#D1795F]/20 text-[#D1795F] px-2 py-0.5 rounded-full">{KINDS.find((k) => k.id === t.kind)?.label || t.kind}</span>
                         </div>
                         <p className="text-sm text-neutral-400 line-clamp-2 mb-2">{t.description}</p>
-                        <div className="text-xs text-neutral-500">بقيادة @{t.owner?.username} · {t.members_count} عضو</div>
+                        <div className="text-xs text-neutral-500">
+                            {t.owner?.username ? `بقيادة @${t.owner.username} · ` : ""}{t.members_count || 0} عضو
+                        </div>
                     </Link>
                 ))}
             </div>

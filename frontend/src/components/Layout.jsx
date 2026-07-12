@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Home, Compass, PlusSquare, Briefcase, User, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import BackButton from "@/components/BackButton";
 
 const NavItem = ({ to, icon: Icon, label, testId }) => (
     <NavLink
@@ -30,7 +31,14 @@ export default function Layout() {
 
     return (
         <div className="w-full max-w-md mx-auto min-h-[100dvh] relative bg-black text-white overflow-hidden font-body">
-            <main className={isFeed ? "h-[100dvh]" : "min-h-[100dvh] pb-20"}>
+            {/* Floating universal back button (hidden on top-level routes) */}
+            <div className="fixed top-3 right-3 z-40 pointer-events-none">
+                <div className="pointer-events-auto">
+                    <BackButton />
+                </div>
+            </div>
+
+            <main className={isFeed ? "h-[100dvh]" : "min-h-[100dvh] pb-24"}>
                 <Outlet />
             </main>
 

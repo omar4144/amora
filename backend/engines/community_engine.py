@@ -1,6 +1,9 @@
 """Community Engine: communities list/get/join + posts + post likes."""
+import re
 import uuid
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
+from typing import Optional
 
 from core.deps import db, now_iso, current_user, optional_user
 from core.schemas import PostCreate
@@ -8,18 +11,68 @@ from core.schemas import PostCreate
 router = APIRouter(tags=["community"])
 
 
+class CommunityCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    icon: Optional[str] = "🌱"
+
+
+def _slugify(name: str) -> str:
+    s = re.sub(r"\s+", "-", name.strip().lower())
+    s = re.sub(r"[^\w\-\u0600-\u06FF]", "", s)
+    return s or f"c-{uuid.uuid4().hex[:8]}"
+
+
 @router.get("/communities")
-async def list_communities(viewer=Depends(optional_user)):
-    items = await db.communities.find({}, {"_id": 0}).to_list(50)
+async def list_communities(viewer=Depends(optional_user), q: Optional[str] = None):
+    query = {}
+    if q and q.strip():
+        query["$or"] = [
+            {"name": {"$regex": q.strip(), "$options": "i"}},
+            {"slug": {"$regex": q.strip(), "$options": "i"}},
+            {"description": {"$regex": q.strip(), "$options": "i"}},
+        ]
+    items = await db.communities.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
     if viewer:
-        joined = await db.community_members.find({"user_id": viewer["id"]}, {"_id": 0}).to_list(50)
+        joined = await db.community_members.find({"user_id": viewer["id"]}, {"_id": 0}).to_list(200)
         joined_set = {j["community_slug"] for j in joined}
         for c in items:
             c["joined"] = c["slug"] in joined_set
     else:
         for c in items:
             c["joined"] = False
+    # attach members count
+    for c in items:
+        c["members_count"] = await db.community_members.count_documents({"community_slug": c["slug"]})
     return items
+
+
+@router.post("/communities")
+async def create_community(data: CommunityCreate, user=Depends(current_user)):
+    if not data.name.strip():
+        raise HTTPException(400, "الاسم مطلوب")
+    slug = _slugify(data.name)
+    # ensure unique slug
+    if await db.communities.find_one({"slug": slug}):
+        slug = f"{slug}-{uuid.uuid4().hex[:4]}"
+    doc = {
+        "id": str(uuid.uuid4()),
+        "slug": slug,
+        "name": data.name.strip(),
+        "description": (data.description or "").strip(),
+        "icon": (data.icon or "🌱")[:4],
+        "owner_id": user["id"],
+        "created_at": now_iso(),
+    }
+    await db.communities.insert_one(doc)
+    # auto-join creator
+    await db.community_members.insert_one({
+        "id": str(uuid.uuid4()), "community_slug": slug, "user_id": user["id"], "role": "owner", "created_at": now_iso(),
+    })
+    doc.pop("_id", None)
+    doc["joined"] = True
+    doc["members_count"] = 1
+    return doc
 
 
 @router.get("/communities/{slug}")

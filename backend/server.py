@@ -1,5 +1,5 @@
 """
-Ru'ya Core — main FastAPI orchestrator.
+Amora Core — main FastAPI orchestrator.
 Composed of 14 independent Engines under `engines/`.
 Shared infrastructure lives in `core/`.
 """
@@ -41,7 +41,7 @@ from engines import (
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("ruaa")
 
-app = FastAPI(title="Ru'ya — Creative Operating System", version="2.0.0")
+app = FastAPI(title="Amora — Creative Operating System", version="2.0.0")
 api_router = APIRouter(prefix="/api")
 
 # Attach all engine routers under /api
@@ -69,7 +69,7 @@ app.add_middleware(
 @app.get("/api")
 async def root():
     return {
-        "app": "Ru'ya",
+        "app": "Amora",
         "version": "2.0.0",
         "tagline": "ندشن قصة حب جديدة مع عميلك",
         "engines": [

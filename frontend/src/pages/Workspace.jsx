@@ -189,7 +189,7 @@ export default function Workspace() {
                         <div className="flex items-start gap-3 mb-3">
                             <Sparkles className="w-6 h-6 text-[#D1795F] flex-shrink-0 mt-0.5" fill="#D1795F" />
                             <div>
-                                <h3 className="font-heading font-bold text-lg">أهلاً بك في Ru'ya</h3>
+                                <h3 className="font-heading font-bold text-lg">أهلاً بك في Amora</h3>
                                 <p className="text-sm text-white/70 mt-1 font-body leading-relaxed">
                                     ابدأ رحلتك في 3 خطوات بسيطة — واحدة كل مرة.
                                 </p>

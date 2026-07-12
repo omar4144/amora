@@ -68,10 +68,8 @@ function TopNav() {
         >
             <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                 <Link to="/" data-testid="landing-logo" className="flex items-center gap-2 group">
-                    <div className="w-9 h-9 rounded-xl bg-[#D1795F] flex items-center justify-center shadow-lg shadow-[#D1795F]/20 group-hover:scale-110 transition-transform">
-                        <Heart className="w-5 h-5 text-black" fill="black" />
-                    </div>
-                    <span className="font-heading font-black text-2xl text-white tracking-tight">Ruaa</span>
+                    <img src="/amora-logo.png" alt="Amora" className="w-9 h-9 rounded-xl object-cover shadow-lg shadow-[#D1795F]/20 group-hover:scale-110 transition-transform" />
+                    <span className="font-heading font-black text-2xl text-white tracking-tight">Amora</span>
                 </Link>
 
                 <div className="hidden md:flex items-center gap-8 text-sm font-body">
@@ -329,7 +327,7 @@ function Manifesto() {
                     className="order-1 lg:order-2 relative"
                 >
                     <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                        <img src={IMAGES.about} alt="فريق Ruaa" className="w-full h-[560px] object-cover" />
+                        <img src={IMAGES.about} alt="فريق Amora" className="w-full h-[560px] object-cover" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                         <div className="absolute bottom-8 right-8 left-8">
                             <p className="text-white text-xl font-heading font-bold leading-snug">
@@ -465,7 +463,7 @@ function LoveStories() {
             role: "مؤسس، Alba Cafe",
             image: IMAGES.testimonial,
             challenge: "كان مقهانا يذوب في الحشد — لا هوية، لا صوت، لا قصة.",
-            solution: "أعادت Ruaa تعريف علامتنا: من الشعار إلى الرسائل التسويقية، من كل جدار في المقهى إلى كل ريل على انستقرام.",
+            solution: "أعادت Amora تعريف علامتنا: من الشعار إلى الرسائل التسويقية، من كل جدار في المقهى إلى كل ريل على انستقرام.",
             result: "الزيارات ارتفعت 210%، لكن الأهم — الناس صاروا يأتون لأنهم يحبّون القصة، لا فقط القهوة.",
             metric: "+210%",
             label: "زيارات شهرية",
@@ -475,7 +473,7 @@ function LoveStories() {
             role: "مصمّمة، Studio Nur",
             image: IMAGES.testimonial,
             challenge: "أعمالي جميلة، لكن لا أحد يعرفني. كنت أشعر أنني أعمل في الظل.",
-            solution: "ساعدتني Ruaa في بناء بروفايل قوي، محتوى فيديو أسبوعي، وصفقات مع عملاء من مستوى مختلف.",
+            solution: "ساعدتني Amora في بناء بروفايل قوي، محتوى فيديو أسبوعي، وصفقات مع عملاء من مستوى مختلف.",
             result: "خلال 4 أشهر، تحوّلت من مصمّمة مستقلة إلى استوديو بفريق من 5 أشخاص.",
             metric: "5×",
             label: "نمو الفريق",
@@ -485,7 +483,7 @@ function LoveStories() {
             role: "رائد أعمال، LamsaTech",
             image: IMAGES.testimonial,
             challenge: "فكرة رائعة، لكن لا أعرف من أين أبدأ. تِهت بين عشرات الأدوات والاستشاريين.",
-            solution: "حاضنة Ruaa أخذت بيدي عبر 7 مراحل واضحة — من الفكرة إلى الإطلاق، مع مجتمع يدعمني في كل خطوة.",
+            solution: "حاضنة Amora أخذت بيدي عبر 7 مراحل واضحة — من الفكرة إلى الإطلاق، مع مجتمع يدعمني في كل خطوة.",
             result: "أطلقت أول MVP خلال 3 أشهر، وحصلت على أول جولة تمويل من مستثمر رأيت مشروعي على المنصة.",
             metric: "3 أشهر",
             label: "من الفكرة للإطلاق",
@@ -668,7 +666,7 @@ function Vision() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Ruaa Principles
+// Amora Principles
 // ═══════════════════════════════════════════════════════════════
 function Principles() {
     const principles = [
@@ -858,10 +856,8 @@ function Footer() {
                 <div className="grid md:grid-cols-4 gap-8">
                     <div className="md:col-span-2">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="w-9 h-9 rounded-xl bg-[#D1795F] flex items-center justify-center">
-                                <Heart className="w-5 h-5 text-black" fill="black" />
-                            </div>
-                            <span className="font-heading font-black text-2xl text-white">Ruaa</span>
+                            <img src="/amora-logo.png" alt="Amora" className="w-9 h-9 rounded-xl object-cover" />
+                            <span className="font-heading font-black text-2xl text-white">Amora</span>
                         </div>
                         <p className="text-white/50 font-body leading-relaxed max-w-md">
                             وكالة تسويق رقمية × نظام تشغيل إبداعي.
@@ -889,7 +885,7 @@ function Footer() {
                     </div>
                 </div>
                 <div className="mt-12 pt-8 border-t border-white/5 flex flex-wrap items-center justify-between gap-4 text-white/40 text-sm font-body">
-                    <p>© {new Date().getFullYear()} Ruaa. كل الحقوق محفوظة.</p>
+                    <p>© {new Date().getFullYear()} Amora. كل الحقوق محفوظة.</p>
                     <p className="italic">صُنع بحب ❤️ في الوطن العربي</p>
                 </div>
             </div>

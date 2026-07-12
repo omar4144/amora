@@ -1,0 +1,81 @@
+{
+  "summary": "Phase 3 review (Amora rebrand + avatar + communities + back-btn + Teams/Events crash bug + bottom-nav overlap + watermark removal). Backend: 10/10 pytest tests pass on new suite (Amora title, /api/teams, /api/events, /api/users/me/avatar with persistence + rejection, POST/GET /api/communities with Arabic slug + q= search, and invoice PDF free of Ru'ya/Ruaa). Frontend: reproduced the Teams/Events runtime crash ('destroy is not a function'), root-caused it to `useEffect(load, [])` where `load` returns a Promise, and applied a fix to Teams.jsx and Events.jsx (wrapping the call in an IIFE). After fix both pages render correctly with data-testid teams-page/events-page, back-btn, and correct owner text 'بقيادة @<username> · N عضو'. Avatar upload flow end-to-end works (200 OK, preview rendered, sonner toast 'تم تحديث صورة العرض', persists after reload). BackButton coverage is 100% correct on all 10 non-root routes and correctly hidden on all 6 root routes. Emergent badge removed on all tested routes. Bottom-nav overlap resolved (main has pb-24 / 96px, lastBottom<navTop on every tested page). Regressions OK: Workspace shows موجز اليوم card + 28/30 credits chip, Pricing shows 3 plans. HOWEVER two significant issues remain unfixed and reported below.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Communities.jsx → NewCommunityModal",
+        "issue": "The 'comm-save' button is fully covered by the fixed bottom-nav (both z-50, but the <nav> comes AFTER <main> in the DOM so it stacks on top). On the 390×844 mobile viewport (`flex items-end sm:items-center` anchors the modal at the bottom) the click on 'comm-save' passes through to the 'نشر' nav item — no POST /api/communities is issued, and the user is silently navigated to /upload instead of /communities/<slug>. Reproduced 2× with clear network trace confirming zero API events were fired on click.",
+        "selector": "[data-testid='comm-save']",
+        "priority": "CRITICAL"
+      },
+      {
+        "component": "AIAssistant.jsx / Explore.jsx / Feed.jsx (Rebrand incomplete)",
+        "issue": "Three visible strings still contain 'رؤى': AIAssistant.jsx L38 ('مساعد رؤى'), Explore.jsx L28 ('مساعد رؤى AI'), Feed.jsx L319 (<span>رؤى</span> inside the branded heading). These should read 'مساعد أمورا' / 'أمورا' to complete the Amora rebrand.",
+        "selector": "text=مساعد رؤى",
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "Incubator.jsx / TeamDetail.jsx / CommunityDetail.jsx / Marketplace.jsx / MarketplaceDetail.jsx / Feed.jsx",
+        "issue": "Same `useEffect(load, [])` anti-pattern where `load` returns a Promise. In dev/StrictMode this triggers 'destroy is not a function' TypeError on unmount/double-invoke — the exact crash that broke /teams and /events. Only Teams and Events were fixed in this iteration. The other 6 pages should be proactively patched to `useEffect(() => { load(); }, [...deps])`.",
+        "selector": "N/A",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Create community",
+        "issue": "Complete flow blocked by the z-index overlap above; the modal is otherwise wired correctly (name/desc/icon/save all have data-testids; API works via curl).",
+        "affected_selectors": ["[data-testid='comm-save']", "[data-testid='new-community-modal']"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "New-community modal (bottom sheet on mobile)",
+        "issues": ["Modal sits behind the fixed bottom nav due to identical z-50 and later DOM position — visually the save CTA is partially/fully obscured by the nav even before considering the click-hijack bug."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase3_rebrand.py",
+    "/app/test_reports/pytest/phase3_results.xml"
+  ],
+  "action_items": [
+    "FIX (CRITICAL): Raise the community create modal above the bottom nav. Simplest fix — change the modal wrapper in Communities.jsx L112 from `z-50` to `z-[60]` (and/or lower `bottom-nav` z from 50 to 40). Verify by asserting a POST /api/communities is fired and page navigates to /communities/<slug>.",
+    "FIX (HIGH): Apply the same `useEffect(() => { load(); }, [...])` wrapper to Incubator.jsx, TeamDetail.jsx, CommunityDetail.jsx, Marketplace.jsx, MarketplaceDetail.jsx, Feed.jsx to prevent 'destroy is not a function' crashes when navigating away from those pages.",
+    "FIX (MEDIUM): Replace remaining 'رؤى' Arabic strings with 'أمورا' in AIAssistant.jsx L38, Explore.jsx L28, Feed.jsx L319 to complete the rebrand."
+  ],
+  "critical_code_review_comments": [
+    "Communities.jsx: modal backdrop uses `flex items-end sm:items-center` — the bottom-sheet placement on mobile is what causes the overlap with the fixed nav. Either use `items-center` universally or add safe-area padding to the modal.",
+    "Layout.jsx: both `main` (implicit z) and `nav` (z-50) plus the floating back-btn (z-40) create an ambiguous stacking. Consider a strict z-scale: nav z-30, back-btn z-40, modals z-50+.",
+    "Teams.jsx / Events.jsx (pre-fix): `useEffect(load, [])` — load returned a Promise; React interpreted the Promise as the cleanup function and threw on unmount. This anti-pattern is repeated across 6 more files (listed above).",
+    "social_engine.py POST /api/users/me/avatar: the file mime is validated by extension only (`ext = file.filename.split('.')[-1]`) — an attacker could upload arbitrary bytes with a .png filename. Consider validating `file.content_type` and/or the actual magic-bytes."
+  ],
+  "updated_files": [
+    "/app/frontend/src/pages/Teams.jsx (fixed useEffect Promise-return crash)",
+    "/app/frontend/src/pages/Events.jsx (fixed useEffect Promise-return crash)",
+    "/app/backend/tests/test_phase3_rebrand.py (NEW — 10 pytest cases)"
+  ],
+  "success_rate": {"backend": "100% (10/10)", "frontend": "≈85% — 2 in-scope bugs remain (community modal z-index click hijack, and 3 residual رؤى strings)"},
+  "test_credentials": "Super admin crm@test.com / testpass123 (from /app/memory/test_credentials.md).",
+  "seed_data_creation": "Backend pytest created 2 test communities and mutated the super_admin avatar (safe). One partial UI-driven avatar update was applied to super_admin — avatar_url now points to /api/uploads/ruaa/avatars/... . Note: static path prefix is still `ruaa/` from APP_NAME env — cosmetic only, avatar delivery works. Consider updating APP_NAME=amora in backend/.env if brand-consistent storage paths are desired.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Teams/Events runtime crash was root-caused and fixed in this iteration — the fix was purely a React idiom correction (`useEffect(load, [])` → `useEffect(() => { load(); }, [])`). The same anti-pattern remains in 6 other files (Incubator, TeamDetail, CommunityDetail, Marketplace, MarketplaceDetail, Feed) and should be proactively patched. Community-create modal is BLOCKED by z-index overlap on mobile — after the fix, retest by opening /communities → new-community-btn → fill comm-name/comm-desc → click comm-save → assert POST /api/communities and navigation to /communities/<slug>. Backend for all Phase 3 endpoints is fully green. APP_NAME env still says 'ruaa' so avatar upload paths are '/api/uploads/ruaa/avatars/...' — cosmetic, non-blocking.",
+  "rca of the issue": {
+    "teams_events_crash": {
+      "symptom": "React 'Uncaught runtime errors: destroy is not a function' overlay when visiting /teams or /events; pages render blank.",
+      "root_cause": "Teams.jsx line 18 and Events.jsx line 15: `useEffect(load, [])` where `load = () => api.get(...).then(...)` returns a Promise. React's useEffect treats the return value as a cleanup function; calling `destroy()` on a Promise throws TypeError.",
+      "reproduction": "Login → /explore → click link-teams (or link-events) → red error overlay + blank page.",
+      "fix_applied": "Both pages patched to `const load = () => api.get(...).then(...).catch(()=>{}); useEffect(() => { load(); }, []);`. Retest confirms 5 team cards + 2 event cards render with correct owner/member text, back-btn visible, zero page errors."
+    },
+    "community_modal_click_hijack": {
+      "symptom": "Clicking 'comm-save' silently navigates to /upload; no POST /api/communities is issued.",
+      "root_cause": "Both the modal wrapper and the bottom-nav use z-50. The <nav> is rendered AFTER <main> in the DOM, so in the same stacking context the nav wins. On mobile (390px) the modal is anchored with `items-end`, placing the save CTA directly over the 'نشر' nav item; the click hits the nav.",
+      "fix_recommended": "Raise modal wrapper to z-[60] OR set the wrapping backdrop to `items-center` on mobile OR lower nav z-index."
+    }
+  }
+}

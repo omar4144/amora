@@ -30,12 +30,28 @@ async def get_user(username: str, viewer=Depends(optional_user)):
 @router.put("/users/me")
 async def update_me(data: ProfileUpdate, user=Depends(current_user)):
     update = {"name": data.name, "bio": data.bio or ""}
-    for f in ["role", "looking_for", "skills", "years_experience", "intro_video_url", "certifications", "portfolio"]:
+    for f in ["role", "looking_for", "skills", "years_experience", "intro_video_url", "certifications", "portfolio", "avatar_url"]:
         val = getattr(data, f)
         if val is not None:
             update[f] = val
     await db.users.update_one({"id": user["id"]}, {"$set": update})
     return await db.users.find_one({"id": user["id"]}, {"_id": 0, "password": 0})
+
+
+@router.post("/users/me/avatar")
+async def upload_avatar(file: UploadFile = File(...), user=Depends(current_user)):
+    """Upload profile avatar (image). Max 5MB, jpg/jpeg/png/webp."""
+    ext = (file.filename.rsplit(".", 1)[-1] if "." in (file.filename or "") else "jpg").lower()
+    if ext not in ["jpg", "jpeg", "png", "webp"]:
+        raise HTTPException(400, "الصيغة غير مدعومة (jpg/png/webp)")
+    data = await file.read()
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(400, "حجم الصورة كبير (الحد 5MB)")
+    path = f"{APP_NAME}/avatars/{user['id']}/{uuid.uuid4()}.{ext}"
+    result = put_object(path, data, file.content_type or f"image/{ext}")
+    avatar_url = result.get("url") or result.get("public_url") or f"/api/uploads/{result.get('path', path)}"
+    await db.users.update_one({"id": user["id"]}, {"$set": {"avatar_url": avatar_url}})
+    return {"avatar_url": avatar_url}
 
 
 @router.post("/users/{username}/follow")

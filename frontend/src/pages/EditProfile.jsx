@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { ROLES, LOOKING_FOR } from "@/constants/roles";
-import { X, Plus, Wand2 } from "lucide-react";
+import { X, Plus, Wand2, Camera, Loader2 } from "lucide-react";
 
 export default function EditProfile() {
     const { user, setUser } = useAuth();
@@ -16,11 +16,36 @@ export default function EditProfile() {
         skills: user?.skills || [],
         years_experience: user?.years_experience || 0,
         intro_video_url: user?.intro_video_url || "",
+        avatar_url: user?.avatar_url || "",
     });
     const [skillInput, setSkillInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [aiBusy, setAiBusy] = useState(false);
+    const [avatarBusy, setAvatarBusy] = useState(false);
+    const fileRef = useRef(null);
     const navigate = useNavigate();
+
+    const onPickAvatar = () => fileRef.current?.click();
+
+    const onAvatarChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) return toast.error("حجم الصورة كبير (الحد 5MB)");
+        setAvatarBusy(true);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            const r = await api.post("/users/me/avatar", fd, { headers: { "Content-Type": "multipart/form-data" } });
+            setF((prev) => ({ ...prev, avatar_url: r.data.avatar_url }));
+            setUser({ ...(user || {}), avatar_url: r.data.avatar_url });
+            toast.success("تم تحديث صورة العرض");
+        } catch (err) {
+            toast.error(err.response?.data?.detail || "تعذّر الرفع");
+        } finally {
+            setAvatarBusy(false);
+            if (fileRef.current) fileRef.current.value = "";
+        }
+    };
 
     const toggle = (item, key) => {
         setF({ ...f, [key]: f[key].includes(item) ? f[key].filter((x) => x !== item) : [...f[key], item] });
@@ -67,6 +92,48 @@ export default function EditProfile() {
         <div className="p-6 pt-8 font-body pb-24" data-testid="edit-profile-page">
             <h1 className="text-3xl font-heading font-black mb-6">الملف الاحترافي</h1>
             <form onSubmit={save} className="flex flex-col gap-5">
+                {/* Avatar upload */}
+                <div className="flex items-center gap-4">
+                    <button
+                        type="button"
+                        data-testid="avatar-picker"
+                        onClick={onPickAvatar}
+                        className="relative w-24 h-24 rounded-2xl overflow-hidden bg-[#141414] border-2 border-dashed border-[#D1795F]/40 hover:border-[#D1795F] transition group flex items-center justify-center"
+                    >
+                        {f.avatar_url ? (
+                            <img src={f.avatar_url} alt="avatar" className="w-full h-full object-cover" data-testid="avatar-preview" />
+                        ) : (
+                            <div className="w-14 h-14 rounded-full bg-[#D1795F] text-white flex items-center justify-center text-2xl font-heading font-black">
+                                {f.name?.[0] || "?"}
+                            </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                            {avatarBusy ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <Camera className="w-6 h-6 text-white" />}
+                        </div>
+                    </button>
+                    <div>
+                        <div className="text-sm text-white font-heading font-bold">صورة العرض</div>
+                        <div className="text-xs text-white/50 font-body mt-1">JPG / PNG / WEBP<br />الحد الأقصى 5MB</div>
+                        <button
+                            type="button"
+                            data-testid="avatar-change-btn"
+                            onClick={onPickAvatar}
+                            disabled={avatarBusy}
+                            className="mt-2 text-xs text-[#D1795F] hover:underline font-heading font-bold flex items-center gap-1 disabled:opacity-50"
+                        >
+                            <Camera className="w-3 h-3" /> {f.avatar_url ? "تغيير الصورة" : "اختر صورة"}
+                        </button>
+                    </div>
+                    <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={onAvatarChange}
+                        className="hidden"
+                        data-testid="avatar-input"
+                    />
+                </div>
+
                 <div>
                     <label className="text-sm text-neutral-400 mb-2 block">الاسم الكامل</label>
                     <input data-testid="edit-name" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none" />
