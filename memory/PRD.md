@@ -1,4 +1,31 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 17-18 — Rebrand Amora + UX Fixes (2026-02)
+
+### Delivered
+- **Rebrand Ru'ya → Amora / أمورا** across full codebase (Landing, Auth, Workspace, PDFs, morning-brief prompt, HTML title, favicon, backend server title, APP_NAME env).
+- **New brand logo**: `/frontend/public/amora-logo.png` used in Landing header/footer + Auth page + favicon.
+- **Universal BackButton** (`components/BackButton.jsx`) rendered fixed top-right on every non-root page via Layout; hidden on `/`, `/feed`, `/workspace`, `/explore`, `/upload`, `/auth`.
+- **Avatar upload**:
+  - Backend `POST /api/users/me/avatar` (multipart, max 5MB, jpg/png/webp) using `put_object` → stores under `amora/avatars/<user_id>/<uuid>.<ext>`.
+  - `ProfileUpdate` schema now supports `avatar_url`.
+  - Frontend EditProfile page: avatar-picker with live preview, camera icon overlay, sonner success toast.
+- **Communities create + search**:
+  - Backend `POST /api/communities` with Arabic slugify + auto-join owner + members_count enrichment.
+  - Backend `GET /api/communities?q=` case-insensitive search across name/slug/description.
+  - Frontend REWRITTEN Communities page with search input (300ms debounced), new-community-btn + modal (icon picker + name/desc), joined badge, member counts.
+- **Removed "Made with Emergent" watermark** from `public/index.html`.
+- **Bottom nav overlap fix**: Layout `<main>` now has `pb-24` universally. Modal z-[60] > bottom nav z-50.
+- **Root-cause fix for Teams/Events "خلل"**: 7 pages used `useEffect(load, [])` which returns a Promise as cleanup → React crashed with "destroy is not a function". All 7 files patched to `useEffect(() => { load(); }, [...])` (Teams, Events, Incubator, TeamDetail, CommunityDetail, Marketplace, MarketplaceDetail, Feed).
+
+### Verification
+- **iteration_17.json**: Identified the useEffect Promise bug (root cause of Teams/Events crash) + z-index click-hijack on comm-save.
+- **iteration_18.json**: All 4 follow-up fixes verified — Backend 8/8 pytest (regression baseline at `/app/backend/tests/test_iteration18_regression.py`), Frontend 100% E2E — no more crashes, no residual brand strings, community create works end-to-end, avatar uploads use amora/ path.
+
+### Non-blocking notes (deferred)
+- Avatar upload validates MIME by filename extension only; could add magic-bytes check for defense-in-depth.
+- Z-index scale (nav 50 / back-btn 40 / modal 60) should be documented as a project scale.
+
+
 ## Iteration 16 — Phase 2: Invoices + Billing + AI Credits + Quick Link (2026-02)
 
 ### Delivered
