@@ -1,4 +1,25 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 19 — Onboarding Wizard (شاشة ترحيب أول-دخول 4-خطوات) (2026-02)
+
+### Delivered
+- **Backend `POST /api/auth/onboarding`**: accepts `{primary_goal, interests[], experience_level}`, updates user (adds `onboarding_completed=true`, `primary_goal`, `interests`, `experience_level`, `onboarded_at`), returns `{next_route}` per goal (crm→/crm, content→/content/kanban, tasks→/tasks/boards, all→/workspace). Validates goal in {crm, content, tasks, all}; 400 on invalid; 401/403 unauth.
+- **Signup schema updated**: new users get `onboarding_completed:false`, `primary_goal:null`, `interests:[]` fields.
+- **Frontend `/onboarding` (NEW)**: 4-step wizard with animated gradient progress bar.
+  - Step 0: Welcome (logo + greeting with name + start button).
+  - Step 1: Primary Goal (4 tiles: CRM/Content/Tasks/All).
+  - Step 2: Secondary Interests (4 optional tiles: Social/Marketplace/Community/Academy).
+  - Step 3: Experience Level (3 options: Beginner/Intermediate/Pro) + "onboarding-finish" CTA.
+  - Skip button available at any step (routes to /workspace with default 'all' goal).
+- **Auto-redirect after signup**: `Auth.jsx` now routes new users to `/onboarding`; legacy users (no `onboarding_completed` field) route to `/feed` as before.
+- **Full-screen layout**: onboarding is outside the mobile `<Layout />` wrapper, no bottom nav, no back button (own step-back).
+- **Validation**: primary_goal required (step 1), level required (step 3 finish button); interests optional.
+
+### Verification (iteration_19.json)
+- Backend: **12/12 pytest PASS** (`/app/backend/tests/test_iteration19_onboarding.py`).
+- Frontend: **9/9 E2E acceptance points PASS** — 4-step flow, validation, skip, back nav, progress bar 25→50→75→100%, sonner toast, per-goal routing.
+- Post-report polish applied: `finish()` now validates level client-side too (belt-and-suspenders).
+
+
 ## Iteration 17-18 — Rebrand Amora + UX Fixes (2026-02)
 
 ### Delivered

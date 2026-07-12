@@ -50,6 +50,8 @@ export default function Onboarding() {
     const back = () => setStep((s) => Math.max(0, s - 1));
 
     const finish = async () => {
+        if (!primaryGoal) return toast.error("اختر هدفك الأساسي");
+        if (!level) return toast.error("اختر مستوى خبرتك");
         setBusy(true);
         try {
             const r = await api.post("/auth/onboarding", { primary_goal: primaryGoal, interests, experience_level: level });
