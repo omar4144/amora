@@ -7,6 +7,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+from pymongo import ReturnDocument
 
 from core.deps import db, current_user, now_iso
 
@@ -54,9 +55,34 @@ def _compute_totals(items: list, tax_percent: float, discount: float) -> dict:
 
 
 async def _next_invoice_number(uid: str) -> str:
+    """Atomically get the next invoice number using a counter document (race-safe).
+    On first use for a given user+year, seeds the counter from the current max invoice number."""
     year = datetime.now(timezone.utc).year
-    count = await db.invoices.count_documents({"owner_id": uid, "number": {"$regex": f"^INV-{year}-"}})
-    return f"INV-{year}-{(count + 1):04d}"
+    counter_id = f"inv:{uid}:{year}"
+    existing = await db.counters.find_one({"_id": counter_id})
+    if not existing:
+        # seed from current max to avoid collision with pre-counter invoices
+        prefix = f"INV-{year}-"
+        cursor = db.invoices.find(
+            {"owner_id": uid, "number": {"$regex": f"^{prefix}"}},
+            {"_id": 0, "number": 1},
+        ).sort("number", -1).limit(1)
+        top = await cursor.to_list(1)
+        base = 0
+        if top:
+            try:
+                base = int(top[0]["number"].split("-")[-1])
+            except Exception:
+                base = 0
+        await db.counters.update_one({"_id": counter_id}, {"$setOnInsert": {"seq": base}}, upsert=True)
+    doc = await db.counters.find_one_and_update(
+        {"_id": counter_id},
+        {"$inc": {"seq": 1}},
+        upsert=True,
+        return_document=ReturnDocument.AFTER,
+    )
+    seq = (doc or {}).get("seq", 1)
+    return f"INV-{year}-{seq:04d}"
 
 
 # ==================== INVOICE CRUD ====================

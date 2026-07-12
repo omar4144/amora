@@ -268,7 +268,7 @@ async def _ai_call(task_key: str, context: str, user_id: str) -> str:
     if not system_prompt:
         raise HTTPException(400, f"مهمة {task_key} غير معرّفة")
     # Credit gate
-    from engines.billing_engine import consume_credit
+    from engines.billing_engine import consume_credit, refund_credit
     if not await consume_credit(user_id, 1):
         raise HTTPException(402, "استنفدت رصيد AI الشهري — رقّي خطتك من صفحة الأسعار")
     try:
@@ -281,6 +281,7 @@ async def _ai_call(task_key: str, context: str, user_id: str) -> str:
         msg = UserMessage(text=context)
         return await chat.send_message(msg)
     except Exception as e:
+        await refund_credit(user_id, 1)
         logger.error(f"AI content error ({task_key}): {e}")
         raise HTTPException(500, f"خطأ في الذكاء الاصطناعي: {str(e)}")
 

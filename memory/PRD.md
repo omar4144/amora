@@ -1,4 +1,25 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 16 — Phase 2: Invoices + Billing + AI Credits + Quick Link (2026-02)
+
+### Delivered
+- **CRM V2 — Invoices Engine (NEW)**: full CRUD (`/api/crm/invoices`), auto-numbering `INV-YYYY-NNNN` (race-safe via `counters` collection + `findOneAndUpdate`), computed totals (subtotal / tax / discount), 5 statuses (draft/sent/paid/overdue/cancelled), stats endpoint.
+- **PDF generation**: `reportlab` + `arabic-reshaper` + `python-bidi` + FreeSerif Arabic-capable font. Two endpoints:
+  - `GET /api/crm/invoices/{id}/pdf` — branded invoice PDF (Ru'ya header, RTL).
+  - `GET /api/crm/deals/{id}/contract-pdf` — full Arabic service contract PDF from deal data.
+- **Deal shortcut**: `POST /api/crm/deals/{id}/create-invoice` auto-generates invoice from deal.
+- **Economic Tier — Billing Engine (NEW)**: 3 plans (Free/Pro $19/Business $49), monthly AI credit budgets (30/500/3000), Stripe checkout via `emergentintegrations.payments.stripe.checkout`, 30-day plan activation via polling `/api/billing/status/{session_id}`, notifications on activation.
+- **AI Credits Metering**: `consume_credit()` + `refund_credit()` helpers, monthly counter in `db.ai_usage` per `{user_id, month}`, gate applied to `/api/ai/assist` and `_ai_call()` in content engine (returns 402 on exhaustion, refunds on failure).
+- **Frontend pages (NEW)**: `/crm/invoices` (list + KPIs + filters + create modal with live totals), `/crm/invoices/:id` (detail + status picker + PDF download), `/pricing` (3-plan cards + upgrade → Stripe), `/billing` (current plan + credits meter + upgrade CTA).
+- **Deal Detail enhancements**: `create-invoice-btn` + `download-contract-btn` (PDF blob download).
+- **Workspace credits chip**: `credits-chip` in hero showing `remaining/total`, links to /billing.
+- **Quick Link (friendly suggestion)**: TaskForm now has collapsible ربط سريع section with 3 dropdowns (`link-client`, `link-deal`, `link-content`) auto-populating from CRM/Content data; sends `client_id/deal_id/content_item_id` to `/api/tasks`.
+
+### Verification (iteration_16.json)
+- Backend: **14/14 pytest PASS** — invoices CRUD + PDF, contract PDF, billing plans/me/checkout, AI credit consumption + exhaustion 402.
+- Frontend: **14/14 Playwright checks PASS** — full E2E of every new page + data-testid + regression on Morning Brief, /u/:username, /crm/clients/:id.
+- Post-report improvements applied: (1) refund_credit on AI failure so users aren't charged for failed calls; (2) race-safe invoice numbering via counters collection + max-seeding.
+
+
 ## Iteration 15 — Phase 1: Cross-Engine Linking + AI Everywhere (2026-02)
 
 ### Delivered

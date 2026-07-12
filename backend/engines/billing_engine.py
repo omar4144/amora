@@ -92,6 +92,15 @@ async def consume_credit(uid: str, cost: int = 1) -> bool:
     return True
 
 
+async def refund_credit(uid: str, cost: int = 1) -> None:
+    """Refund credits on failure so users aren't charged for failed AI calls."""
+    ym = datetime.now(timezone.utc).strftime("%Y-%m")
+    await db.ai_usage.update_one(
+        {"user_id": uid, "month": ym},
+        {"$inc": {"count": -cost}},
+    )
+
+
 # ==================== ROUTES ====================
 @router.get("/billing/plans")
 async def list_plans():

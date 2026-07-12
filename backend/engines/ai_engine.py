@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from core.deps import current_user, EMERGENT_LLM_KEY, AI_PROMPTS
 from core.schemas import AIRequest
-from engines.billing_engine import consume_credit
+from engines.billing_engine import consume_credit, refund_credit
 
 router = APIRouter(tags=["ai"])
 logger = logging.getLogger("ruaa.ai")
@@ -30,5 +30,6 @@ async def ai_assist(data: AIRequest, user=Depends(current_user)):
         reply = await chat.send_message(msg)
         return {"result": reply, "task": data.task}
     except Exception as e:
+        await refund_credit(user["id"], 1)
         logger.error(f"AI error: {e}")
         raise HTTPException(500, f"خطأ في المساعد الذكي: {str(e)}")
