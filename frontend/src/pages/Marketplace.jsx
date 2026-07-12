@@ -19,7 +19,7 @@ export default function Marketplace() {
         const q = cat ? `?category=${encodeURIComponent(cat)}` : "";
         api.get(`/project-requests${q}`).then((r) => setItems(r.data));
     };
-    useEffect(load, [cat]);
+    useEffect(() => { load(); }, [cat]);  // eslint-disable-line react-hooks/exhaustive-deps
 
     const create = async (e) => {
         e.preventDefault();

@@ -1,0 +1,38 @@
+{
+  "summary": "Iteration 18 retest of the 4 follow-up fixes from iteration 17 — all PASS. (1) Community create modal z-index click-hijack: FIXED — POST /api/communities is fired, success toast 'تم إنشاء المجتمع' appears, and page navigates to /communities/<slug> on the 390x844 mobile viewport. (2) useEffect Promise-return crash on 6 additional pages (Incubator/TeamDetail/CommunityDetail/Marketplace/MarketplaceDetail/Feed): VERIFIED FIXED — all pages load cleanly with zero pageerror events and no 'destroy is not a function' overlay. (3) Rebrand completeness: VERIFIED — 0 instances of 'رؤى'/'رؤيا'/'Ru\\'ya'/'Ruaa' in rendered HTML of /feed, /explore, /ai; 'مساعد أمورا' appears on /ai. (4) APP_NAME=amora: VERIFIED — new avatar uploads return paths under `/api/uploads/amora/...` (not `ruaa/`). Backend: 8/8 pytest regression tests pass (workspace/today, morning-brief, crm/clients, billing/me, billing/checkout, crm/invoices with persistence, avatar amora/ path, communities create+list). BackButton smoke: 100% correct on 8 non-root routes and 5 root routes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration18_regression.py",
+    "/app/test_reports/pytest/iteration18_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "social_engine.py POST /api/users/me/avatar (from iter-17, still open): file mime is validated by extension only (ext = filename.split('.')[-1]). Consider validating file.content_type and magic-bytes to prevent arbitrary payload upload with .png filename. Non-blocking security hardening.",
+    "Layout.jsx z-index scale is still ad-hoc (nav z-50, back-btn z-40, modal now z-[60]). The current fix works but a documented scale (nav=30, back-btn=40, modal=50+) would prevent future overlap regressions."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration18_regression.py (NEW — 8 pytest cases)"
+  ],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% — all 4 in-scope fixes verified"},
+  "test_credentials": "Super admin crm@test.com / testpass123 (from /app/memory/test_credentials.md).",
+  "seed_data_creation": "Backend pytest created 1 test client + 1 test invoice + 1 test community (all TEST_ prefixed). UI-driven community create added 'مجتمع اختبار 18' (slug: مجتمع-اختبار-18) to the super_admin communities list. Avatar was mutated during the amora/ path verification (avatar_url now points to /api/uploads/amora/avatars/<uid>/<file>.png).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 4 iteration-17 follow-up fixes are green. No blocking issues remain in the tested scope. If future retests are needed, use /app/backend/tests/test_iteration18_regression.py as the regression baseline. Note that login on this build redirects to /feed (not /workspace) after auth — use /feed as the post-login landing URL for automation.",
+  "rca of the issue": {
+    "iteration_17_fixes_verified": {
+      "community_modal_z_index": "Modal wrapper raised to z-[60] (Communities.jsx L112). Verified: comm-save click no longer hijacked by bottom nav 'نشر' item — POST /api/communities fires and navigation to /communities/<slug> succeeds on mobile viewport 390x844.",
+      "useeffect_promise_pattern": "Verified all 6 files (Incubator/TeamDetail/CommunityDetail/Marketplace/MarketplaceDetail/Feed) now use `useEffect(() => { load(); }, [deps])` with the eslint-disable comment. All routes render without pageerror.",
+      "rebrand_strings": "Verified AIAssistant.jsx / Explore.jsx / Feed.jsx no longer contain رؤى-family strings in rendered HTML on /feed, /explore, /ai. مساعد أمورا heading is present on /ai.",
+      "app_name_amora": "backend/.env APP_NAME=amora — new avatar upload returned /api/uploads/amora/avatars/<uid>/<file>.png (no more ruaa/ prefix)."
+    }
+  }
+}

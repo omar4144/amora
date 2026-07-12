@@ -14,7 +14,7 @@ export default function MarketplaceDetail() {
     const [price, setPrice] = useState("");
 
     const load = () => api.get(`/project-requests/${id}`).then((r) => setReq(r.data));
-    useEffect(load, [id]);
+    useEffect(() => { load(); }, [id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
     const apply = async (e) => {
         e.preventDefault();

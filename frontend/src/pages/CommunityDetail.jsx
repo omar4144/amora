@@ -17,7 +17,7 @@ export default function CommunityDetail() {
         api.get(`/communities/${slug}`).then((r) => setC(r.data));
         api.get(`/communities/${slug}/posts`).then((r) => setPosts(r.data));
     };
-    useEffect(load, [slug]);
+    useEffect(() => { load(); }, [slug]);  // eslint-disable-line react-hooks/exhaustive-deps
 
     const join = async () => {
         if (!user) return navigate("/auth");

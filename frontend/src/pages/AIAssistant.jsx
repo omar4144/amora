@@ -35,7 +35,7 @@ export default function AIAssistant() {
         <div className="p-6 pt-8 font-body pb-24" data-testid="ai-page">
             <div className="flex items-center gap-2 mb-2">
                 <Bot className="w-7 h-7 text-[#D1795F]" />
-                <h1 className="text-3xl font-heading font-black">مساعد رؤى</h1>
+                <h1 className="text-3xl font-heading font-black">مساعد أمورا</h1>
             </div>
             <p className="text-sm text-neutral-400 mb-6 flex items-center gap-1"><Sparkles className="w-3 h-3 text-[#D1795F]" /> مدعوم بـ Claude Sonnet 4.5</p>
 

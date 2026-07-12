@@ -16,7 +16,7 @@ export default function Incubator() {
         api.get("/incubator/stages").then((r) => setStages(r.data));
         api.get("/incubator/ideas").then((r) => setIdeas(r.data)).catch(() => navigate("/auth"));
     };
-    useEffect(load, []);
+    useEffect(() => { load(); }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
     const create = async (e) => {
         e.preventDefault();

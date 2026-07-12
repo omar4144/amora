@@ -263,7 +263,7 @@ export default function Feed() {
         }).catch(() => setLoading(false));
     };
 
-    useEffect(load, []);
+    useEffect(() => { load(); }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleLike = async (id) => {
         if (!user) return navigate("/auth");
@@ -316,7 +316,7 @@ export default function Feed() {
                     <SearchIcon className="w-5 h-5 text-white" />
                 </Link>
                 <div className="font-heading font-black text-white text-lg pointer-events-none">
-                    <span className="text-[#D1795F]">رؤى</span>
+                    <span className="text-[#D1795F]">أمورا</span>
                 </div>
                 <Link to={user ? "/notifications" : "/auth"} data-testid="feed-notif-btn" className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center pointer-events-auto hover:bg-black/70">
                     <Bell className="w-5 h-5 text-white" />

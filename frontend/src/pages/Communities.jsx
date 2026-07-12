@@ -109,7 +109,7 @@ function NewCommunityModal({ onClose, onCreated }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onClick={onClose}>
             <form
                 onSubmit={submit}
                 onClick={(e) => e.stopPropagation()}

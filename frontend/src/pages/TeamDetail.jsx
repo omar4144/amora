@@ -11,7 +11,7 @@ export default function TeamDetail() {
     const [t, setT] = useState(null);
 
     const load = () => api.get(`/teams/${id}`).then((r) => setT(r.data));
-    useEffect(load, [id]);
+    useEffect(() => { load(); }, [id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
     const join = async () => {
         if (!user) return navigate("/auth");

@@ -25,7 +25,7 @@ export default function Explore() {
                 </Link>
                 <Link to="/ai" data-testid="link-ai" className="bg-gradient-to-br from-[#D1795F]/25 to-transparent border border-[#D1795F]/40 rounded-2xl p-4 hover:border-[#D1795F] transition">
                     <Bot className="w-8 h-8 text-[#D1795F] mb-2" />
-                    <div className="font-heading font-bold">مساعد رؤى AI</div>
+                    <div className="font-heading font-bold">مساعد أمورا AI</div>
                     <div className="text-[10px] text-neutral-500 mt-1">مدعوم بـ Claude</div>
                 </Link>
                 <Link to="/communities" data-testid="link-communities" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
