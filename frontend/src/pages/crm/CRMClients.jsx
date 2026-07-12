@@ -136,7 +136,12 @@ export default function CRMClients() {
                 {filtered.map((c) => (
                     <div key={c.id} data-testid={`client-${c.id}`} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-[#D1795F]/40 transition">
                         <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
+                            <button
+                                type="button"
+                                data-testid={`open-client-${c.id}`}
+                                onClick={() => nav(`/crm/clients/${c.id}`)}
+                                className="flex-1 min-w-0 text-start"
+                            >
                                 <div className="flex items-center gap-2 mb-1">
                                     <h3 className="font-heading font-bold text-white truncate">{c.name}</h3>
                                     {c.status !== "active" && (
@@ -158,7 +163,7 @@ export default function CRMClients() {
                                         {c.deals_count} صفقة
                                     </span>
                                 </div>
-                            </div>
+                            </button>
                             <div className="flex flex-col gap-1">
                                 <button data-testid={`edit-client-${c.id}`} onClick={() => setEditing(c)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center">
                                     <Edit3 className="w-3.5 h-3.5 text-white/70" />

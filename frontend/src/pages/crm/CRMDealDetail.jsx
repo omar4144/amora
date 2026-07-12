@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { ArrowRight, Building2, DollarSign, Calendar, Trash2, MessageSquare, Phone, Mail, Users2 as UsersIcon, StickyNote, ArrowLeftRight } from "lucide-react";
+import { ArrowRight, Building2, DollarSign, Calendar, Trash2, MessageSquare, Phone, Mail, Users2 as UsersIcon, StickyNote, ArrowLeftRight, CheckSquare, Video, Wand2, Sparkles, TrendingUp } from "lucide-react";
 
 const ACT_ICONS = {
     note: StickyNote,
@@ -23,21 +23,47 @@ export default function CRMDealDetail() {
     const [stages, setStages] = useState([]);
     const [act, setAct] = useState({ type: "note", title: "", description: "" });
     const [busy, setBusy] = useState(false);
+    const [related, setRelated] = useState({ tasks: [], content: [], activities: [] });
+    const [prediction, setPrediction] = useState("");
+    const [predBusy, setPredBusy] = useState(false);
 
     const load = async () => {
         try {
-            const [d, s] = await Promise.all([
+            const [d, s, r] = await Promise.all([
                 api.get(`/crm/deals/${id}`),
                 api.get("/crm/stages"),
+                api.get(`/workspace/related?deal_id=${id}`),
             ]);
             setDeal(d.data);
             setStages(s.data);
+            setRelated(r.data);
         } catch (e) {
             toast.error("تعذر تحميل الصفقة");
             nav("/crm/deals");
         }
     };
-    useEffect(() => { load(); }, [id]);
+    useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
+
+    const predictClose = async () => {
+        setPredBusy(true);
+        setPrediction("");
+        try {
+            const ctx = JSON.stringify({
+                title: deal.title,
+                value: deal.value,
+                stage: deal.stage,
+                probability: deal.probability,
+                client: deal.client?.name,
+                notes: deal.notes,
+                days_since_update: Math.floor((Date.now() - new Date(deal.updated_at).getTime()) / 86400000),
+                activities_count: (deal.activities || []).length,
+            }, null, 2);
+            const r = await api.post("/ai/assist", { task: "deal_close", context: ctx });
+            setPrediction(r.data.result);
+        } catch (err) {
+            toast.error(err.response?.data?.detail || "خطأ AI");
+        } finally { setPredBusy(false); }
+    };
 
     if (!deal) return <div className="p-8 text-white/50 text-center">جارٍ التحميل...</div>;
 
@@ -127,6 +153,83 @@ export default function CRMDealDetail() {
                     ))}
                 </div>
             </div>
+
+            {/* AI: Deal close prediction */}
+            <div data-testid="deal-ai-predict" className="bg-gradient-to-br from-[#57769D]/10 to-transparent border border-[#57769D]/30 rounded-2xl p-4">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#57769D] to-[#D1795F] flex items-center justify-center">
+                            <TrendingUp className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                            <div className="font-heading font-bold text-sm text-white">تنبؤ إغلاق الصفقة</div>
+                            <div className="text-[10px] text-white/50">Claude يحلل بياناتك</div>
+                        </div>
+                    </div>
+                    <button
+                        data-testid="predict-close-btn"
+                        onClick={predictClose}
+                        disabled={predBusy}
+                        className="text-xs bg-[#57769D] hover:bg-[#476384] text-white font-heading font-bold rounded-lg px-3 py-1.5 flex items-center gap-1 disabled:opacity-50 active:scale-95 transition"
+                    >
+                        <Wand2 className={`w-3 h-3 ${predBusy ? "animate-pulse" : ""}`} />
+                        {predBusy ? "يحلل..." : "تحليل"}
+                    </button>
+                </div>
+                {prediction && (
+                    <div data-testid="prediction-result" className="mt-2 text-sm text-white/90 leading-relaxed font-body bg-black/40 rounded-xl p-3 whitespace-pre-wrap">
+                        {prediction}
+                    </div>
+                )}
+            </div>
+
+            {/* Related: Tasks + Content */}
+            {(related.tasks.length + related.content.length) > 0 && (
+                <div className="space-y-3">
+                    {related.tasks.length > 0 && (
+                        <div>
+                            <h3 className="font-heading font-bold text-sm mb-2 flex items-center gap-2 text-white/80">
+                                <CheckSquare className="w-3.5 h-3.5 text-[#C3E0A5]" />
+                                مهام مرتبطة ({related.tasks.length})
+                            </h3>
+                            <div className="space-y-1.5">
+                                {related.tasks.map((t) => (
+                                    <button
+                                        key={t.id}
+                                        data-testid={`deal-task-${t.id}`}
+                                        onClick={() => nav(`/tasks/task/${t.id}`)}
+                                        className="w-full text-start bg-white/5 border border-white/10 rounded-xl p-2.5 hover:border-[#C3E0A5]/40 transition"
+                                    >
+                                        <div className="font-heading font-semibold text-xs text-white truncate">{t.title}</div>
+                                        <div className="text-[10px] text-white/50">{t.status}{t.due_date ? ` • ${new Date(t.due_date).toLocaleDateString('ar')}` : ""}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {related.content.length > 0 && (
+                        <div>
+                            <h3 className="font-heading font-bold text-sm mb-2 flex items-center gap-2 text-white/80">
+                                <Video className="w-3.5 h-3.5 text-[#57769D]" />
+                                محتوى للعميل ({related.content.length})
+                            </h3>
+                            <div className="space-y-1.5">
+                                {related.content.map((c) => (
+                                    <button
+                                        key={c.id}
+                                        data-testid={`deal-content-${c.id}`}
+                                        onClick={() => nav(`/content/item/${c.id}`)}
+                                        className="w-full text-start bg-white/5 border border-white/10 rounded-xl p-2.5 hover:border-[#57769D]/40 transition"
+                                    >
+                                        <div className="font-heading font-semibold text-xs text-white truncate">{c.title}</div>
+                                        <div className="text-[10px] text-white/50">{c.platform} • {c.status}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Add activity */}
             <form onSubmit={addActivity} data-testid="activity-form" className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">

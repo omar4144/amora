@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { ROLES, LOOKING_FOR } from "@/constants/roles";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Wand2 } from "lucide-react";
 
 export default function EditProfile() {
     const { user, setUser } = useAuth();
@@ -19,6 +19,7 @@ export default function EditProfile() {
     });
     const [skillInput, setSkillInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [aiBusy, setAiBusy] = useState(false);
     const navigate = useNavigate();
 
     const toggle = (item, key) => {
@@ -30,6 +31,25 @@ export default function EditProfile() {
         setSkillInput("");
     };
     const removeSkill = (s) => setF({ ...f, skills: f.skills.filter((x) => x !== s) });
+
+    const improveBio = async () => {
+        setAiBusy(true);
+        try {
+            const ctx = JSON.stringify({
+                current_bio: f.bio || "",
+                name: f.name,
+                role: f.role,
+                skills: f.skills,
+                years_experience: f.years_experience,
+            }, null, 2);
+            const task = f.bio?.trim() ? "improve_bio" : "profile_bio";
+            const r = await api.post("/ai/assist", { task, context: ctx });
+            setF({ ...f, bio: r.data.result });
+            toast.success("تم تحسين النبذة بالذكاء ✨");
+        } catch (err) {
+            toast.error(err.response?.data?.detail || "خطأ في المساعد");
+        } finally { setAiBusy(false); }
+    };
 
     const save = async (e) => {
         e.preventDefault();
@@ -52,7 +72,19 @@ export default function EditProfile() {
                     <input data-testid="edit-name" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none" />
                 </div>
                 <div>
-                    <label className="text-sm text-neutral-400 mb-2 block">نبذة عنك</label>
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm text-neutral-400">نبذة عنك</label>
+                        <button
+                            type="button"
+                            data-testid="improve-bio-btn"
+                            onClick={improveBio}
+                            disabled={aiBusy}
+                            className="text-[11px] text-[#D1795F] hover:text-[#B86648] font-heading font-bold flex items-center gap-1 disabled:opacity-50"
+                        >
+                            <Wand2 className={`w-3 h-3 ${aiBusy ? "animate-pulse" : ""}`} />
+                            {aiBusy ? "يحسّن..." : (f.bio?.trim() ? "حسّن بالذكاء" : "اكتب لي bio")}
+                        </button>
+                    </div>
                     <textarea data-testid="edit-bio" value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} rows={3} placeholder="عرّف عن نفسك ومشاريعك..." className="w-full bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 focus:border-[#D1795F] focus:outline-none resize-none" />
                 </div>
                 <div>

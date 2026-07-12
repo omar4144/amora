@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { ArrowRight, Trash2, Sparkles, Hash, MessageCircle, FileText, Wand2 } from "lucide-react";
+import { ArrowRight, Trash2, Sparkles, Hash, MessageCircle, FileText, Wand2, Building2, CheckSquare } from "lucide-react";
 
 export default function ContentDetail() {
     const { id } = useParams();
@@ -13,18 +13,33 @@ export default function ContentDetail() {
     const [aiBusy, setAiBusy] = useState("");
     const [aiResult, setAiResult] = useState("");
     const [aiFor, setAiFor] = useState("");
+    const [linkedClient, setLinkedClient] = useState(null);
+    const [linkedTasks, setLinkedTasks] = useState([]);
 
     const load = async () => {
         try {
             const [m, it] = await Promise.all([api.get("/content/meta"), api.get(`/content/items/${id}`)]);
             setMeta(m.data);
             setItem(it.data);
+            // fetch linked entities
+            if (it.data.client_id) {
+                try {
+                    const c = await api.get(`/crm/clients/${it.data.client_id}`);
+                    setLinkedClient(c.data);
+                } catch { /* ignore */ }
+            } else {
+                setLinkedClient(null);
+            }
+            try {
+                const r = await api.get(`/workspace/related?content_id=${id}`);
+                setLinkedTasks(r.data.tasks || []);
+            } catch { /* ignore */ }
         } catch {
             toast.error("تعذّر تحميل المحتوى");
             nav("/content/kanban");
         }
     };
-    useEffect(() => { load(); }, [id]);
+    useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
 
     const save = async (patch) => {
         setBusy(true);
@@ -123,6 +138,49 @@ export default function ContentDetail() {
                     ))}
                 </div>
             </div>
+
+            {/* Linked cross-engine cards */}
+            {(linkedClient || linkedTasks.length > 0) && (
+                <div className="space-y-2">
+                    {linkedClient && (
+                        <button
+                            data-testid="linked-client-card"
+                            onClick={() => nav(`/crm/clients/${linkedClient.id}`)}
+                            className="w-full text-start bg-gradient-to-r from-[#D1795F]/10 to-transparent border border-[#D1795F]/30 rounded-2xl p-3 flex items-center gap-3 hover:border-[#D1795F]/60 transition"
+                        >
+                            <div className="w-9 h-9 rounded-xl bg-[#D1795F]/20 flex items-center justify-center flex-shrink-0">
+                                <Building2 className="w-4 h-4 text-[#D1795F]" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="text-[10px] text-white/50 font-body">مرتبط بعميل</div>
+                                <div className="font-heading font-bold text-sm text-white truncate">{linkedClient.name}</div>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-white/40 rotate-180" />
+                        </button>
+                    )}
+                    {linkedTasks.length > 0 && (
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                                <CheckSquare className="w-3.5 h-3.5 text-[#C3E0A5]" />
+                                <span className="text-xs font-heading font-bold text-white/80">مهام مرتبطة ({linkedTasks.length})</span>
+                            </div>
+                            <div className="space-y-1">
+                                {linkedTasks.map((t) => (
+                                    <button
+                                        key={t.id}
+                                        data-testid={`content-task-${t.id}`}
+                                        onClick={() => nav(`/tasks/task/${t.id}`)}
+                                        className="w-full text-start bg-black/30 rounded-lg p-2 hover:bg-black/50 transition"
+                                    >
+                                        <div className="text-xs font-heading font-semibold text-white truncate">{t.title}</div>
+                                        <div className="text-[10px] text-white/50">{t.status}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Fields */}
             <div className="space-y-3">

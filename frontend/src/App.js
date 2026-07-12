@@ -29,6 +29,7 @@ import Events from "@/pages/Events";
 import CRMShell from "@/pages/crm/CRMShell";
 import CRMDashboard from "@/pages/crm/CRMDashboard";
 import CRMClients from "@/pages/crm/CRMClients";
+import CRMClientDetail from "@/pages/crm/CRMClientDetail";
 import CRMDeals from "@/pages/crm/CRMDeals";
 import CRMDealDetail from "@/pages/crm/CRMDealDetail";
 import CRMActivities from "@/pages/crm/CRMActivities";
@@ -101,6 +102,7 @@ function App() {
                             <Route path="/crm" element={<Protected><CRMShell /></Protected>}>
                                 <Route index element={<CRMDashboard />} />
                                 <Route path="clients" element={<CRMClients />} />
+                                <Route path="clients/:id" element={<CRMClientDetail />} />
                                 <Route path="deals" element={<CRMDeals />} />
                                 <Route path="deals/:id" element={<CRMDealDetail />} />
                                 <Route path="activities" element={<CRMActivities />} />
