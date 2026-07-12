@@ -2,13 +2,17 @@
 Workspace Engine — Unified cross-engine hub.
 Consolidates data from CRM + Content + Tasks into a single "today" view.
 """
+import json
+import uuid
+import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, Query
 
-from core.deps import db, current_user
+from core.deps import db, current_user, now_iso, EMERGENT_LLM_KEY, AI_PROMPTS
 
 router = APIRouter(tags=["workspace"])
+logger = logging.getLogger("ruaa.workspace")
 
 
 async def _enrich_task(t: dict) -> dict:
@@ -165,3 +169,178 @@ async def workspace_related(
             result = {"deals": [], "content": [], "tasks": tasks, "activities": []}
 
     return result
+
+
+
+# ==================== MORNING BRIEF (AI-powered daily kickoff) ====================
+def _compact_task(t: dict) -> dict:
+    return {"id": t.get("id"), "title": t.get("title"), "due_date": t.get("due_date"), "priority": t.get("priority")}
+
+
+def _compact_content(c: dict) -> dict:
+    return {"id": c.get("id"), "title": c.get("title"), "platform": c.get("platform"), "scheduled_at": c.get("scheduled_at")}
+
+
+def _compact_deal(d: dict) -> dict:
+    return {"id": d.get("id"), "title": d.get("title"), "value": d.get("value"), "stage": d.get("stage"), "client": (d.get("client") or {}).get("name") if isinstance(d.get("client"), dict) else None}
+
+
+async def _gather_context(uid: str) -> dict:
+    """Reuses the same today-focus logic, returns compact JSON-safe dict."""
+    now = datetime.now(timezone.utc)
+    today_str = now.date().isoformat()
+    next_week = (now + timedelta(days=7)).isoformat()
+    week_ago = (now - timedelta(days=7)).isoformat()
+
+    member_teams = await db.team_members.find({"user_id": uid}, {"_id": 0, "team_id": 1}).to_list(200)
+    team_ids = [m["team_id"] for m in member_teams]
+    accessible_boards = await db.task_boards.find(
+        {"$or": [{"owner_id": uid}, {"kind": "team", "team_id": {"$in": team_ids}}]},
+        {"_id": 0, "id": 1}
+    ).to_list(500)
+    board_ids = [b["id"] for b in accessible_boards]
+
+    overdue = await db.tasks.find({
+        "board_id": {"$in": board_ids},
+        "status": {"$nin": ["done"]},
+        "due_date": {"$lt": today_str + "T00:00:00", "$ne": None},
+        "$or": [{"assignee_id": uid}, {"owner_id": uid}],
+    }, {"_id": 0}).sort("due_date", 1).to_list(10)
+
+    due_today = await db.tasks.find({
+        "board_id": {"$in": board_ids},
+        "status": {"$nin": ["done"]},
+        "due_date": {"$regex": f"^{today_str}"},
+        "$or": [{"assignee_id": uid}, {"owner_id": uid}],
+    }, {"_id": 0}).to_list(10)
+
+    upcoming = await db.content_items.find({
+        "owner_id": uid,
+        "status": {"$in": ["scheduled", "approved"]},
+        "scheduled_at": {"$gte": now.isoformat(), "$lte": next_week},
+    }, {"_id": 0}).sort("scheduled_at", 1).to_list(10)
+
+    stale = await db.crm_deals.find({
+        "owner_id": uid,
+        "stage": {"$nin": ["won", "lost"]},
+        "updated_at": {"$lt": week_ago},
+    }, {"_id": 0}).sort("value", -1).to_list(10)
+    for d in stale:
+        if d.get("client_id"):
+            cli = await db.crm_clients.find_one({"id": d["client_id"], "owner_id": uid}, {"_id": 0, "name": 1})
+            d["client"] = cli
+
+    return {
+        "date": today_str,
+        "overdue_tasks": [_compact_task(t) for t in overdue],
+        "due_today_tasks": [_compact_task(t) for t in due_today],
+        "upcoming_content": [_compact_content(c) for c in upcoming],
+        "stale_deals": [_compact_deal(d) for d in stale],
+    }
+
+
+def _parse_ai_json(text: str) -> Optional[dict]:
+    """Robust JSON parse — strip code fences if any."""
+    if not text:
+        return None
+    t = text.strip()
+    if t.startswith("```"):
+        # remove fence lines
+        lines = [ln for ln in t.splitlines() if not ln.strip().startswith("```")]
+        t = "\n".join(lines).strip()
+    try:
+        obj = json.loads(t)
+        if isinstance(obj, dict) and "summary" in obj and "focus" in obj:
+            return obj
+    except Exception:
+        pass
+    # last-chance: extract {...}
+    try:
+        start = t.find("{")
+        end = t.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            return json.loads(t[start:end + 1])
+    except Exception:
+        return None
+    return None
+
+
+@router.post("/workspace/morning-brief")
+async def morning_brief(force: bool = Query(False), user=Depends(current_user)):
+    """AI-powered daily kickoff for the workspace. Cached once per user per day."""
+    uid = user["id"]
+    today_str = datetime.now(timezone.utc).date().isoformat()
+
+    if not force:
+        cached = await db.workspace_briefs.find_one({"user_id": uid, "date": today_str}, {"_id": 0})
+        if cached:
+            return {**cached, "from_cache": True}
+
+    ctx = await _gather_context(uid)
+
+    system_prompt = AI_PROMPTS.get("morning_brief")
+    payload = {
+        "user_name": user.get("name", ""),
+        "overdue_tasks_count": len(ctx["overdue_tasks"]),
+        "due_today_count": len(ctx["due_today_tasks"]),
+        "upcoming_content_count": len(ctx["upcoming_content"]),
+        "stale_deals_count": len(ctx["stale_deals"]),
+        "data": ctx,
+    }
+
+    summary = ""
+    focus = []
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"{uid}-morning-{today_str}",
+            system_message=system_prompt,
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+        msg = UserMessage(text=json.dumps(payload, ensure_ascii=False))
+        reply = await chat.send_message(msg)
+        parsed = _parse_ai_json(reply)
+        if parsed:
+            summary = parsed.get("summary", "") or ""
+            focus = parsed.get("focus", []) or []
+    except Exception as e:
+        logger.error(f"morning-brief AI error: {e}")
+
+    # Deterministic fallback if AI fails or empty
+    if not summary:
+        total_pending = payload["overdue_tasks_count"] + payload["due_today_count"]
+        if total_pending == 0 and payload["upcoming_content_count"] == 0 and payload["stale_deals_count"] == 0:
+            summary = f"صباح جميل يا {user.get('name', '')}. يومك خالٍ من التنبيهات — فرصة ذهبية لبناء عميل جديد أو فكرة محتوى."
+        else:
+            summary = f"صباح الخير {user.get('name', '')}. اليوم لديك {payload['overdue_tasks_count']} مهمة متأخرة و{payload['due_today_count']} مستحقة اليوم، و{payload['upcoming_content_count']} محتوى قادم."
+    if not focus:
+        focus = []
+        if ctx["overdue_tasks"]:
+            t = ctx["overdue_tasks"][0]
+            focus.append({"title": f"أغلق المهمة المتأخرة: {t['title']}", "why": "تجنب تراكم المتأخرات", "engine": "tasks", "ref_id": t["id"]})
+        if ctx["stale_deals"]:
+            d = ctx["stale_deals"][0]
+            focus.append({"title": f"تابع صفقة: {d['title']}", "why": f"لم يتم تحديثها منذ أسبوع — بقيمة ${d.get('value') or 0}", "engine": "crm", "ref_id": d["id"]})
+        if ctx["upcoming_content"]:
+            c = ctx["upcoming_content"][0]
+            focus.append({"title": f"جهّز محتوى: {c['title']}", "why": f"مجدول قريباً على {c.get('platform')}", "engine": "content", "ref_id": c["id"]})
+        if not focus:
+            focus = [
+                {"title": "أضف أول عميل في CRM", "why": "أسس قاعدة عملائك", "engine": "crm", "ref_id": ""},
+                {"title": "أنشئ لوحة مهام جديدة", "why": "نظّم يومك", "engine": "tasks", "ref_id": ""},
+                {"title": "ولّد أفكار محتوى بالذكاء", "why": "ابدأ خطتك للأسبوع", "engine": "content", "ref_id": ""},
+            ]
+
+    brief = {
+        "user_id": uid,
+        "date": today_str,
+        "summary": summary,
+        "focus": focus[:3],
+        "created_at": now_iso(),
+    }
+    await db.workspace_briefs.update_one(
+        {"user_id": uid, "date": today_str},
+        {"$set": brief},
+        upsert=True,
+    )
+    return {**brief, "from_cache": False}

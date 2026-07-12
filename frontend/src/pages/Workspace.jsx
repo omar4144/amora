@@ -6,6 +6,7 @@ import {
     Users, Briefcase, Video, CheckSquare, ShieldAlert,
     AlertCircle, Clock, Rocket, TrendingUp,
     Plus, ArrowLeft, Sparkles, Home, Calendar as CalIcon,
+    RefreshCw, Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,12 +43,31 @@ export default function Workspace() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showQuickAdd, setShowQuickAdd] = useState(false);
+    const [brief, setBrief] = useState(null);
+    const [briefLoading, setBriefLoading] = useState(false);
     const nav = useNavigate();
 
     useEffect(() => {
         api.get("/workspace/today").then((r) => { setData(r.data); setLoading(false); })
             .catch(() => { setLoading(false); nav("/auth"); });
     }, [nav]);
+
+    const loadBrief = async (force = false) => {
+        setBriefLoading(true);
+        try {
+            const r = await api.post(`/workspace/morning-brief${force ? "?force=true" : ""}`);
+            setBrief(r.data);
+            if (force) toast.success("تم تحديث موجز اليوم");
+        } catch (e) {
+            toast.error("تعذّر تحضير موجز اليوم");
+        } finally {
+            setBriefLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (data && user) loadBrief(false);
+    }, [data, user]);
 
     if (loading || !data) return <div className="p-8 text-white/50 text-center">جارٍ التحميل...</div>;
 
@@ -74,6 +94,80 @@ export default function Workspace() {
             </div>
 
             <div className="p-4 space-y-6">
+                {/* Morning Brief — AI daily kickoff */}
+                <div data-testid="morning-brief-card" className="rounded-2xl bg-gradient-to-br from-[#57769D]/15 via-[#D1795F]/10 to-transparent border border-[#57769D]/30 p-5 relative overflow-hidden">
+                    <div className="absolute -top-8 -left-8 w-32 h-32 bg-[#D1795F]/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="flex items-start justify-between gap-3 mb-3 relative">
+                        <div className="flex items-center gap-2">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D1795F] to-[#57769D] flex items-center justify-center">
+                                <Wand2 className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-heading font-black text-base text-white">موجز اليوم</h3>
+                                <p className="text-[10px] text-white/50 font-body">مساعدك الشخصي الذكي</p>
+                            </div>
+                        </div>
+                        <button
+                            data-testid="morning-brief-refresh"
+                            onClick={() => loadBrief(true)}
+                            disabled={briefLoading}
+                            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition disabled:opacity-50"
+                            title="تحديث"
+                        >
+                            <RefreshCw className={`w-3.5 h-3.5 text-white/70 ${briefLoading ? "animate-spin" : ""}`} />
+                        </button>
+                    </div>
+
+                    {briefLoading && !brief && (
+                        <div className="flex items-center gap-2 text-white/50 text-sm py-2">
+                            <Sparkles className="w-4 h-4 text-[#D1795F] animate-pulse" />
+                            جارٍ تحضير موجز يومك...
+                        </div>
+                    )}
+
+                    {brief && (
+                        <>
+                            <p data-testid="morning-brief-summary" className="text-sm text-white/90 leading-relaxed font-body mb-4 relative">
+                                {brief.summary}
+                            </p>
+                            {brief.focus?.length > 0 && (
+                                <div className="space-y-2 relative">
+                                    <div className="text-[10px] text-white/50 font-heading font-bold mb-1">أولويات اليوم</div>
+                                    {brief.focus.map((f, i) => {
+                                        const engineColors = { crm: "#D1795F", tasks: "#C3E0A5", content: "#57769D" };
+                                        const engineIcons = { crm: Briefcase, tasks: CheckSquare, content: Video };
+                                        const engineRoutes = {
+                                            crm: f.ref_id ? `/crm/deals/${f.ref_id}` : "/crm",
+                                            tasks: f.ref_id ? `/tasks/task/${f.ref_id}` : "/tasks",
+                                            content: f.ref_id ? `/content/item/${f.ref_id}` : "/content",
+                                        };
+                                        const tone = engineColors[f.engine] || "#D1795F";
+                                        const Icon = engineIcons[f.engine] || Sparkles;
+                                        const to = engineRoutes[f.engine] || "/workspace";
+                                        return (
+                                            <button
+                                                key={i}
+                                                data-testid={`morning-focus-${i}`}
+                                                onClick={() => nav(to)}
+                                                className="w-full text-start bg-black/40 hover:bg-black/60 border border-white/10 rounded-xl p-3 flex items-start gap-3 transition group"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${tone}25`, color: tone }}>
+                                                    <Icon className="w-4 h-4" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-heading font-semibold text-white line-clamp-1">{f.title}</div>
+                                                    {f.why && <div className="text-[10px] text-white/50 mt-0.5 line-clamp-2 font-body">{f.why}</div>}
+                                                </div>
+                                                <ArrowLeft className="w-4 h-4 text-white/40 group-hover:text-[#D1795F] group-hover:-translate-x-1 transition flex-shrink-0 mt-1" />
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+
                 {/* Onboarding */}
                 {data.is_new_user && (
                     <div className="rounded-2xl bg-gradient-to-br from-[#D1795F]/20 to-transparent border border-[#D1795F]/40 p-5">
