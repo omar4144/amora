@@ -41,6 +41,7 @@ import Onboarding from "@/pages/Onboarding";
 import BookingBrowse from "@/pages/booking/BookingBrowse";
 import SpaceDetail from "@/pages/booking/SpaceDetail";
 import { MySpaces, MyBookings, BookingSuccess } from "@/pages/booking/BookingDashboard";
+import { DisputesList, DisputeDetail } from "@/pages/disputes/Disputes";
 import { RealtimeProvider } from "@/context/RealtimeContext";
 import ContentShell from "@/pages/content/ContentShell";
 import ContentDashboard from "@/pages/content/ContentDashboard";
@@ -156,6 +157,10 @@ function App() {
                             <Route path="/booking/my-spaces" element={<Protected><MySpaces /></Protected>} />
                             <Route path="/booking/my-bookings" element={<Protected><MyBookings /></Protected>} />
                             <Route path="/booking/success" element={<Protected><BookingSuccess /></Protected>} />
+
+                            {/* Disputes */}
+                            <Route path="/disputes" element={<Protected><DisputesList /></Protected>} />
+                            <Route path="/disputes/:id" element={<Protected><DisputeDetail /></Protected>} />
                         </Route>
                     </Routes>
                     </RealtimeProvider>

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { Package, CheckCircle2, Clock, DollarSign, User, Star } from "lucide-react";
+import { OpenDisputeButton } from "@/pages/disputes/Disputes";
 
 const STATUS_LABELS = {
     pending_payment: { label: "بانتظار الدفع", color: "text-yellow-400", icon: Clock },
@@ -87,6 +88,16 @@ const OrderCard = ({ o, isCreator, onDeliver, onPay, onReview }) => {
                 >
                     تأكيد التسليم
                 </button>
+            )}
+            {!isCreator && (o.status === "paid" || o.status === "delivered") && !o.disputed && (
+                <div className="mt-2">
+                    <OpenDisputeButton orderId={o.id} onOpened={() => window.location.reload()} />
+                </div>
+            )}
+            {o.disputed && o.dispute_id && (
+                <a href={`/disputes/${o.dispute_id}`} data-testid={`view-dispute-${o.id}`} className="mt-2 block text-center text-xs bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-lg py-2">
+                    عرض النزاع
+                </a>
             )}
         </div>
     );

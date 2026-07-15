@@ -76,7 +76,9 @@ class CommentCreate(BaseModel):
 
 
 class MessageCreate(BaseModel):
-    text: str
+    text: str = ""
+    media_url: Optional[str] = None
+    media_type: Optional[str] = None  # image | video | file
 
 
 # ==================== COMMUNITIES / TEAMS ====================

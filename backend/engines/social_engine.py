@@ -96,6 +96,8 @@ async def upload_video(
     file: UploadFile = File(...),
     caption: str = Form(""),
     category: str = Form("عام"),
+    thumbnail: Optional[UploadFile] = File(None),
+    filter_name: str = Form(""),
     user=Depends(current_user),
 ):
     ext = (file.filename.rsplit(".", 1)[-1] if "." in file.filename else "mp4").lower()
@@ -106,6 +108,19 @@ async def upload_video(
         raise HTTPException(400, "حجم الملف كبير جداً (الحد الأقصى 100MB)")
     path = f"{APP_NAME}/videos/{user['id']}/{uuid.uuid4()}.{ext}"
     result = put_object(path, data, file.content_type or "video/mp4")
+
+    # Optional thumbnail (generated client-side from video canvas)
+    thumbnail_url = None
+    if thumbnail is not None:
+        thumb_data = await thumbnail.read()
+        if len(thumb_data) <= 3 * 1024 * 1024:  # 3MB cap
+            t_ext = (thumbnail.filename.rsplit(".", 1)[-1] if "." in (thumbnail.filename or "") else "jpg").lower()
+            if t_ext not in ["jpg", "jpeg", "png", "webp"]:
+                t_ext = "jpg"
+            t_path = f"{APP_NAME}/videos/{user['id']}/thumbs/{uuid.uuid4()}.{t_ext}"
+            t_result = put_object(t_path, thumb_data, thumbnail.content_type or "image/jpeg")
+            thumbnail_url = t_result.get("url") or t_result.get("public_url") or f"/api/uploads/{t_result.get('path', t_path)}"
+
     video_id = str(uuid.uuid4())
     doc = {
         "id": video_id,
@@ -114,6 +129,8 @@ async def upload_video(
         "content_type": file.content_type or "video/mp4",
         "caption": caption,
         "category": category,
+        "thumbnail_url": thumbnail_url,
+        "filter_name": filter_name or None,
         "likes": 0,
         "comments_count": 0,
         "views": 0,

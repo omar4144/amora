@@ -1,0 +1,65 @@
+{
+  "summary": "Iteration 22 — Disputes + Media in DMs + Video Thumbnails/Filters. Backend: 22/22 pytest cases green (dispute meta, create-blocked-for-non-buyer, buyer-creates, dup 409, list-as-buyer, list-as-seller, detail-enriched, add-msg-flips-status, empty-msg-400, non-admin-cannot-resolve, admin-lists-all, admin-refund-flips-order-to-refunded, msg-after-resolve-blocked, buyer-close, media upload image OK, .exe rejected, message media-only OK, empty text+media rejected 400 with 'الرسالة فارغة', text-only regression, video upload with thumbnail+filter, video upload without thumbnail). Regression 26/26 iteration21 also green. Critical fix applied: /api/disputes was crashing with 500 KeyError because disputes_engine read order['buyer_id']/['seller_id'] but orders collection uses client_id/creator_id — patched to fall back correctly. Frontend: /disputes flow verified end-to-end — a fresh buyer with a paid order sees open-dispute-btn on /orders, modal opens with dispute-reason select + dispute-desc textarea, submit creates dispute, /disputes list shows the card, click renders /disputes/:id (dispute-detail), dispute-msg-input+dispute-send-btn appends a message + status flips to under_review (visible), dispute-close-btn visible for buyer. /upload page: all 8 filter chips (filter-orig/warm/cool/vivid/mono/sepia/fade/dramatic) render, clicking each updates the video CSS filter live (verified via computed style: warm→sepia(0.25)saturate(1.3)…, cool→hue-rotate(-15deg)…, vivid→saturate(1.6)…, etc.), submit uploads the file and persists filter_name (verified on GET /videos/feed). Regression pages: /workspace, /booking, /booking/my-spaces, /booking/my-bookings, /crm/invoices, /pricing, /billing, /communities, /teams, /events, /onboarding all render with no console errors.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "/api/disputes (POST)",
+        "issue": "disputes_engine.create_dispute was reading order['buyer_id'] / order['seller_id'] but orders collection stores them as client_id / creator_id. Every buyer-open-dispute request returned 500 KeyError. FIXED: fall back to order.get('buyer_id') or order.get('client_id'), same for seller.",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Chat.jsx (send message form)",
+        "issue": "The message input form is `fixed bottom-0` but has no z-index, while the app's bottom-nav is `fixed bottom-0 h-16 z-50`. On the currently rendered mobile viewport the two overlap in the bottom ~16px, and the higher-z bottom-nav intercepts pointer events for the send-msg-btn (at y=788-832 vs nav y=780-844). Playwright reported 'subtree intercepts pointer events' when clicking send-msg-btn. Fill on chat-input also fails. Users can technically still tap upper part of the input but the send button is effectively unreachable on this viewport. FIX: give the chat form `z-[60]` (higher than nav's z-50), or bump the form bottom to `bottom-16` to sit above the bottom-nav, or hide the bottom-nav on chat pages.",
+        "selector": "form containing [data-testid=\"send-msg-btn\"] on /messages/:username",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Upload.jsx extractThumbnail",
+        "issue": "The client-side thumbnail extraction uses a newly-created (offscreen) `document.createElement('video')` with `video.crossOrigin='anonymous'` set BEFORE `video.src = <blobURL>`. For some MP4s (including ffmpeg testsrc-generated files with libx264+faststart) the offscreen video fired VIDEO_ERROR and never fired loadedmetadata, so extractThumbnail resolved null — the `thumb-preview` card never appeared and the FormData 'thumbnail' field was not sent. The visible <video src={preview}> in the DOM plays fine, so the issue is with the ephemeral offscreen video. `video.filter_name` was still persisted correctly. Suggested fix: remove `video.crossOrigin='anonymous'` for blob URLs (not needed since blob URLs are same-origin), add `video.preload='auto'` + `video.muted=true` + call `video.load()` explicitly, and consider polling readyState or listening for `canplay` in addition to `loadedmetadata`. Impact: unpredictable — may work for most real user videos but fails silently for some codecs / browsers.",
+        "selector": "[data-testid=\"thumb-preview\"]",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration22_disputes_media.py",
+    "/app/test_reports/pytest/iteration22_results.xml"
+  ],
+  "action_items": [
+    "MAIN AGENT: fix Chat.jsx bottom form z-index (add z-[60] to the form, or `bottom-16` so it sits above the bottom-nav) — users can't send DMs currently because the bottom-nav overlays send-msg-btn.",
+    "MAIN AGENT: harden Upload.jsx extractThumbnail: drop crossOrigin on blob URLs, set preload='auto'+muted=true, call video.load(), listen for canplay in addition to loadedmetadata; add graceful UI when thumbnail generation fails (currently silent).",
+    "MAIN AGENT (optional): consider making DisputeCreate accept an order regardless of buyer_id/client_id field name via a shared helper — the fix I applied does the right thing but the underlying schema (client_id vs buyer_id) is a leaky abstraction across engines."
+  ],
+  "critical_code_review_comments": [
+    "disputes_engine.py L58 (fixed): now falls back order.get('buyer_id') or order.get('client_id') for cross-engine compatibility; same for seller_id. Still — the marketplace should probably ALSO write buyer_id/seller_id aliases at order creation time so the disputes engine doesn't need to know both schemas.",
+    "disputes_engine.py L108 (list_my_disputes): N+1 query to enrich counterparty (one users.find_one per dispute). Fine at low scale; consider $lookup for production.",
+    "disputes_engine.py L182 (resolve): flipping order.status directly to 'refunded'/'completed'/'partially_refunded' but does NOT trigger any Stripe refund API call — the actual money movement is not automated. This is likely intentional MVP behavior (admin does the refund manually), but leaves a data-vs-money inconsistency risk.",
+    "Chat.jsx: send form has no explicit z-index — sits UNDER the app's bottom-nav (z-50) on the current mobile layout. Users on this viewport cannot reliably click send-msg-btn. Adding z-[60] to the form (or bottom-16 offset) fixes it.",
+    "Upload.jsx extractThumbnail: silent failure — if the offscreen video errors out, thumb-preview never appears and no feedback is given. A toast 'تعذّر إنشاء صورة الغلاف' plus a retry option would help.",
+    "Upload.jsx L21: hard 8-second timeout is short if the video is very long or the seek is slow. Consider using video.readyState checks + longer timeout, or moving to Web Worker.",
+    "notification_engine.py L79 (send_message): text is untrimmed for the check but stored raw. `data.text.strip()` used only for the fallback preview — a message with only whitespace text and no media WILL be saved as-is (empty body after trim). Consider storing trimmed text.",
+    "social_engine.py L114 (upload_video thumbnail branch): silently drops thumbnail if size > 3MB (no error). At minimum log or return a flag so client knows."
+  ],
+  "updated_files": [
+    "/app/backend/engines/disputes_engine.py (BUG FIX — buyer_id/seller_id lookup fallback to client_id/creator_id)",
+    "/app/backend/tests/test_iteration22_disputes_media.py (NEW — 22 pytest cases across TestDisputesMeta, TestDisputesFlow, TestMessagesMedia, TestVideoUploadWithThumbnailFilter, TestZCleanup)"
+  ],
+  "success_rate": {"backend": "100% (22/22 iter22 + 26/26 iter21 regression = 48/48)", "frontend": "6/7 — disputes E2E complete, upload filters working + video CSS filter live-updates + submit persists filter_name; regression pages all clean; chat pending-media UI works but send button is blocked by bottom-nav overlay (HIGH bug); upload thumb-preview not generated for headless test videos (MEDIUM bug — likely works with real user videos)"},
+  "test_credentials": "Super admin: crm@test.com / testpass123. During test we also created TESTUI_seller_<ts> / TESTUI_buyer_<ts> pairs (cleaned up post-test) and confirmed a real dispute flow between them.",
+  "seed_data_creation": "Test suite creates ~2 TEST_ users per class run (buyer + seller), a service, an order (flipped to paid via direct mongo), 1-2 disputes, several videos, several messages. All cleaned in TestZCleanup + a follow-up script that removed 4 TESTUI users and their artefacts.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 22 disputes engine is now working after the bug fix — /api/disputes/* + /api/admin/disputes are all fully green. Media in DMs backend fully green. Frontend: disputes UI is fully wired. TWO remaining frontend issues: (1) Chat.jsx form is behind bottom-nav — send-msg-btn is not clickable via pointer events on mobile viewport (playwright needs force=True). Fix by adding z-[60] to the form or shifting to bottom-16. Test with regular click after fix. (2) Upload.jsx extractThumbnail silently fails on some videos (VIDEO_ERROR on offscreen video load); to reproduce use `ffmpeg -f lavfi -i testsrc=size=320x240:rate=10:duration=3 -pix_fmt yuv420p -movflags +faststart -y /tmp/t.mp4` and set_input_files on #video-file-input — thumb-preview never appears despite the visible <video> element playing. Backend accepts thumbnails without issue (verified via curl test).",
+  "rca of the issue": {
+    "critical_bug_fixed": "disputes_engine.py schema mismatch — orders collection uses `client_id`/`creator_id` (marketplace nomenclature) but the disputes engine expected `buyer_id`/`seller_id`. Reproduction: (1) create a service (POST /api/services as seller), (2) create an order (POST /api/orders as buyer), (3) flip status='paid' in Mongo, (4) POST /api/disputes {order_id, reason, description} as buyer → returns 500 with KeyError: 'buyer_id' in backend.err.log at disputes_engine.py:58. Mitigation applied: `buyer_id = order.get('buyer_id') or order.get('client_id')` (same for seller). Long-term: unify the schema — either marketplace should write both aliases, or introduce a domain-order object that maps consistently.",
+    "chat_z_index_bug": "Chat.jsx <form> is `fixed bottom-0` but lacks a z-index — it sits under the app's bottom-nav (which is `fixed bottom-0 h-16 z-50`). On the mobile viewport the two share the bottom band and the nav intercepts pointer events. Playwright detected `<nav data-testid=\"bottom-nav\"> subtree intercepts pointer events` when clicking send-msg-btn. Users can appear to type but the send action does not fire. Fix: add `z-[60]` or `z-60` to the form (or move it to `bottom-16` above the nav).",
+    "thumb_extraction_bug": "extractThumbnail creates an offscreen <video>, sets crossOrigin='anonymous', src=<blobURL>. For some encodings the offscreen element throws 'error' before 'loadedmetadata' fires — extractThumbnail resolves null and the <thumb-preview> card is not rendered. Root cause: offscreen media element does not auto-preload / crossOrigin=anonymous on blob URLs is a source of ambiguous behavior in Chromium. Repro: ffmpeg testsrc-generated mp4. Fix: video.preload='auto' + video.muted=true + explicit video.load(); drop crossOrigin for blob URLs."
+  }
+}
