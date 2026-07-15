@@ -359,7 +359,11 @@ async def weekly_recommendations(force: bool = Query(False), user=Depends(curren
         if cached:
             return {**cached, "from_cache": True}
 
-    # gather usage stats
+    # gather usage stats (guard services collection which may not exist yet)
+    try:
+        services_count = await db.services.count_documents({"seller_id": uid})
+    except Exception:
+        services_count = 0
     stats = {
         "clients": await db.crm_clients.count_documents({"owner_id": uid}),
         "deals": await db.crm_deals.count_documents({"owner_id": uid}),
@@ -369,7 +373,7 @@ async def weekly_recommendations(force: bool = Query(False), user=Depends(curren
         "published_content": await db.content_items.count_documents({"owner_id": uid, "status": "published"}),
         "tasks": await db.tasks.count_documents({"owner_id": uid}),
         "communities_joined": await db.community_members.count_documents({"user_id": uid}),
-        "services_offered": await db.services.count_documents({"seller_id": uid}) if "services" in await db.list_collection_names() else 0,
+        "services_offered": services_count,
     }
 
     payload = {

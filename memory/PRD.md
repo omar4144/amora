@@ -1,4 +1,25 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 20 — Smart Personalized Recommendations (2026-02)
+
+### Delivered
+- **Backend `POST /api/workspace/recommendations`**: Claude Sonnet 4.5 generates 3 weekly personalized growth tips per user.
+  - Inputs: `primary_goal` + `interests` + `experience_level` (from onboarding) + actual usage stats (clients/deals/invoices/content/tasks/communities/services counts).
+  - Cache key: `{user_id, week=%Y-W%V}` in `db.workspace_recos`; `?force=true` bypasses.
+  - Deterministic fallback with 6 branches based on goal + interests + stats gap.
+  - Each reco: `{title, why, action_label, engine, priority: high|medium|low}` where engine ∈ {crm, content, tasks, marketplace, community, academy, social}.
+- **New AI prompt** `recommendations` in `AI_PROMPTS` — Arabic, JSON-only, personalization-focused.
+- **Frontend Workspace card** `recos-card`:
+  - Renders below Morning Brief.
+  - Skeleton loader (`recos-skeleton`) during cold AI call (~4-8s) so UI doesn't stay empty.
+  - 3 reco items with engine icon + colored priority dot + action-label chip; click routes to correct engine.
+  - Refresh button + sonner success/error toasts.
+
+### Verification (iteration_20.json)
+- Backend: **9/9 pytest PASS** (`test_iteration20_recommendations.py`) — auth, schema, cache miss/hit, force regenerate, personalization diff, fallback, regression.
+- Frontend: **8/8 E2E acceptance points PASS** — card render, skeleton, priority dots, click-through per engine, refresh toast, no regression.
+- Post-report polish applied: skeleton loading state + error toast on refresh failure + safer `services` collection guard.
+
+
 ## Iteration 19 — Onboarding Wizard (شاشة ترحيب أول-دخول 4-خطوات) (2026-02)
 
 ### Delivered

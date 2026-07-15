@@ -63,7 +63,7 @@ export default function Workspace() {
             setRecos(r.data);
             if (force) toast.success("تم تحديث التوصيات");
         } catch {
-            /* silent — fallback in backend handles it */
+            if (force) toast.error("تعذّر تحضير التوصيات");
         } finally { setRecosBusy(false); }
     };
 
@@ -198,7 +198,7 @@ export default function Workspace() {
                 </div>
 
                 {/* Personalized weekly recommendations */}
-                {recos?.recommendations?.length > 0 && (
+                {(recos?.recommendations?.length > 0 || recosBusy) && (
                     <div data-testid="recos-card" className="rounded-2xl bg-gradient-to-br from-[#C3E0A5]/10 via-transparent to-[#57769D]/10 border border-[#C3E0A5]/25 p-5 relative overflow-hidden">
                         <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-[#C3E0A5]/10 rounded-full blur-3xl pointer-events-none" />
                         <div className="flex items-start justify-between gap-3 mb-3 relative">
@@ -222,7 +222,27 @@ export default function Workspace() {
                             </button>
                         </div>
 
-                        <div className="space-y-2 relative">
+                        {/* Loading skeleton */}
+                        {recosBusy && !recos && (
+                            <div className="space-y-2 relative" data-testid="recos-skeleton">
+                                {[0, 1, 2].map((i) => (
+                                    <div key={i} className="bg-black/40 border border-white/5 rounded-xl p-3 flex items-start gap-3 animate-pulse">
+                                        <div className="w-9 h-9 rounded-lg bg-white/5 flex-shrink-0" />
+                                        <div className="flex-1 space-y-1.5">
+                                            <div className="h-3 bg-white/5 rounded w-3/4" />
+                                            <div className="h-2 bg-white/5 rounded w-full" />
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="text-[10px] text-white/40 text-center flex items-center justify-center gap-1 pt-1">
+                                    <Sparkles className="w-3 h-3 text-[#C3E0A5] animate-pulse" />
+                                    Claude يفكّر لأجلك...
+                                </div>
+                            </div>
+                        )}
+
+                        {recos?.recommendations?.length > 0 && (
+                            <div className="space-y-2 relative">
                             {recos.recommendations.map((r, i) => {
                                 const engineMeta = {
                                     crm:         { icon: Briefcase,       color: "#D1795F", route: "/crm" },
@@ -257,7 +277,8 @@ export default function Workspace() {
                                     </button>
                                 );
                             })}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
