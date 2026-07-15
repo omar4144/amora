@@ -1,4 +1,36 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 22-23 — Video Thumbnails + Filters + Media in DMs + Disputes (2026-02)
+
+### Delivered
+- **Video Thumbnails + 8 Camera Filters** (`Upload.jsx` REWRITTEN):
+  - 8 CSS-based filter presets applied live to `<video>` preview: أصلي، دافئ، بارد، زاهي، أبيض/أسود، قديم، خافت، درامي.
+  - Auto-generated JPEG thumbnail via canvas at t=1s (or 10% of duration), rendered with the same filter.
+  - Hardened extraction: no crossOrigin on blob URLs, preload='auto', explicit video.load(), canplay fallback, 12s timeout, graceful toast on failure.
+  - Backend `POST /api/videos/upload` accepts optional `thumbnail` + `filter_name` multipart fields; stores `thumbnail_url` and `filter_name` on the video doc.
+- **Media in DMs**:
+  - Backend `POST /api/messages/media` — multipart image/video/file upload → object storage → returns `{media_url, media_type, filename}` (auto-detected).
+  - Backend `POST /api/messages/with/{u}` now accepts `{text, media_url, media_type}` (text optional if media present).
+  - Blocked dangerous extensions (.exe/.sh/.bat/.js/.php); size caps per type (image 10MB / video 50MB / file 20MB).
+  - WebSocket live delivery — receiver gets 'message' event instantly.
+  - Frontend `Chat.jsx` REWRITTEN: attach button, pending-media preview card with icon+filename+cancel, inline `<img>` / `<video>` / file-link rendering, z-[60] to sit above bottom nav.
+- **Disputes System** (`disputes_engine.py` NEW):
+  - `POST /api/disputes` (buyer-only, 409 on dup) with reasons (not_delivered/not_as_described/poor_quality/other).
+  - `GET /api/disputes` (my disputes with role + counterparty).
+  - `GET /api/disputes/{id}` (full detail with buyer/seller/order enriched).
+  - `POST /api/disputes/{id}/messages` — threaded chat, auto-flips open → under_review; notifies counterparty.
+  - `POST /api/disputes/{id}/resolve` (admin-only): refund_buyer / release_to_seller / partial_refund → also updates order status.
+  - `POST /api/disputes/{id}/close` — buyer withdraws.
+  - `GET /api/admin/disputes` — moderator/admin dashboard.
+  - **Cross-engine schema fix**: reads both `buyer_id`/`seller_id` and `client_id`/`creator_id` fallbacks (marketplace legacy alias).
+  - Frontend: `DisputesList`, `DisputeDetail`, and reusable `<OpenDisputeButton>` on Orders page for paid/delivered orders. Buyer-close + admin-resolve controls in place.
+
+### Verification (iteration_22.json + iteration_23.json)
+- Backend: **22/22 pytest** on disputes + media flows + video thumbnail submission + **26/26 iteration-21 regression** — all green.
+- Frontend: **100%** — Chat z-index fix verified via computed styles + real click (no more force=True), Upload thumbnail hardening + graceful fallback verified end-to-end.
+- Regression sweep: 15 pages checked (workspace/booking/booking/my-spaces/my-bookings/crm/invoices/pricing/billing/disputes/communities/teams/events/onboarding/feed/messages/upload) all clean, no console errors.
+- Post-report fixes applied: (1) Chat form + pending-media wrapper z-[60] (was UNDER bottom-nav z-50), (2) extractThumbnail hardened (drop crossOrigin on blob URLs, preload/load/canplay fallback, 12s timeout, toast on failure).
+
+
 ## Iteration 21 — Phase 3: Booking Engine + WebSockets Realtime (2026-02)
 
 ### Delivered
