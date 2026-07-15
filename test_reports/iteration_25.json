@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 25 — Retest ONLY of the Feed.jsx CommentsSheet & ServicesSheet z-index fix flagged in iter24. Both sheet wrappers were bumped from z-50 → z-[60] (lines 217 & 267). Verified end-to-end on mobile viewport (390x844) WITHOUT force=True: (1) CommentsSheet — comment-btn-{id} clickable, comments-sheet renders with outer computed z-index=60 (bottom-nav z-index=50), comment-input clickable+fillable with a plain click, submit-comment clickable, POST /api/videos/{id}/comments returned 200, and the new comment 'TEST_zfix_comment_2026' immediately appeared inside the sheet. (2) ServicesSheet — services-btn-{id} clickable, services-sheet renders with outer computed z-index=60, service-item-{id} pointer NOT intercepted (document.elementFromPoint at the item center returned the service-item itself, not bottom-nav), plain click on service-item navigated to /service/{id}. No pointer-event interception detected anywhere. Bug FIXED and verified.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_25.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Fix applied is correct but still hard-coded per-modal. Recommendation stands from iter24: extract a shared '.bottom-sheet-overlay { z-index: 60 }' CSS class (or a <BottomSheet> wrapper component) so future modals do not regress to z-50. Currently the value 60 appears at Feed.jsx L217, L267 and Chat.jsx (from iter22) — three separate hard-coded literals for the same concept.",
+    "Layout.jsx bottom-nav is z-50. Any future fixed overlay written by a developer that copies existing modal boilerplate risks the same clash. Consider bumping bottom-nav explicitly to a documented low tier (e.g. z-40) and reserving z-50+ for overlays."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only retest)",
+    "frontend": "100% — 13/13 UI assertions PASS on mobile viewport (login, feed load, comment-btn open, z-index=60 verified, comment-input click no-force, submit-comment click no-force, POST /comments 200, comment persisted in DOM, services-btn open, services-sheet z-index=60, service-item pointer not intercepted, service-item click navigates without force)"
+  },
+  "test_credentials": "Super admin: crm@test.com / testpass123 (username=crm_tester)",
+  "seed_data_creation": "Created TEST_zfix_service (id=629d8c0c-16ad-4473-b1cf-e8d7cda06c69) owned by crm_tester so ServicesSheet had at least one service-item to click (feed creators had no services prior). Comment 'TEST_zfix_comment_2026' added to video 6302a4b7-c827-464a-a4e1-e1cad433dec0 by crm_tester. Both left in DB.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Feed.jsx z-index bug from iter24 is fully resolved and verified with plain (no force=True) mobile-viewport playwright clicks. Both CommentsSheet and ServicesSheet render at z-[60] over the z-50 bottom-nav. If further comment/services flow bugs are reported, first check Layout.jsx bottom-nav z-index (currently z-50) hasn't been bumped, and confirm both Feed.jsx wrappers still use z-[60]. Seed data: crm_tester now has one service (TEST_zfix_service) — safe to reuse or delete.",
+  "rca of the issue": "Original RCA (from iter24) confirmed: Feed.jsx CommentsSheet & ServicesSheet outer .fixed inset-0 wrappers were z-50, same as Layout bottom-nav. Because both are direct children of <body>, DOM order gave pointer events to bottom-nav on the bottom form area. Fix (iter25 verified): bump both sheet wrappers to z-[60]. computedStyle now reads zIndex=60 for sheets vs 50 for bottom-nav. Playwright plain clicks reach comment-input, submit-comment and service-item as expected. No regression to any other testid observed."
+}

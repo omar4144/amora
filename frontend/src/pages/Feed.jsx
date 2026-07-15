@@ -214,7 +214,7 @@ const CommentsSheet = ({ video, onClose, onCommentAdded }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
             <div
                 className="w-full max-w-md bg-[#0A0A0A] rounded-t-3xl max-h-[75vh] flex flex-col animate-slide-up"
                 onClick={(e) => e.stopPropagation()}
@@ -264,7 +264,7 @@ const ServicesSheet = ({ video, onClose }) => {
     }, [video]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
             <div className="w-full max-w-md bg-[#0A0A0A] rounded-t-3xl max-h-[75vh] flex flex-col animate-slide-up" onClick={(e) => e.stopPropagation()} data-testid="services-sheet">
                 <div className="flex items-center justify-between p-4 border-b border-white/10">
                     <h3 className="font-heading font-bold text-lg">خدمات @{video.creator.username}</h3>
