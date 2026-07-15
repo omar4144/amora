@@ -113,7 +113,7 @@ export default function Chat() {
             </div>
 
             {pending && (
-                <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-3 pb-2">
+                <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto px-3 pb-2 z-[60]">
                     <div className="bg-[#141414] border border-[#D1795F]/40 rounded-xl p-2 flex items-center gap-2" data-testid="pending-media">
                         <div className="w-10 h-10 rounded-lg bg-[#D1795F]/20 flex items-center justify-center flex-shrink-0">
                             {pending.media_type === "image" ? <ImageIcon className="w-4 h-4 text-[#D1795F]" /> : pending.media_type === "video" ? <VideoIcon className="w-4 h-4 text-[#D1795F]" /> : <FileText className="w-4 h-4 text-[#D1795F]" />}
@@ -126,7 +126,7 @@ export default function Chat() {
                 </div>
             )}
 
-            <form onSubmit={send} className="fixed bottom-0 inset-x-0 max-w-md mx-auto p-3 bg-black/95 backdrop-blur-xl border-t border-white/10 flex gap-2 items-center">
+            <form onSubmit={send} className="fixed bottom-0 inset-x-0 max-w-md mx-auto p-3 bg-black/95 backdrop-blur-xl border-t border-white/10 flex gap-2 items-center z-[60]">
                 <input ref={fileRef} type="file" accept="image/*,video/*,application/pdf" onChange={onFileChange} className="hidden" data-testid="chat-media-input" />
                 <button type="button" data-testid="chat-attach-btn" onClick={onPickMedia} disabled={uploading} className="w-11 h-11 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0 disabled:opacity-50">
                     <Paperclip className={`w-5 h-5 text-white/70 ${uploading ? "animate-pulse" : ""}`} />

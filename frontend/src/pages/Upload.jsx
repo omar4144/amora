@@ -21,28 +21,36 @@ const FILTERS = [
 async function extractThumbnail(videoUrl, filterCss) {
     return new Promise((resolve) => {
         const video = document.createElement("video");
-        video.crossOrigin = "anonymous";
+        // Blob URLs are same-origin — no crossOrigin needed. Setting it can cause CORS-like failures.
         video.src = videoUrl;
         video.muted = true;
         video.playsInline = true;
-        video.onloadedmetadata = () => {
-            video.currentTime = Math.min(1, (video.duration || 5) * 0.1);
-        };
-        video.onseeked = () => {
-            const canvas = document.createElement("canvas");
-            const w = Math.min(720, video.videoWidth || 720);
-            const h = Math.round(w * (video.videoHeight / video.videoWidth || 16/9));
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext("2d");
-            if (filterCss && filterCss !== "none") ctx.filter = filterCss;
+        video.preload = "auto";
+        let resolved = false;
+        const finish = (blob) => { if (resolved) return; resolved = true; resolve(blob); };
+        const doCapture = () => {
             try {
+                const canvas = document.createElement("canvas");
+                const w = Math.min(720, video.videoWidth || 720);
+                const h = Math.round(w * (video.videoHeight / video.videoWidth || 16/9));
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                if (filterCss && filterCss !== "none") ctx.filter = filterCss;
                 ctx.drawImage(video, 0, 0, w, h);
-                canvas.toBlob((b) => resolve(b), "image/jpeg", 0.82);
-            } catch { resolve(null); }
+                canvas.toBlob((b) => finish(b), "image/jpeg", 0.82);
+            } catch { finish(null); }
         };
-        video.onerror = () => resolve(null);
-        setTimeout(() => resolve(null), 8000); // hard timeout
+        video.onloadedmetadata = () => {
+            try { video.currentTime = Math.min(1, (video.duration || 5) * 0.1); }
+            catch { doCapture(); }
+        };
+        video.onseeked = doCapture;
+        // Fallback: if seek is not supported, capture on canplay
+        video.oncanplay = () => { if (!resolved) setTimeout(doCapture, 200); };
+        video.onerror = () => finish(null);
+        try { video.load(); } catch { /* ignore */ }
+        setTimeout(() => finish(null), 12000);
     });
 }
 
@@ -67,12 +75,13 @@ export default function Upload() {
         setFile(f);
         const url = URL.createObjectURL(f);
         setPreview(url);
-        // auto-generate thumbnail with current filter
         setRegenerating(true);
         const blob = await extractThumbnail(url, filter.css);
         if (blob) {
             setThumbBlob(blob);
             setThumbUrl(URL.createObjectURL(blob));
+        } else {
+            toast.info("سيتم رفع الفيديو بدون صورة غلاف");
         }
         setRegenerating(false);
     };
