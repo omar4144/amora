@@ -1,0 +1,58 @@
+{
+  "summary": "Iteration 24 — Verified the 5-bug batch. BACKEND: 15/15 pytest tests PASS in /app/backend/tests/test_iteration24_bugfix5.py (workspace recommendations 200, DELETE /videos/{id} owner-only + super_admin override + 403 for non-owner + 404 non-existent + cascade removes comments/likes, GET /users/{u}/followers + /following with is_following flag, GET /admin/leads with ?status filter and 403 for non-privileged, PUT /admin/leads/{id}/status valid/invalid/404, regression: cross-user comment POST returns 200 and persists). FRONTEND: /workspace recos-card renders with 3 reco-0/1/2 items and recos-refresh triggers POST /workspace/recommendations→200. /admin dashboard stat-leads is clickable and navigates to /admin/leads. /admin/leads renders admin-leads container + leads-count=8 + all filter chips (filter-new / filter-in_review / filter-contacted / filter-won / filter-lost / filter-all) present. Lead expansion works, and lead-{id}-status-in_review PUT→200 updates the DB (verified via subsequent GET showing status=in_review). Admin-tab-leads NavLink present in AdminShell. /u/{myself} profile shows open-followers-btn + open-following-btn; each opens follow-list-followers / follow-list-following modal and calls GET /users/{u}/followers → 200 and /following → 200. 3 delete-video-{id} buttons visible on own profile grid. BUG FOUND (frontend overlay): The CommentsSheet form on /feed cannot receive plain click on data-testid=submit-comment because the parent wrapper is z-50 (line 217 Feed.jsx) — SAME level as bottom-nav (z-50). Playwright reports 'bottom-nav subtree intercepts pointer events' when trying to click comment-input or submit-comment. The same issue exists in ServicesSheet (line 267 Feed.jsx, also z-50). This is functionally the same class of bug as the Chat.jsx z-index issue fixed in iter22 — needs z-[60] on the .fixed wrapper. Owner video-menu button in the feed video-actions column WAS reachable and video-menu-sheet-{id} opens with delete-video-btn-{id} visible.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Feed.jsx / CommentsSheet",
+        "issue": "Outer wrapper uses z-50 (line 217), SAME as bottom-nav — pointer events on comment-input and submit-comment are intercepted by nav-upload/bottom-nav on mobile viewport. User cannot type or press نشر with a normal tap. Same class of bug already fixed in Chat.jsx (iter22). Fix: change className='fixed inset-0 z-50 ...' to z-[60] and/or bump the <form> to z-[60].",
+        "selector": "[data-testid=\"comments-sheet\"] / [data-testid=\"comment-input\"] / [data-testid=\"submit-comment\"]",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Feed.jsx / ServicesSheet",
+        "issue": "Same z-50 issue on ServicesSheet wrapper (line 267). Not tested end-to-end this iteration but the CSS is identical to the broken CommentsSheet — worth pre-emptively bumping to z-[60].",
+        "selector": "[data-testid=\"services-sheet\"]",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Comment on another user's video from Feed",
+        "issue": "Even though POST /api/videos/{id}/comments works from backend (verified in pytest), the UI form is unreachable from the mobile viewport due to bottom-nav z-index overlap. Playwright cannot click submit-comment even with force=True firing the coordinate-based click (event target ends up being nav-upload).",
+        "affected_selectors": ["[data-testid=\"comment-input\"]", "[data-testid=\"submit-comment\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration24_bugfix5.py",
+    "/app/test_reports/pytest/iteration24_results.xml"
+  ],
+  "action_items": [
+    "Fix Feed.jsx CommentsSheet z-index: bump the outer '.fixed inset-0 z-50' wrapper (line 217) to z-[60] so submit-comment / comment-input aren't blocked by the bottom-nav (which is z-50). Same one-line pattern already applied in Chat.jsx during iter22. Apply the same fix to ServicesSheet (line 267) proactively."
+  ],
+  "critical_code_review_comments": [
+    "Feed.jsx L217 (CommentsSheet) & L267 (ServicesSheet): both use z-50 for the fixed-inset backdrop — identical value to Layout.jsx bottom-nav. Because bottom-nav is a sibling fixed element at the same z-level, its stacking context wins on pointer events for the sheet's bottom form. This is a repeat of the Chat.jsx bug — recommend introducing a shared class (e.g., .bottom-sheet-overlay { z-index: 60 } via App.css) instead of hard-coding z-50 in each modal so future modals don't ship with the same regression.",
+    "AdminLeads.jsx L27: useEffect with [filter] but load() dependency deps ignored — fine for now, but consider moving load into useCallback to avoid stale-closure risks if the component later reads other state inside load.",
+    "AdminLeads.jsx L136: disabled={l.status === key} correctly disables the current status pill; however the on-click still calls changeStatus which is harmless but wasted — could early-return if current status == key inside handler.",
+    "Profile.jsx L75-79: three api.get calls in parallel but the outer catch is missing — if /videos/user/{u} throws, error propagates unhandled. Add .catch on each to prevent Suspense-like stalls on partial failures (this is what caused the intermittent 'جار التحميل' state I saw once until re-navigating).",
+    "social_engine.py L57-93 (followers/following): both routes use optional_user dependency and correctly attach is_following flag. Response excludes _id and password. Good. Consider adding pagination cursor for >500 followers.",
+    "admin_engine.py L199-229: leads list + status update use admin.view_platform_stats capability (super_admin + ceo). If product wants stricter super_admin-only, tighten to admin.change_user_role or a new capability. Current behavior matches review spec (super_admin only observed via seeded credentials)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration24_bugfix5.py (NEW)"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 pytest tests pass)",
+    "frontend": "~85% — recos-card/refresh, admin-leads full lifecycle (filter+expand+status update+dashboard KPI navigate), profile followers/following modals + own delete-video buttons, and owner video-menu on feed all PASS. The comment-on-other's-video flow FAILS on mobile due to z-50 collision with bottom-nav."
+  },
+  "test_credentials": "Super admin: crm@test.com / testpass123 (username=crm_tester, role=super_admin, id=98f6471a-7029-45b9-9728-76382618b83a). Created during test run: TEST_alice_* / TEST_bob_* / TEST_status_* / TEST_lead_* leads. Left in DB. Alice+Bob and their videos also left; two soft-deleted videos exist from cascade tests.",
+  "seed_data_creation": "Created 2 test users (Alice, Bob) + 3 test videos + 3 leads via /api/leads endpoint (2 with in_review status after test). All prefixed with TEST_.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 5 originally-reported bugs are FIXED at the API level and 4/5 verified in the UI. The ONLY residual UX defect is the CommentsSheet z-50 overlap with bottom-nav (feed comment form not reachable). Fix pattern: change className='fixed inset-0 z-50 ...' → z-[60] on Feed.jsx line 217 (and line 267 for services). After that fix, use plain page.click on comment-input then fill + click submit-comment to re-verify. For the profile page, sometimes the first navigation to /u/{username} shows only 'جار التحميل' because the axios call fires before AuthContext attaches the Authorization header — a small race. Waiting for the data-testid=profile-page selector explicitly makes it reliable.",
+  "rca of the issue": {
+    "comment_form_blocked": "Playwright output confirms: '<a href=\"/upload\" data-testid=\"nav-upload\" ...> from <nav data-testid=\"bottom-nav\" class=\"... z-50\">…</nav> subtree intercepts pointer events'. Both CommentsSheet backdrop (Feed.jsx:217 z-50) and Layout bottom-nav (z-50) share the same z-index, and the nav is later in the DOM so it wins the pointer event. Same class of bug already fixed in Chat.jsx (iter22) by bumping form/media wrappers to z-[60]. Steps: (1) login, (2) /feed, (3) click any comment-btn-*, (4) attempt to click comment-input → pointer intercepted → click never reaches input. Mitigation: bump z-index of the CommentsSheet root div (and ServicesSheet as a bonus) to z-[60]."
+  }
+}

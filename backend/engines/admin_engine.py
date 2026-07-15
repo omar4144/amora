@@ -20,6 +20,10 @@ class BanUpdate(BaseModel):
     reason: Optional[str] = ""
 
 
+class LeadStatusUpdate(BaseModel):
+    status: str
+
+
 # ═══════════════════════════════════════════════════════════════
 # META
 # ═══════════════════════════════════════════════════════════════
@@ -187,6 +191,42 @@ async def admin_dashboard(admin=Depends(require_capability("admin.view_platform_
         },
         "community": {"communities": communities_total, "teams": teams_total, "ideas": ideas_total, "leads": leads_total},
     }
+
+
+# ═══════════════════════════════════════════════════════════════
+# CONTACT US — leads submitted from the landing page
+# ═══════════════════════════════════════════════════════════════
+@router.get("/admin/leads")
+async def list_admin_leads(
+    admin=Depends(require_capability("admin.view_platform_stats")),
+    status: Optional[str] = Query(None),
+    limit: int = 200,
+):
+    """List all landing-page contact-us submissions (Leads collection)."""
+    q = {}
+    if status:
+        q["status"] = status
+    leads = await db.leads.find(q, {"_id": 0}).sort("created_at", -1).to_list(limit)
+    return leads
+
+
+@router.put("/admin/leads/{lead_id}/status")
+async def update_lead_status(
+    lead_id: str,
+    payload: LeadStatusUpdate,
+    admin=Depends(require_capability("admin.view_platform_stats")),
+):
+    """Update lead status: new | in_review | contacted | won | lost."""
+    valid = {"new", "in_review", "contacted", "won", "lost"}
+    if payload.status not in valid:
+        raise HTTPException(400, "الحالة غير صالحة")
+    res = await db.leads.update_one(
+        {"id": lead_id},
+        {"$set": {"status": payload.status, "updated_at": now_iso(), "updated_by": admin["id"]}},
+    )
+    if res.matched_count == 0:
+        raise HTTPException(404, "الطلب غير موجود")
+    return {"ok": True, "status": payload.status}
 
 
 @router.get("/admin/audit")

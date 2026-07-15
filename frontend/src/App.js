@@ -59,6 +59,7 @@ import AdminShell from "@/pages/admin/AdminShell";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminAudit from "@/pages/admin/AdminAudit";
+import AdminLeads from "@/pages/admin/AdminLeads";
 import Workspace from "@/pages/Workspace";
 
 const Protected = ({ children }) => {
@@ -148,6 +149,7 @@ function App() {
                             <Route path="/admin" element={<Protected><AdminShell /></Protected>}>
                                 <Route index element={<AdminDashboard />} />
                                 <Route path="users" element={<AdminUsers />} />
+                                <Route path="leads" element={<AdminLeads />} />
                                 <Route path="audit" element={<AdminAudit />} />
                             </Route>
 

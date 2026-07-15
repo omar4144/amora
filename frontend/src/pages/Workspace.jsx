@@ -198,8 +198,7 @@ export default function Workspace() {
                 </div>
 
                 {/* Personalized weekly recommendations */}
-                {(recos?.recommendations?.length > 0 || recosBusy) && (
-                    <div data-testid="recos-card" className="rounded-2xl bg-gradient-to-br from-[#C3E0A5]/10 via-transparent to-[#57769D]/10 border border-[#C3E0A5]/25 p-5 relative overflow-hidden">
+                <div data-testid="recos-card" className="rounded-2xl bg-gradient-to-br from-[#C3E0A5]/10 via-transparent to-[#57769D]/10 border border-[#C3E0A5]/25 p-5 relative overflow-hidden">
                         <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-[#C3E0A5]/10 rounded-full blur-3xl pointer-events-none" />
                         <div className="flex items-start justify-between gap-3 mb-3 relative">
                             <div className="flex items-center gap-2">
@@ -238,6 +237,21 @@ export default function Workspace() {
                                     <Sparkles className="w-3 h-3 text-[#C3E0A5] animate-pulse" />
                                     Claude يفكّر لأجلك...
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Empty state — recos loaded but zero items */}
+                        {!recosBusy && recos && (!recos.recommendations || recos.recommendations.length === 0) && (
+                            <div className="text-center py-4 relative" data-testid="recos-empty">
+                                <Sparkles className="w-6 h-6 text-[#C3E0A5]/60 mx-auto mb-2" />
+                                <p className="text-xs text-white/60 font-body mb-3">لا توجد توصيات حالياً — ولّد توصيات جديدة الآن.</p>
+                                <button
+                                    data-testid="recos-generate"
+                                    onClick={() => loadRecos(true)}
+                                    className="text-xs bg-[#C3E0A5] text-black font-heading font-bold px-4 py-2 rounded-full hover:bg-[#B0D090] transition"
+                                >
+                                    ولّد توصياتي
+                                </button>
                             </div>
                         )}
 
@@ -280,7 +294,6 @@ export default function Workspace() {
                             </div>
                         )}
                     </div>
-                )}
 
                 {/* Onboarding */}
                 {data.is_new_user && (

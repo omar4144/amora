@@ -1,23 +1,31 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
-import { Users, Video, ShoppingCart, DollarSign, Building2, KanbanSquare } from "lucide-react";
+import { Users, Video, ShoppingCart, DollarSign, Building2, KanbanSquare, Mail } from "lucide-react";
 
-function Stat({ icon: Icon, label, value, sublabel, color = "#D1795F" }) {
+function Stat({ icon: Icon, label, value, sublabel, color = "#D1795F", onClick, testid }) {
     return (
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+        <button
+            type="button"
+            onClick={onClick}
+            data-testid={testid}
+            disabled={!onClick}
+            className={`bg-white/5 border border-white/10 rounded-2xl p-4 text-start transition ${onClick ? "hover:border-white/25 hover:bg-white/[0.07] cursor-pointer" : "cursor-default"}`}
+        >
             <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: `${color}20`, color }}>
                 <Icon className="w-4.5 h-4.5" />
             </div>
             <div className="text-2xl font-black font-heading text-white">{value}</div>
             <div className="text-xs text-white/60 font-body mt-1">{label}</div>
             {sublabel && <div className="text-[10px] text-white/40 font-body mt-1">{sublabel}</div>}
-        </div>
+        </button>
     );
 }
 
 export default function AdminDashboard() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const nav = useNavigate();
 
     useEffect(() => {
         api.get("/admin/dashboard").then((r) => { setData(r.data); setLoading(false); }).catch(() => setLoading(false));
@@ -31,12 +39,20 @@ export default function AdminDashboard() {
             <div>
                 <h3 className="font-heading font-bold text-base mb-3">إحصاءات المنصة</h3>
                 <div className="grid grid-cols-2 gap-3">
-                    <Stat icon={Users} label="المستخدمون" value={data.users.total} sublabel={`${data.users.banned} محظور`} />
+                    <Stat icon={Users} label="المستخدمون" value={data.users.total} sublabel={`${data.users.banned} محظور`} onClick={() => nav("/admin/users")} testid="stat-users" />
                     <Stat icon={DollarSign} label="إجمالي الإيرادات" value={`$${data.business.gross_revenue}`} sublabel={`رسوم $${data.business.platform_fees}`} color="#C3E0A5" />
                     <Stat icon={Video} label="الفيديوهات" value={data.content.videos} color="#57769D" />
                     <Stat icon={ShoppingCart} label="الطلبات" value={data.business.orders_total} sublabel={`${data.business.orders_paid} مدفوعة`} />
+                    <Stat
+                        icon={Mail}
+                        label="تواصل معنا"
+                        value={data.community.leads}
+                        sublabel="اضغط للاطلاع"
+                        color="#D1795F"
+                        onClick={() => nav("/admin/leads")}
+                        testid="stat-leads"
+                    />
                     <Stat icon={Building2} label="المجتمعات" value={data.community.communities} color="#57769D" />
-                    <Stat icon={KanbanSquare} label="مهام ومحتوى" value={data.business.tasks + data.content.content_items} />
                 </div>
             </div>
 

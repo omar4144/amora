@@ -1,15 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Heart, MessageCircle, Share2, ShoppingBag, Play, Sparkles, ChevronLeft, X, Search as SearchIcon, Bell } from "lucide-react";
+import { Heart, MessageCircle, Share2, ShoppingBag, Play, Sparkles, ChevronLeft, X, Search as SearchIcon, Bell, MoreVertical, Trash2 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 
-const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView }) => {
+const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete, currentUserId }) => {
     const videoRef = useRef(null);
     const containerRef = useRef(null);
     const [playing, setPlaying] = useState(false);
     const [muted, setMuted] = useState(true);
+    const [showMenu, setShowMenu] = useState(false);
+    const isOwner = currentUserId && v.creator?.id === currentUserId;
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -130,7 +132,59 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView }) => {
                 >
                     {muted ? "🔇" : "🔊"}
                 </button>
+
+                {isOwner && (
+                    <button
+                        onClick={() => setShowMenu(true)}
+                        data-testid={`video-menu-${v.id}`}
+                        className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition"
+                        title="خيارات الفيديو"
+                    >
+                        <MoreVertical className="w-4 h-4 text-white" />
+                    </button>
+                )}
             </div>
+
+            {/* Owner-only settings sheet */}
+            {showMenu && isOwner && (
+                <div
+                    className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-end justify-center"
+                    onClick={() => setShowMenu(false)}
+                    data-testid={`video-menu-sheet-${v.id}`}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full max-w-md bg-[#0A0A0A] border-t border-white/10 rounded-t-3xl p-5"
+                    >
+                        <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+                        <h3 className="font-heading font-bold text-lg mb-4 text-white">خيارات الفيديو</h3>
+                        <button
+                            data-testid={`delete-video-btn-${v.id}`}
+                            onClick={async () => {
+                                if (!window.confirm("هل تريد حذف هذا الفيديو نهائياً؟")) return;
+                                try {
+                                    await api.delete(`/videos/${v.id}`);
+                                    toast.success("تم حذف الفيديو");
+                                    setShowMenu(false);
+                                    onDelete?.(v.id);
+                                } catch (e) {
+                                    toast.error(e?.response?.data?.detail || "تعذّر حذف الفيديو");
+                                }
+                            }}
+                            className="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 flex items-center gap-3 transition"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                            <span className="font-heading font-bold">حذف الفيديو</span>
+                        </button>
+                        <button
+                            onClick={() => setShowMenu(false)}
+                            className="w-full mt-3 bg-white/5 hover:bg-white/10 text-white rounded-xl px-4 py-3 font-heading font-bold transition"
+                        >
+                            إلغاء
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -283,6 +337,10 @@ export default function Feed() {
         api.post(`/videos/${id}/view`).catch(() => {});
     };
 
+    const handleDelete = (id) => {
+        setVideos((vs) => vs.filter((v) => v.id !== id));
+    };
+
     if (loading) {
         return (
             <div className="h-[100dvh] w-full flex items-center justify-center bg-black text-white">
@@ -332,6 +390,8 @@ export default function Feed() {
                         onView={handleView}
                         onOpenComments={setCommentsFor}
                         onOpenServices={setServicesFor}
+                        onDelete={handleDelete}
+                        currentUserId={user?.id}
                     />
                 ))}
             </div>

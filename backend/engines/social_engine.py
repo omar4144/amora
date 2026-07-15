@@ -54,6 +54,45 @@ async def upload_avatar(file: UploadFile = File(...), user=Depends(current_user)
     return {"avatar_url": avatar_url}
 
 
+@router.get("/users/{username}/followers")
+async def list_followers(username: str, viewer=Depends(optional_user)):
+    """Return the list of users following {username}."""
+    target = await db.users.find_one({"username": username})
+    if not target:
+        raise HTTPException(404, "المستخدم غير موجود")
+    follows = await db.follows.find({"following_id": target["id"]}).sort("created_at", -1).to_list(500)
+    ids = [f["follower_id"] for f in follows]
+    if not ids:
+        return []
+    users = await db.users.find({"id": {"$in": ids}}, {"_id": 0, "password": 0}).to_list(500)
+    # attach is_following flag from viewer
+    if viewer:
+        my_follows = await db.follows.find({"follower_id": viewer["id"], "following_id": {"$in": ids}}).to_list(500)
+        followed_ids = {f["following_id"] for f in my_follows}
+        for u in users:
+            u["is_following"] = u["id"] in followed_ids
+    return users
+
+
+@router.get("/users/{username}/following")
+async def list_following(username: str, viewer=Depends(optional_user)):
+    """Return the list of users that {username} is following."""
+    target = await db.users.find_one({"username": username})
+    if not target:
+        raise HTTPException(404, "المستخدم غير موجود")
+    follows = await db.follows.find({"follower_id": target["id"]}).sort("created_at", -1).to_list(500)
+    ids = [f["following_id"] for f in follows]
+    if not ids:
+        return []
+    users = await db.users.find({"id": {"$in": ids}}, {"_id": 0, "password": 0}).to_list(500)
+    if viewer:
+        my_follows = await db.follows.find({"follower_id": viewer["id"], "following_id": {"$in": ids}}).to_list(500)
+        followed_ids = {f["following_id"] for f in my_follows}
+        for u in users:
+            u["is_following"] = u["id"] in followed_ids
+    return users
+
+
 @router.post("/users/{username}/follow")
 async def follow_user(username: str, user=Depends(current_user)):
     target = await db.users.find_one({"username": username})
@@ -191,6 +230,20 @@ async def like_video(video_id: str, user=Depends(current_user)):
 async def view_video(video_id: str):
     await db.videos.update_one({"id": video_id}, {"$inc": {"views": 1}})
     return {"ok": True}
+
+
+@router.delete("/videos/{video_id}")
+async def delete_video(video_id: str, user=Depends(current_user)):
+    """Owner-only soft delete of a video (cascades likes & comments)."""
+    v = await db.videos.find_one({"id": video_id, "is_deleted": False})
+    if not v:
+        raise HTTPException(404, "الفيديو غير موجود")
+    if v["user_id"] != user["id"] and user.get("role") != "super_admin":
+        raise HTTPException(403, "غير مصرح لك بحذف هذا الفيديو")
+    await db.videos.update_one({"id": video_id}, {"$set": {"is_deleted": True, "deleted_at": now_iso()}})
+    await db.comments.delete_many({"video_id": video_id})
+    await db.likes.delete_many({"video_id": video_id})
+    return {"deleted": True}
 
 
 # ==================== COMMENTS ====================

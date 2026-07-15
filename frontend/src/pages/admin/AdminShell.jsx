@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Shield, History, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Users, Shield, History, ShieldAlert, Mail } from "lucide-react";
 import api from "@/lib/api";
 
 export default function AdminShell() {
@@ -19,6 +19,7 @@ export default function AdminShell() {
     const tabs = [
         { to: "/admin", icon: LayoutDashboard, label: "لوحة التحكم", end: true },
         { to: "/admin/users", icon: Users, label: "المستخدمون" },
+        { to: "/admin/leads", icon: Mail, label: "تواصل معنا" },
         { to: "/admin/audit", icon: History, label: "سجل الأحداث" },
     ];
 

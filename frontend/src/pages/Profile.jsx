@@ -3,7 +3,61 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video, CheckSquare, ShieldAlert } from "lucide-react";
+import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video, CheckSquare, ShieldAlert, X } from "lucide-react";
+
+function FollowListModal({ username, kind, onClose }) {
+    // kind = "followers" | "following"
+    const [users, setUsers] = useState(null);
+    const nav = useNavigate();
+    useEffect(() => {
+        api.get(`/users/${username}/${kind}`)
+            .then((r) => setUsers(r.data))
+            .catch(() => setUsers([]));
+    }, [username, kind]);
+
+    const title = kind === "followers" ? "المتابعون" : "يتابع";
+    return (
+        <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-end justify-center" onClick={onClose}>
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md bg-[#0A0A0A] border-t border-white/10 rounded-t-3xl max-h-[75vh] flex flex-col"
+                data-testid={`follow-list-${kind}`}
+            >
+                <div className="flex items-center justify-between p-4 border-b border-white/10">
+                    <h3 className="font-heading font-black text-lg text-white">{title}</h3>
+                    <button onClick={onClose} data-testid={`close-follow-list-${kind}`} className="p-1.5 rounded-full hover:bg-white/10 transition">
+                        <X className="w-5 h-5 text-white" />
+                    </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3 no-scrollbar">
+                    {users === null && <div className="py-10 text-center text-white/50 text-sm">جارٍ التحميل...</div>}
+                    {users?.length === 0 && (
+                        <div className="py-10 text-center">
+                            <Users className="w-8 h-8 text-white/20 mx-auto mb-2" />
+                            <p className="text-white/50 text-sm">{kind === "followers" ? "لا يوجد متابعون بعد" : "لا يتابع أحداً بعد"}</p>
+                        </div>
+                    )}
+                    {users?.map((u) => (
+                        <button
+                            key={u.id}
+                            data-testid={`follow-item-${u.username}`}
+                            onClick={() => { onClose(); nav(`/u/${u.username}`); }}
+                            className="w-full flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition text-start"
+                        >
+                            <div className="w-10 h-10 rounded-full bg-[#D1795F] flex items-center justify-center text-black font-heading font-black flex-shrink-0">
+                                {u.name?.[0] || "?"}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="font-heading font-bold text-white text-sm truncate">{u.name}</div>
+                                <div className="text-[11px] text-white/50 truncate">@{u.username}</div>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function Profile() {
     const { username } = useParams();
@@ -16,6 +70,7 @@ export default function Profile() {
     const [showAdd, setShowAdd] = useState(false);
     const [svc, setSvc] = useState({ title: "", description: "", price: "", delivery_days: 3 });
     const [earnings, setEarnings] = useState(null);
+    const [followModal, setFollowModal] = useState(null); // "followers" | "following" | null
 
     const load = () => {
         api.get(`/users/${username}`).then((r) => setProfile(r.data));
@@ -58,6 +113,17 @@ export default function Profile() {
         if (!window.confirm("حذف الخدمة؟")) return;
         await api.delete(`/services/${id}`);
         load();
+    };
+
+    const removeVideo = async (id) => {
+        if (!window.confirm("هل تريد حذف هذا الفيديو نهائياً؟")) return;
+        try {
+            await api.delete(`/videos/${id}`);
+            toast.success("تم حذف الفيديو");
+            setVideos((vs) => vs.filter((v) => v.id !== id));
+        } catch (e) {
+            toast.error(e?.response?.data?.detail || "تعذّر حذف الفيديو");
+        }
     };
 
     if (!profile) return <div className="p-8 text-center text-neutral-500">جارٍ التحميل...</div>;
@@ -116,8 +182,22 @@ export default function Profile() {
                 )}
 
                 <div className="flex gap-6 mb-4">
-                    <div><span className="font-heading font-bold text-white">{profile.followers || 0}</span> <span className="text-neutral-500 text-sm">متابع</span></div>
-                    <div><span className="font-heading font-bold text-white">{profile.following || 0}</span> <span className="text-neutral-500 text-sm">يتابع</span></div>
+                    <button
+                        data-testid="open-followers-btn"
+                        onClick={() => setFollowModal("followers")}
+                        className="hover:opacity-80 transition text-start"
+                    >
+                        <span className="font-heading font-bold text-white">{profile.followers || 0}</span>
+                        <span className="text-neutral-500 text-sm mx-1">متابع</span>
+                    </button>
+                    <button
+                        data-testid="open-following-btn"
+                        onClick={() => setFollowModal("following")}
+                        className="hover:opacity-80 transition text-start"
+                    >
+                        <span className="font-heading font-bold text-white">{profile.following || 0}</span>
+                        <span className="text-neutral-500 text-sm mx-1">يتابع</span>
+                    </button>
                     <div><span className="font-heading font-bold text-white">{videos.length}</span> <span className="text-neutral-500 text-sm">فيديو</span></div>
                 </div>
 
@@ -238,9 +318,19 @@ export default function Profile() {
                     <div className="grid grid-cols-3 gap-1">
                         {videos.length === 0 && <div className="col-span-3 py-16 text-center text-neutral-500">لا يوجد فيديوهات</div>}
                         {videos.map((v) => (
-                            <div key={v.id} className="aspect-[9/16] bg-neutral-900 rounded-md overflow-hidden relative" data-testid={`profile-video-${v.id}`}>
+                            <div key={v.id} className="aspect-[9/16] bg-neutral-900 rounded-md overflow-hidden relative group" data-testid={`profile-video-${v.id}`}>
                                 <video src={`${API}/videos/stream/${v.id}`} className="w-full h-full object-cover" muted preload="metadata" />
                                 <div className="absolute bottom-1 start-1 text-xs bg-black/60 px-1.5 py-0.5 rounded text-white">{v.likes || 0} ♥</div>
+                                {isMe && (
+                                    <button
+                                        data-testid={`delete-video-${v.id}`}
+                                        onClick={(e) => { e.stopPropagation(); removeVideo(v.id); }}
+                                        className="absolute top-1 end-1 w-7 h-7 rounded-full bg-black/70 hover:bg-red-500 flex items-center justify-center transition opacity-90"
+                                        title="حذف الفيديو"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5 text-white" />
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -299,6 +389,15 @@ export default function Profile() {
                         </div>
                     </form>
                 </div>
+            )}
+
+            {/* Followers / Following modal */}
+            {followModal && (
+                <FollowListModal
+                    username={profile.username}
+                    kind={followModal}
+                    onClose={() => setFollowModal(null)}
+                />
             )}
         </div>
     );
