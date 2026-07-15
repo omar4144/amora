@@ -1,4 +1,36 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 21 — Phase 3: Booking Engine + WebSockets Realtime (2026-02)
+
+### Delivered
+- **Booking Engine (`booking_engine.py` REWRITTEN)** — Digital Twin for physical spaces:
+  - Full CRUD: `POST/GET/PUT/DELETE /api/booking/spaces` + `GET /booking/my-spaces`.
+  - Meta (categories + amenities): `GET /booking/meta`.
+  - Availability: `GET /booking/spaces/{id}/availability?start=&end=` with overlap detection on `{status:{$in:[confirmed,pending]}}`.
+  - Book flow: `POST /booking/spaces/{id}/book` → creates Stripe checkout session + pre-inserts pending record + logs payment_transaction; validates future-only, end>start, no self-booking, no overlap (double-checked right before Stripe call — race prevention).
+  - Status poll: `GET /booking/status/{sid}` → flips pending→confirmed on paid, increments `bookings_count`, notifies owner.
+  - QR entry pass: `GET /booking/bookings/{id}/qr` (PNG, only for confirmed).
+  - Attendance scan: `POST /booking/bookings/{id}/scan` (owner-only).
+  - Cancel: `POST /booking/bookings/{id}/cancel` (guest or owner; decrements bookings_count if was confirmed).
+- **Realtime Engine (`realtime_engine.py` NEW)** — WebSocket manager:
+  - `WS /api/ws?token=<jwt>` — JWT-authenticated, supports multiple concurrent connections per user_id.
+  - `GET /api/realtime/status` → `{online_users}`.
+  - `ConnectionManager` with asyncio.Lock, dead-socket cleanup, per-user send + broadcast.
+  - `create_notification()` in `core/deps.py` now pushes to WS via `manager.send_to_user()` (best-effort, inline import to avoid circular).
+- **Frontend Booking pages (NEW)**:
+  - `/booking` — browse with category chips + search + owner enrichment.
+  - `/booking/spaces/:id` — space detail + inline booking form + live availability check + total calc + Stripe redirect.
+  - `/booking/my-spaces` — owner dashboard with create/edit/delete modal + booking count.
+  - `/booking/my-bookings` — guest dashboard with status badges + QR download for confirmed bookings.
+  - `/booking/success` — post-payment polling page.
+  - Explore now has `link-booking` tile.
+- **Frontend `RealtimeContext` (NEW)** — auto-connects on login, exponential backoff reconnect (max 30s), subscribe/send API, default toast on `notification` events, cleans up timers on logout.
+
+### Verification (iteration_21.json)
+- Backend: **26/26 pytest PASS** (booking CRUD + full booking flow + QR/cancel/scan + WebSocket connect+auth+ping+notification push) + **21/21 regression PASS** across iteration_19 (onboarding) + iteration_20 (recos).
+- Frontend: **9/9 acceptance points PASS** — booking browse renders, my-spaces create + edit + delete, guest booking flow redirects to real `checkout.stripe.com` URL, WS connects in ~141ms and does ping/pong roundtrip in-browser, all regression pages green (workspace/crm/invoices/pricing/billing/communities/teams/events/explore).
+- Post-report polish applied: (1) reconnect timer cleared on user logout (security), (2) `bookings_count` decrement on cancel (data integrity), (3) 2nd-pass overlap check right before Stripe call (race prevention), (4) dead-click empty-state route fix.
+
+
 ## Iteration 20 — Smart Personalized Recommendations (2026-02)
 
 ### Delivered

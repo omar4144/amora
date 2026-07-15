@@ -55,11 +55,18 @@ export function RealtimeProvider({ children }) {
     }, [user]);
 
     useEffect(() => {
-        if (!user) return;
+        if (!user) {
+            // On logout: cancel any pending reconnect + close any live socket
+            if (reconnectTimerRef.current) { clearTimeout(reconnectTimerRef.current); reconnectTimerRef.current = null; }
+            if (wsRef.current) { try { wsRef.current.close(); } catch { /* ignore */ } wsRef.current = null; }
+            setOnline(false);
+            reconnectAttemptRef.current = 0;
+            return;
+        }
         connect();
         return () => {
-            if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
-            if (wsRef.current) { try { wsRef.current.close(); } catch { /* ignore */ } }
+            if (reconnectTimerRef.current) { clearTimeout(reconnectTimerRef.current); reconnectTimerRef.current = null; }
+            if (wsRef.current) { try { wsRef.current.close(); } catch { /* ignore */ } wsRef.current = null; }
         };
     }, [user, connect]);
 

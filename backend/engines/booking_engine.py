@@ -187,6 +187,10 @@ async def book_space(space_id: str, data: BookingRequest, request: Request, user
     if amount <= 0:
         raise HTTPException(400, "قيمة الحجز صفر")
 
+    # Second-chance overlap check just before creating Stripe session (race prevention)
+    if await _overlap_exists(space_id, data.start_time, data.end_time):
+        raise HTTPException(409, "الوقت محجوز مسبقاً")
+
     # create Stripe checkout
     from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
     host_url = str(request.base_url).rstrip("/")
@@ -341,5 +345,9 @@ async def cancel_booking(booking_id: str, user=Depends(current_user)):
         raise HTTPException(403, "غير مصرح")
     if b["status"] == "cancelled":
         return {"ok": True}
+    was_confirmed = b["status"] == "confirmed"
     await db.space_bookings.update_one({"id": booking_id}, {"$set": {"status": "cancelled", "cancelled_at": now_iso()}})
+    if was_confirmed:
+        # keep bookings_count consistent
+        await db.spaces.update_one({"id": b["space_id"], "bookings_count": {"$gt": 0}}, {"$inc": {"bookings_count": -1}})
     return {"ok": True}

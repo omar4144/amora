@@ -66,7 +66,7 @@ export default function BookingBrowse() {
                 <div className="text-center py-16 border border-dashed border-white/10 rounded-2xl">
                     <div className="text-4xl mb-2 opacity-40">🏛️</div>
                     <div className="text-sm text-white/50 mb-3">{debounced || cat ? "لا نتائج" : "لا توجد مساحات بعد"}</div>
-                    <button onClick={() => nav("/booking/spaces/new")} className="text-xs text-[#D1795F] hover:underline font-heading font-bold">
+                    <button onClick={() => nav("/booking/my-spaces")} className="text-xs text-[#D1795F] hover:underline font-heading font-bold">
                         كن أول من يعرض مساحته →
                     </button>
                 </div>
