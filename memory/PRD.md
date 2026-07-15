@@ -1,4 +1,28 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 24-25 — 5-Bug Batch Fix (Recos / Video Delete / Followers / Contact Admin) (2026-02)
+
+### Delivered
+- **Bug 1: Workspace Recommendations always visible**
+  - `Workspace.jsx`: recos-card is now unconditionally rendered — shows skeleton on load, empty state with `recos-generate` button if API returns 0 items, otherwise the 3 items.
+- **Bug 2: Video Comments confirmed working**
+  - Backend `POST /api/videos/{id}/comments` returns comment + increments count + notifies owner. Frontend `comment-input`+`submit-comment` were already wired; z-index fix (below) made them fully clickable.
+- **Bug 3: Video Settings + Delete for owner**
+  - Backend NEW `DELETE /api/videos/{video_id}` — owner-only (or super_admin) soft delete + cascade removes comments + likes.
+  - Frontend `Feed.jsx` VideoCard: owner-only MoreVertical → sheet with `delete-video-btn-{id}` + confirm; also `Profile.jsx` own-videos grid: `delete-video-{id}` overlay button.
+- **Bug 4: Followers/Following clickable list**
+  - Backend NEW `GET /api/users/{username}/followers` and `GET /api/users/{username}/following` — return enriched user list with `is_following` flag for viewer.
+  - Frontend `Profile.jsx`: `open-followers-btn` / `open-following-btn` open `FollowListModal` — clickable rows navigate to /u/{username}.
+- **Bug 5: Admin "تواصل معنا" (Contact Us) viewer**
+  - Backend NEW `GET /api/admin/leads?status=` (super_admin) + `PUT /api/admin/leads/{id}/status` with 5-state workflow (new / in_review / contacted / won / lost).
+  - Frontend NEW page `/admin/leads` (AdminLeads.jsx) — expandable cards + status filter chips + inline status update + mailto reply. Nav tab `admin-tab-leads` added to AdminShell. Dashboard stat card `stat-leads` now clickable & navigates to /admin/leads.
+- **Follow-up z-index fix** (iter25): Feed.jsx CommentsSheet + ServicesSheet wrappers z-50 → z-[60] (were being intercepted by bottom-nav z-50 — same class of bug fixed for Chat.jsx in iter22).
+
+### Verification (iteration_24.json + iteration_25.json)
+- Backend: **15/15 pytest PASS** — workspace recos, DELETE video owner/admin/403/404/cascade, followers+following+is_following flag, admin/leads GET+filter+PUT status valid/invalid/404/403, cross-user comment regression.
+- Frontend (iter24): admin-tab-leads, admin-leads page + filter chips + lead expansion + status update PUT→200, workspace recos-card (3 items + refresh), open-followers-btn + open-following-btn modals (GET 200), 3× delete-video-{id} buttons on own grid, video-menu-{id} + delete-video-btn-{id} in Feed.
+- Frontend (iter25): CommentsSheet z-[60] verified via computed style — comment-input fillable + submit-comment clickable WITHOUT force=True, POST 200, comment renders in sheet. ServicesSheet also z-[60] — service-item clickable without intercept.
+
+
 ## Iteration 22-23 — Video Thumbnails + Filters + Media in DMs + Disputes (2026-02)
 
 ### Delivered
