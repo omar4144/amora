@@ -38,6 +38,10 @@ import InvoiceDetail from "@/pages/crm/InvoiceDetail";
 import Pricing from "@/pages/Pricing";
 import Billing from "@/pages/Billing";
 import Onboarding from "@/pages/Onboarding";
+import BookingBrowse from "@/pages/booking/BookingBrowse";
+import SpaceDetail from "@/pages/booking/SpaceDetail";
+import { MySpaces, MyBookings, BookingSuccess } from "@/pages/booking/BookingDashboard";
+import { RealtimeProvider } from "@/context/RealtimeContext";
 import ContentShell from "@/pages/content/ContentShell";
 import ContentDashboard from "@/pages/content/ContentDashboard";
 import ContentKanban from "@/pages/content/ContentKanban";
@@ -73,6 +77,7 @@ function App() {
         <div className="App">
             <BrowserRouter>
                 <AuthProvider>
+                    <RealtimeProvider>
                     <Toaster position="top-center" theme="dark" richColors />
                     <Routes>
                         {/* Public agency landing page — full-width, no mobile Layout */}
@@ -144,8 +149,16 @@ function App() {
                                 <Route path="users" element={<AdminUsers />} />
                                 <Route path="audit" element={<AdminAudit />} />
                             </Route>
+
+                            {/* Booking Engine — Digital Twin */}
+                            <Route path="/booking" element={<BookingBrowse />} />
+                            <Route path="/booking/spaces/:id" element={<Protected><SpaceDetail /></Protected>} />
+                            <Route path="/booking/my-spaces" element={<Protected><MySpaces /></Protected>} />
+                            <Route path="/booking/my-bookings" element={<Protected><MyBookings /></Protected>} />
+                            <Route path="/booking/success" element={<Protected><BookingSuccess /></Protected>} />
                         </Route>
                     </Routes>
+                    </RealtimeProvider>
                 </AuthProvider>
             </BrowserRouter>
         </div>

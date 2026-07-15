@@ -125,6 +125,12 @@ def create_token(user_id: str) -> str:
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 
+def decode_token(token: str) -> dict:
+    """Decode a JWT and return the payload. Raises jwt.PyJWTError on failure."""
+    payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    return {"sub": payload.get("user_id"), **payload}
+
+
 async def current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     if not credentials:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -191,7 +197,7 @@ def get_object(path: str):
 async def create_notification(user_id: str, type_: str, text: str, ref_id: str = "", from_user_id: str = ""):
     if user_id == from_user_id:
         return
-    await db.notifications.insert_one({
+    notif = {
         "id": str(uuid.uuid4()),
         "user_id": user_id,
         "type": type_,
@@ -200,7 +206,15 @@ async def create_notification(user_id: str, type_: str, text: str, ref_id: str =
         "from_user_id": from_user_id,
         "seen": False,
         "created_at": now_iso(),
-    })
+    }
+    await db.notifications.insert_one(notif)
+    # Live push via WebSocket (best-effort; ignore if realtime engine not loaded)
+    try:
+        from engines.realtime_engine import manager as _ws
+        notif.pop("_id", None)
+        await _ws.send_to_user(user_id, "notification", notif)
+    except Exception:
+        pass
 
 
 # ==================== CONSTANTS / SEEDS ====================

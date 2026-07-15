@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Link } from "react-router-dom";
-import { Users, TrendingUp, UsersRound, MessageCircle, Sprout, Bot } from "lucide-react";
+import { Users, TrendingUp, UsersRound, MessageCircle, Sprout, Bot, Building2 } from "lucide-react";
 
 export default function Explore() {
     const [creators, setCreators] = useState([]);
@@ -39,6 +39,11 @@ export default function Explore() {
                 <Link to="/events" data-testid="link-events" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
                     <Sprout className="w-8 h-8 text-[#D1795F] mb-2" />
                     <div className="font-heading font-bold">الفعاليات</div>
+                </Link>
+                <Link to="/booking" data-testid="link-booking" className="bg-gradient-to-br from-[#57769D]/25 to-transparent border border-[#57769D]/40 rounded-2xl p-4 hover:border-[#57769D] transition">
+                    <Building2 className="w-8 h-8 text-[#57769D] mb-2" />
+                    <div className="font-heading font-bold">احجز مساحة</div>
+                    <div className="text-[10px] text-neutral-500 mt-1">استوديو، قاعة، مكتب</div>
                 </Link>
                 <Link to="/messages" data-testid="link-messages" className="bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl p-4">
                     <MessageCircle className="w-8 h-8 text-[#D1795F] mb-2" />

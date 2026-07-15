@@ -36,6 +36,7 @@ from engines import (
     workspace_engine,
     invoice_engine,
     billing_engine,
+    realtime_engine,
 )
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -54,6 +55,9 @@ for eng in [
     invoice_engine, billing_engine,
 ]:
     api_router.include_router(eng.router)
+
+# Realtime engine (WebSockets) must be attached to the main app, not api_router (limitations of nested routes)
+app.include_router(realtime_engine.router, prefix="/api")
 
 app.include_router(api_router)
 
