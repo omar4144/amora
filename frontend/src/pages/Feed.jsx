@@ -79,7 +79,7 @@ function SideActions({ v, isOwner, isFollowing, onLike, onComment, onShare, onSa
     const btn = "flex flex-col items-center gap-0.5 group";
 
     return (
-        <div className="absolute end-2 bottom-32 z-20 flex flex-col items-center gap-2.5 pb-2">
+        <div className="absolute end-2 bottom-20 z-20 flex flex-col items-center gap-2.5 pb-2">
             {/* Avatar + follow badge */}
             <div className="relative flex flex-col items-center" data-testid={`side-avatar-${v.id}`}>
                 <Link to={`/u/${v.creator?.username}`} className="active:scale-90 transition">
@@ -191,7 +191,7 @@ function VideoInfo({ v }) {
 
     const hashtags = extractHashtags(v.caption || "");
     return (
-        <div className="absolute start-4 bottom-32 z-10 max-w-[70%] pointer-events-none">
+        <div className="absolute start-4 bottom-44 z-10 max-w-[70%] pointer-events-none">
             <div className="flex items-center gap-1.5 mb-1.5 pointer-events-auto">
                 <Link to={`/u/${c.username}`} className="font-heading font-black text-white text-base drop-shadow-lg hover:underline">
                     @{c.username}
@@ -262,7 +262,7 @@ function CreatorServiceCard({ v, onOrder, onDismiss }) {
     const rating = v.creator?.rating;
     return (
         <div
-            className="absolute inset-x-3 bottom-[88px] z-30 rounded-2xl overflow-hidden animate-slide-up"
+            className="absolute start-3 end-14 bottom-[88px] z-30 rounded-2xl overflow-hidden animate-slide-up"
             data-testid={`service-card-${v.id}`}
             style={{
                 background: "linear-gradient(135deg, rgba(209,121,95,0.95) 0%, rgba(87,118,157,0.95) 100%)",
