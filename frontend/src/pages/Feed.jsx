@@ -5,7 +5,7 @@ import {
     Heart, MessageCircle, Share2, ShoppingBag, Play, Sparkles, ChevronLeft,
     X, Search as SearchIcon, Bell, MoreVertical, Trash2, Flag, HandCoins,
     Bookmark, BookmarkCheck, UserPlus, UserCheck, BadgeCheck, MapPin, Star,
-    Users, TrendingUp, Copy, Send, Music, EyeOff, Zap,
+    Users, TrendingUp, Copy, Send, Music, EyeOff, Zap, Volume2, VolumeX,
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -73,7 +73,7 @@ function FeedTopBar({ tab, onTabChange, user }) {
 // ═══════════════════════════════════════════════════════════════
 // SIDE ACTIONS — 8 vertical buttons on the right
 // ═══════════════════════════════════════════════════════════════
-function SideActions({ v, isOwner, isFollowing, onLike, onComment, onShare, onSave, onHire, onTip, onMore, onFollow, onReport, currentUser }) {
+function SideActions({ v, isOwner, isFollowing, muted, onToggleMute, onLike, onComment, onShare, onSave, onHire, onTip, onMore, onFollow, onReport, currentUser }) {
     const isLiked = v.liked;
     const isSaved = v.saved;
     const btn = "flex flex-col items-center gap-0.5 group";
@@ -123,14 +123,6 @@ function SideActions({ v, isOwner, isFollowing, onLike, onComment, onShare, onSa
                 <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.comments_count || 0)}</span>
             </button>
 
-            {/* Share */}
-            <button onClick={onShare} data-testid={`share-btn-${v.id}`} className={btn}>
-                <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
-                    <Share2 className="w-5 h-5 text-white" strokeWidth={2.2} />
-                </div>
-                <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">مشاركة</span>
-            </button>
-
             {/* Save (bookmark) */}
             {currentUser && (
                 <button onClick={onSave} data-testid={`save-btn-${v.id}`} className={btn}>
@@ -140,6 +132,14 @@ function SideActions({ v, isOwner, isFollowing, onLike, onComment, onShare, onSa
                     <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">حفظ</span>
                 </button>
             )}
+
+            {/* Share */}
+            <button onClick={onShare} data-testid={`share-btn-${v.id}`} className={btn}>
+                <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
+                    <Share2 className="w-5 h-5 text-white" strokeWidth={2.2} />
+                </div>
+                <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">مشاركة</span>
+            </button>
 
             {/* Hire Me (the killer button) */}
             {!isOwner && (
@@ -160,6 +160,13 @@ function SideActions({ v, isOwner, isFollowing, onLike, onComment, onShare, onSa
                     <span className="text-[10px] text-white font-heading font-black drop-shadow-md">ادعم</span>
                 </button>
             )}
+
+            {/* Mute (bottom - compact) */}
+            <button onClick={onToggleMute} data-testid={`mute-btn-${v.id}`} className={btn}>
+                <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
+                    {muted ? <VolumeX className="w-3.5 h-3.5 text-white" /> : <Volume2 className="w-3.5 h-3.5 text-white" />}
+                </div>
+            </button>
 
             {/* More (owner: settings, others: report) */}
             <button onClick={isOwner ? onMore : onReport} data-testid={`more-btn-${v.id}`} className={btn}>
@@ -520,6 +527,8 @@ const VideoCard = ({ v, onLike, onView, onOpenComments, onOpenServices, onDelete
                 isOwner={isOwner}
                 isFollowing={isFollowing}
                 currentUser={currentUser}
+                muted={muted}
+                onToggleMute={(e) => { e.stopPropagation(); setMuted(!muted); }}
                 onLike={(e) => { e.stopPropagation(); if (!currentUser) return nav("/auth"); onLike(v.id); if (navigator.vibrate) navigator.vibrate(10); }}
                 onComment={(e) => { e.stopPropagation(); onOpenComments(v); }}
                 onShare={(e) => { e.stopPropagation(); setShowShare(true); }}
@@ -539,15 +548,6 @@ const VideoCard = ({ v, onLike, onView, onOpenComments, onOpenServices, onDelete
                     onDismiss={(e) => { e.stopPropagation(); setShowCard(false); }}
                 />
             )}
-
-            {/* Mute toggle (small top-right) */}
-            <button
-                onClick={(e) => { e.stopPropagation(); setMuted(!muted); }}
-                data-testid={`mute-btn-${v.id}`}
-                className="absolute top-24 end-3 w-8 h-8 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white text-xs z-20 active:scale-90"
-            >
-                {muted ? "🔇" : "🔊"}
-            </button>
 
             {/* Owner menu sheet */}
             {showOwnerMenu && isOwner && (
