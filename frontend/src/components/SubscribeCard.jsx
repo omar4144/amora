@@ -3,6 +3,7 @@ import { Sparkles, Check, Loader2, Crown, X } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import MoyasarCheckout from "./MoyasarCheckout";
 
 /**
  * Renders the subscribe CTA on a creator's profile.
@@ -14,6 +15,7 @@ export default function SubscribeCard({ creatorUsername, creatorId, isOwner }) {
     const [mySubs, setMySubs] = useState([]);
     const [busy, setBusy] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
+    const [checkoutIntent, setCheckoutIntent] = useState(null);
     const { user } = useAuth();
 
     const loadPlan = () => {
@@ -40,13 +42,7 @@ export default function SubscribeCard({ creatorUsername, creatorId, isOwner }) {
         setBusy(true);
         try {
             const r = await api.post(`/creators/${creatorUsername}/subscribe`, { method: "creditcard" });
-            const url = r.data?.payment?.source?.transaction_url;
-            if (url) {
-                toast.success("جارٍ التحويل لصفحة الدفع...");
-                window.location.href = url;
-            } else {
-                toast.success("تم إنشاء الاشتراك");
-            }
+            setCheckoutIntent(r.data.intent);
         } catch (e) {
             toast.error(e?.response?.data?.detail?.message || e?.response?.data?.detail || "تعذّر إنشاء الاشتراك");
         } finally {
@@ -149,6 +145,14 @@ export default function SubscribeCard({ creatorUsername, creatorId, isOwner }) {
                     existing={plan}
                     onClose={() => setShowEdit(false)}
                     onSaved={() => { setShowEdit(false); loadPlan(); }}
+                />
+            )}
+
+            {checkoutIntent && (
+                <MoyasarCheckout
+                    open
+                    intent={checkoutIntent}
+                    onClose={() => setCheckoutIntent(null)}
                 />
             )}
         </>

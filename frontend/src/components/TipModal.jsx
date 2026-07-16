@@ -41,19 +41,8 @@ export default function TipModal({ creatorUsername, videoId, onClose }) {
                 method,
                 save_card: false,
             });
-            // For live mode: navigate user to Moyasar hosted form via source.transaction_url
-            const payment = r.data.payment;
-            const url = payment?.source?.transaction_url;
-            if (url) {
-                toast.success("جارٍ التحويل لصفحة الدفع الآمنة...");
-                window.location.href = url;
-            } else {
-                // Fallback: show Moyasar form embedded
-                setCheckout({
-                    amount: finalAmount,
-                    description: `إكرامية لـ @${creatorUsername}`,
-                });
-            }
+            // Backend returns an intent — open Moyasar.js checkout to actually collect the card
+            setCheckout({ intent: r.data.intent });
         } catch (e) {
             toast.error(e?.response?.data?.detail?.message || e?.response?.data?.detail || "تعذّر إنشاء الإكرامية");
         } finally {
@@ -177,10 +166,7 @@ export default function TipModal({ creatorUsername, videoId, onClose }) {
                 <MoyasarCheckout
                     open
                     onClose={() => { setCheckout(null); onClose?.(); }}
-                    amountSar={checkout.amount}
-                    description={checkout.description}
-                    callbackUrl={`${window.location.origin}/wallet?tip_success=1`}
-                    methods={[method]}
+                    intent={checkout.intent}
                 />
             )}
         </>

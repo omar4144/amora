@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Loader2, ShieldCheck } from "lucide-react";
-import api from "@/lib/api";
 
-const MOYASAR_JS = "https://cdn.moyasar.com/mpf/1.15.0/mpf.js";
-const MOYASAR_CSS = "https://cdn.moyasar.com/mpf/1.15.0/mpf.css";
+const MOYASAR_JS = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.js";
+const MOYASAR_CSS = "https://cdn.moyasar.com/mpf/1.7.3/moyasar.css";
 
 let _cssLoaded = false;
 let _jsLoading = null;
@@ -30,41 +29,23 @@ function loadMoyasarJs() {
 }
 
 /**
- * Reusable Moyasar checkout drawer.
+ * Renders Moyasar's hosted card form (Moyasar.js) using an intent
+ * returned by our backend. The intent shape is:
+ * {
+ *   amount_halalas, description, publishable_key, callback_url,
+ *   given_id, metadata, methods, save_card?
+ * }
  *
- * Props:
- *   open (bool), onClose ()
- *   amountSar (number)
- *   description (string)
- *   callbackUrl (absolute URL — where Moyasar redirects post-3DS)
- *   methods (["creditcard","applepay","stcpay"])
- *   saveCard (bool) — for subscriptions
- *   title (string)
+ * The card data NEVER touches our servers — Moyasar.js POSTs directly
+ * to Moyasar and redirects the user to `callback_url` after 3-D Secure.
  */
-export default function MoyasarCheckout({
-    open, onClose, amountSar, description, callbackUrl,
-    methods = ["creditcard", "applepay", "stcpay"], saveCard = false, title = "الدفع الآمن",
-}) {
+export default function MoyasarCheckout({ open, onClose, intent }) {
     const formRef = useRef(null);
     const [busy, setBusy] = useState(true);
     const [error, setError] = useState("");
-    const [publishableKey, setPublishableKey] = useState("");
-    const [providerEnabled, setProviderEnabled] = useState(true);
 
-    // Fetch backend config once
     useEffect(() => {
-        if (!open) return;
-        api.get("/moyasar/config")
-            .then((r) => {
-                setPublishableKey(r.data.publishable_key || "");
-                setProviderEnabled(!!r.data.enabled);
-            })
-            .catch(() => setError("تعذّر تحميل بيانات بوّابة الدفع"));
-    }, [open]);
-
-    // Init Moyasar form
-    useEffect(() => {
-        if (!open || !publishableKey || !formRef.current) return;
+        if (!open || !intent || !formRef.current) return;
         let mounted = true;
         setBusy(true);
         setError("");
@@ -76,16 +57,17 @@ export default function MoyasarCheckout({
                 try {
                     window.Moyasar.init({
                         element: formRef.current,
-                        amount: amountSar * 100,
+                        amount: intent.amount_halalas,
                         currency: "SAR",
-                        description,
-                        publishable_api_key: publishableKey,
-                        callback_url: callbackUrl,
-                        methods,
+                        description: intent.description,
+                        publishable_api_key: intent.publishable_key,
+                        callback_url: intent.callback_url,
+                        methods: intent.methods && intent.methods.length ? intent.methods : ["creditcard", "applepay", "stcpay"],
                         supported_networks: ["mada", "visa", "mastercard"],
-                        credit_card: { save_card: saveCard },
+                        credit_card: { save_card: !!intent.save_card },
                         apple_pay: { country: "SA", label: "Amora" },
                         language: "ar",
+                        metadata: { ...(intent.metadata || {}), given_id: intent.given_id },
                         on_completed: () => {},
                     });
                     setBusy(false);
@@ -100,13 +82,15 @@ export default function MoyasarCheckout({
             });
 
         return () => { mounted = false; };
-    }, [open, publishableKey, amountSar, description, callbackUrl, methods, saveCard]);
+    }, [open, intent]);
 
-    if (!open) return null;
+    if (!open || !intent) return null;
+
+    const amountSar = Math.round((intent.amount_halalas || 0) / 100);
 
     return (
         <div
-            className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center"
+            className="fixed inset-0 z-[85] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center"
             onClick={onClose}
             data-testid="moyasar-checkout"
         >
@@ -120,8 +104,8 @@ export default function MoyasarCheckout({
                             <ShieldCheck className="w-4 h-4 text-black" />
                         </div>
                         <div>
-                            <h3 className="font-heading font-black text-base text-white">{title}</h3>
-                            <p className="text-[11px] text-white/50">{amountSar.toLocaleString("ar")} ريال · مدفوع عبر ميسر</p>
+                            <h3 className="font-heading font-black text-base text-white">إتمام الدفع</h3>
+                            <p className="text-[11px] text-white/50">{amountSar.toLocaleString("ar")} ريال · مؤمّن عبر ميسر</p>
                         </div>
                     </div>
                     <button data-testid="close-checkout" onClick={onClose} className="p-1.5 rounded-full hover:bg-white/10 transition">
@@ -129,12 +113,7 @@ export default function MoyasarCheckout({
                     </button>
                 </div>
 
-                {!providerEnabled ? (
-                    <div className="py-10 text-center">
-                        <p className="text-amber-400 text-sm font-body mb-2">بوّابة الدفع في مرحلة الإعداد</p>
-                        <p className="text-white/50 text-xs">سيتم تفعيلها قريباً بواسطة فريق أمورا.</p>
-                    </div>
-                ) : error ? (
+                {error ? (
                     <div className="py-10 text-center">
                         <p className="text-red-400 text-sm">{error}</p>
                     </div>
@@ -143,7 +122,7 @@ export default function MoyasarCheckout({
                         {busy && (
                             <div className="py-8 flex items-center justify-center gap-2 text-white/50 text-sm">
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                جارٍ تحضير النموذج...
+                                جارٍ تحضير نموذج الدفع الآمن...
                             </div>
                         )}
                         <div ref={formRef} className="mysr-form" data-testid="moyasar-form" />

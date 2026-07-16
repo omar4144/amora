@@ -86,6 +86,11 @@ ALLOWED_TIP_AMOUNTS = [5, 10, 25, 50, 100, 200, 500]
 @router.post("/tips")
 @limiter.limit("20/hour")
 async def create_tip(request: Request, payload: TipCreate, user=Depends(current_user)):
+    """
+    Creates a *pending* tip and returns the checkout intent.
+    The actual card charge is handled entirely by Moyasar.js on the client
+    (PCI-compliant). We reconcile via `/api/webhooks/moyasar` using given_id/metadata.
+    """
     if payload.amount_sar not in ALLOWED_TIP_AMOUNTS and payload.amount_sar < 5:
         raise HTTPException(400, "المبلغ خارج النطاق المسموح")
     creator = await db.users.find_one({"username": payload.creator_username})
@@ -95,13 +100,14 @@ async def create_tip(request: Request, payload: TipCreate, user=Depends(current_
         raise HTTPException(400, "لا يمكنك إرسال إكرامية لنفسك")
     if creator.get("is_banned"):
         raise HTTPException(403, "لا يمكن إرسال إكرامية لهذا الحساب")
+    if not MOYASAR_SECRET_KEY:
+        raise HTTPException(503, "خدمة الدفع غير مفعّلة حالياً")
 
     tip_id = str(uuid.uuid4())
     amount_halalas = payload.amount_sar * 100
     platform_fee_halalas = int(amount_halalas * PLATFORM_FEE_PERCENT / 100)
     creator_earnings_halalas = amount_halalas - platform_fee_halalas
 
-    # Record BEFORE calling Moyasar so we can reconcile via webhook
     tip_doc = {
         "id": tip_id,
         "sender_id": user["id"],
@@ -118,26 +124,21 @@ async def create_tip(request: Request, payload: TipCreate, user=Depends(current_
         "created_at": now_iso(),
     }
     await db.tips.insert_one(tip_doc)
-
-    # Create Moyasar payment
-    origin = str(request.headers.get("origin") or request.base_url).rstrip("/")
-    payment = await _moyasar("POST", "/payments", {
-        "amount": amount_halalas,
-        "currency": "SAR",
-        "description": f"إكرامية لـ @{creator['username']}",
-        "callback_url": f"{origin}/tip-success?tip_id={tip_id}",
-        "given_id": tip_id,
-        "metadata": {"tip_id": tip_id, "type": "tip", "creator_id": creator["id"], "sender_id": user["id"]},
-        "source": {"type": payload.method, "save_card": payload.save_card},
-    })
-
-    await db.tips.update_one(
-        {"id": tip_id},
-        {"$set": {"moyasar_payment_id": payment["id"], "status": payment.get("status", "initiated")}}
-    )
-    tip_doc["moyasar_payment_id"] = payment["id"]
     tip_doc.pop("_id", None)
-    return {"tip": tip_doc, "payment": payment}
+
+    origin = str(request.headers.get("origin") or "").rstrip("/") or str(request.base_url).rstrip("/")
+    return {
+        "tip": tip_doc,
+        "intent": {
+            "amount_halalas": amount_halalas,
+            "description": f"إكرامية لـ @{creator['username']}",
+            "publishable_key": MOYASAR_PUBLISHABLE_KEY,
+            "callback_url": f"{origin}/wallet?tip_id={tip_id}",
+            "given_id": tip_id,
+            "metadata": {"tip_id": tip_id, "type": "tip", "creator_id": creator["id"], "sender_id": user["id"]},
+            "methods": [payload.method],
+        },
+    }
 
 
 @router.get("/tips/received")
@@ -213,26 +214,15 @@ async def subscribe_to_creator(username: str, payload: SubscribeCreate, request:
     if not plan:
         raise HTTPException(404, "المبدع لا يقدّم خطة اشتراك حالياً")
 
-    # Prevent duplicate active subscription
     existing = await db.subscriptions.find_one({
         "fan_id": user["id"], "creator_id": creator["id"], "status": {"$in": ["pending", "active"]}
     })
     if existing:
         raise HTTPException(409, "لديك اشتراك قائم مع هذا المبدع")
+    if not MOYASAR_SECRET_KEY:
+        raise HTTPException(503, "خدمة الدفع غير مفعّلة حالياً")
 
     sub_id = str(uuid.uuid4())
-    origin = str(request.headers.get("origin") or request.base_url).rstrip("/")
-
-    payment = await _moyasar("POST", "/payments", {
-        "amount": plan["price_halalas"],
-        "currency": "SAR",
-        "description": f"اشتراك شهري في @{creator['username']}",
-        "callback_url": f"{origin}/subscribe-success?sub_id={sub_id}",
-        "given_id": sub_id,
-        "metadata": {"sub_id": sub_id, "type": "subscription_initial", "creator_id": creator["id"], "fan_id": user["id"], "plan_id": plan["id"]},
-        "source": {"type": payload.method, "save_card": True},
-    })
-
     sub_doc = {
         "id": sub_id,
         "fan_id": user["id"],
@@ -243,8 +233,8 @@ async def subscribe_to_creator(username: str, payload: SubscribeCreate, request:
         "price_sar": plan["price_sar"],
         "price_halalas": plan["price_halalas"],
         "status": "pending",
-        "moyasar_initial_payment_id": payment["id"],
-        "token": None,           # populated on webhook
+        "moyasar_initial_payment_id": None,
+        "token": None,
         "current_period_start": None,
         "current_period_end": None,
         "cancel_at_period_end": False,
@@ -252,7 +242,21 @@ async def subscribe_to_creator(username: str, payload: SubscribeCreate, request:
     }
     await db.subscriptions.insert_one(sub_doc)
     sub_doc.pop("_id", None)
-    return {"subscription": sub_doc, "payment": payment}
+
+    origin = str(request.headers.get("origin") or "").rstrip("/") or str(request.base_url).rstrip("/")
+    return {
+        "subscription": sub_doc,
+        "intent": {
+            "amount_halalas": plan["price_halalas"],
+            "description": f"اشتراك شهري في @{creator['username']}",
+            "publishable_key": MOYASAR_PUBLISHABLE_KEY,
+            "callback_url": f"{origin}/wallet?sub_id={sub_id}",
+            "given_id": sub_id,
+            "metadata": {"sub_id": sub_id, "type": "subscription_initial", "creator_id": creator["id"], "fan_id": user["id"], "plan_id": plan["id"]},
+            "save_card": True,
+            "methods": [payload.method],
+        },
+    }
 
 
 @router.get("/subscriptions/me")
@@ -392,28 +396,53 @@ async def request_payout(request: Request, payload: PayoutRequest, user=Depends(
 # ═══════════════════════════════════════════════════════════════
 # WEBHOOK — source of truth
 # ═══════════════════════════════════════════════════════════════
-def _verify_webhook_signature(raw: bytes, provided: Optional[str]) -> bool:
-    """If secret not set, allow (dev). Otherwise require valid HMAC-SHA256."""
+def _verify_webhook_signature(raw: bytes, request_headers, body_json: dict) -> bool:
+    """
+    Moyasar sends the secret in one of several places depending on config:
+      1. Header  `X-Moyasar-Secret-Token` (or `X-Webhook-Token`)  — plain comparison
+      2. Body    `secret_token` field                            — plain comparison
+      3. Header  `X-Moyasar-Signature`                           — HMAC-SHA256(body, secret) hex
+
+    If MOYASAR_WEBHOOK_SECRET is unset, we accept (dev mode).
+    """
     if not MOYASAR_WEBHOOK_SECRET:
         log.warning("MOYASAR_WEBHOOK_SECRET not set — accepting webhook without verification")
         return True
-    if not provided:
-        return False
-    expected = hmac.new(MOYASAR_WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, provided)
+
+    secret = MOYASAR_WEBHOOK_SECRET
+
+    # 1. Plain token in body
+    body_token = (body_json or {}).get("secret_token")
+    if body_token and hmac.compare_digest(body_token, secret):
+        return True
+
+    # 2. Plain token in header
+    for header_name in ("x-moyasar-secret-token", "x-webhook-token", "x-secret-token"):
+        val = request_headers.get(header_name)
+        if val and hmac.compare_digest(val, secret):
+            return True
+
+    # 3. HMAC-SHA256 signature header
+    sig = request_headers.get("x-moyasar-signature") or request_headers.get("x-signature")
+    if sig:
+        expected = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
+        if hmac.compare_digest(expected, sig):
+            return True
+
+    log.warning("webhook signature verification failed — no matching mechanism")
+    return False
 
 
 @router.post("/webhooks/moyasar")
 async def moyasar_webhook(request: Request):
     raw = await request.body()
-    sig = request.headers.get("x-moyasar-signature") or request.headers.get("x-signature")
-    if not _verify_webhook_signature(raw, sig):
-        raise HTTPException(401, "توقيع غير صالح")
-
     try:
         event = await request.json()
     except Exception:
         raise HTTPException(400, "payload غير صالح")
+
+    if not _verify_webhook_signature(raw, {k.lower(): v for k, v in request.headers.items()}, event):
+        raise HTTPException(401, "توقيع غير صالح")
 
     event_type = event.get("type", "")
     data = event.get("data", {}) or {}

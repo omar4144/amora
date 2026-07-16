@@ -1,0 +1,46 @@
+{
+  "summary": "Iteration 28 — Full end-to-end regression on the refactored Moyasar 'intent-based' PCI-compliant checkout, with LIVE test keys. Backend pytest suite = 21/21 GREEN (config enabled, tip intent, subscribe intent, webhook 3 verification paths, tip credit, idempotency, subscription initial credit, rate limits, Sentry env). Frontend /wallet renders (83.6 SAR available, breakdown rows), /u/crm_tester tip flow opens the tip-modal → submit-tip fires POST /api/tips → moyasar-checkout modal opens; subscribe flow same. FOUND & FIXED critical bug: MoyasarCheckout.jsx was pointing to a non-existent CDN version (mpf/1.15.0/mpf.js — returns 403) causing 'تعذّر الاتصال بميسر' on every checkout. Corrected to 1.7.3/moyasar.{js,css} — payment form now renders (name-on-card, card number, MM/YY, CVC, pay button).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/tips", "issue": "Whitelist validator still uses AND: `payload.amount_sar not in ALLOWED_TIP_AMOUNTS and payload.amount_sar < 5`. Any value ≥5 is accepted regardless of whitelist. Carry-over from iteration 27 — non-blocker but should be OR."},
+      {"endpoint": "/api/webhooks/moyasar", "issue": "MOYASAR_WEBHOOK_SECRET='Omarr187@&' is set, but the older backend.err.log still shows 'MOYASAR_WEBHOOK_SECRET not set — accepting webhook without verification' from a previous restart. After the last reload verification is enforced correctly (missing/wrong secret → 401 as tests confirmed)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "MoyasarCheckout", "issue": "FIXED IN THIS ITERATION — was hard-coded to CDN path 'https://cdn.moyasar.com/mpf/1.15.0/mpf.js' + '.../mpf.css' which return HTTP 403 (version does not exist). Any user hitting the tip/subscribe checkout saw the Arabic 'تعذّر الاتصال بميسر — تحقّق من الإنترنت' error and could NOT pay. Corrected to '/mpf/1.7.3/moyasar.js' + 'moyasar.css' (verified 200 OK, and window.Moyasar.init renders the card form).", "selector": "[data-testid=moyasar-form]", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration28_moyasar_live.py",
+    "/app/test_reports/pytest/iteration28_results.xml"
+  ],
+  "action_items": [
+    "Confirm the CDN URL 1.7.3 is acceptable, or pin to whichever Moyasar-blessed version you prefer (1.15.0 is not published). Also verify Apple Pay + STC Pay methods with the newer JS — this test only exercised the creditcard path since methods=[payload.method] in the intent means the modal only shows the selected method. If you want to always show all 3, change intent.methods to intent.methods that were negotiated with the user pre-checkout or just pass all 3.",
+    "(Carry-over) Fix tip amount validator in engines/moyasar_engine.py:94 — change 'and' to 'or' or remove ALLOWED_TIP_AMOUNTS.",
+    "Consider setting `MOYASAR_STRICT=1` env flag so backend refuses to boot when WEBHOOK_SECRET is unset in prod (currently the code accepts unsigned webhooks silently in that case, which is dangerous)."
+  ],
+  "critical_code_review_comments": [
+    "MoyasarCheckout.jsx: passing prop `publishable_api_key` — both `api_key` and `publishable_api_key` appear inside moyasar.js v1.7.3 source, and the form did render, but the docs canonically use `publishable_api_key` for CoT-style hosted forms; confirm no console warnings in the wild.",
+    "Backend intent.methods = [payload.method] means the Moyasar form only offers the single method the user pre-selected. This is intentional but note that Apple Pay UX inside Moyasar.js requires domain association files; verify with Moyasar dashboard.",
+    "moyasar_engine.subscribe_to_creator: pending subscription doc is now correctly inserted BEFORE any external call (iteration 27 minor issue is resolved because there is no external call anymore).",
+    "server.py Sentry init is conditional on SENTRY_DSN — good. No sensitive PII sent by default."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration28_moyasar_live.py",
+    "/app/frontend/src/components/MoyasarCheckout.jsx"
+  ],
+  "success_rate": {
+    "backend": "100% (21/21 pytest)",
+    "frontend": "100% after CDN fix — /wallet renders, /u/crm_tester tip-profile-btn opens tip-modal (6 amounts + custom + 3 methods + submit-tip), clicking submit-tip → POST /api/tips 200 → moyasar-checkout modal opens with correct amount + description, Moyasar.js v1.7.3 attaches to moyasar-form (3 child nodes, name/card/mm-yy/cvc/pay-button visible). Subscribe flow identical (49 SAR)."
+  },
+  "test_credentials": "super_admin: crm@test.com / testpass123 (username=crm_tester); test users TEST_it28_*, TEST_uifan* created during testing",
+  "seed_data_creation": "Reset/ensured crm_tester plan (49 SAR, 'اشتراك مميز', 2 perks). Created several TEST_it28_ and TEST_uifan_ users. Fired paid tip + subscription_initial webhooks against crm_tester to lift breakdown.tips_sar and subscriptions_sar. crm_tester wallet now shows 83.6 SAR available (292.5 tips gross + 44.1 subs − 253 reserved for pending payouts).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The frontend MoyasarCheckout.jsx CDN pin is now 1.7.3. If Moyasar releases 1.7.4+ and the current one 403s, bump to the new version. window.Moyasar.init is called with `publishable_api_key` — v1.7.3 accepts both this and `api_key`. Real Moyasar test keys are live: pk_test_zEefm..., sk_test_4SDT... — do NOT complete a real 3-D-Secure card transaction from automated tests (test cards can leave dangling PaymentIntents). Webhook secret is literally 'Omarr187@&' — test asserts hmac.compare_digest works with all three verification methods.",
+  "rca of the issue": "MoyasarCheckout.jsx was hard-coded to a Moyasar CDN version that does not exist ('mpf/1.15.0/mpf.js' & '.../mpf.css' → CloudFront 403). The main agent likely typo'd or hallucinated the version. Reproduction: any user clicking submit-tip or subscribe-btn saw the Arabic error 'تعذّر الاتصال بميسر — تحقّق من الإنترنت' — the loadMoyasarJs() promise rejected because script.onerror fired on the 403 response. Mitigation: changed both constants to '1.7.3/moyasar.js' and '1.7.3/moyasar.css' (verified 200 OK via curl). After fix, window.Moyasar becomes defined, Moyasar.init injects the card form into [data-testid=moyasar-form] (3 child nodes), and the pay button reads '25 ريال سعودي' as expected."
+}
