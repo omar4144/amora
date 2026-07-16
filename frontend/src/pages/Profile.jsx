@@ -3,8 +3,10 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video, CheckSquare, ShieldAlert, X, Flag, UserX, MoreVertical } from "lucide-react";
+import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video, CheckSquare, ShieldAlert, X, Flag, UserX, MoreVertical, HandCoins } from "lucide-react";
 import ReportModal from "@/components/ReportModal";
+import TipModal from "@/components/TipModal";
+import SubscribeCard from "@/components/SubscribeCard";
 
 function FollowListModal({ username, kind, onClose }) {
     // kind = "followers" | "following"
@@ -73,6 +75,7 @@ export default function Profile() {
     const [earnings, setEarnings] = useState(null);
     const [followModal, setFollowModal] = useState(null); // "followers" | "following" | null
     const [showReport, setShowReport] = useState(false);
+    const [showTip, setShowTip] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [isBlocked, setIsBlocked] = useState(false);
 
@@ -242,13 +245,22 @@ export default function Profile() {
                         >
                             {profile.is_following ? "أتابعه" : "متابعة"}
                         </button>
+                        {me && (
+                            <button
+                                onClick={() => setShowTip(true)}
+                                data-testid="tip-profile-btn"
+                                className="px-4 rounded-full py-3 font-heading font-bold bg-gradient-to-br from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white transition flex items-center gap-1"
+                                title="ادعم بإكرامية"
+                            >
+                                <HandCoins className="w-4 h-4" />
+                            </button>
+                        )}
                         <button
                             onClick={() => me ? navigate(`/messages/${profile.username}`) : navigate("/auth")}
                             data-testid="message-btn"
-                            className="px-5 rounded-full py-3 font-heading font-bold bg-white/10 hover:bg-white/20 transition flex items-center gap-1"
+                            className="px-4 rounded-full py-3 font-heading font-bold bg-white/10 hover:bg-white/20 transition flex items-center gap-1"
                         >
                             <MessageCircle className="w-4 h-4" />
-                            رسالة
                         </button>
                         {me && (
                             <button
@@ -262,6 +274,15 @@ export default function Profile() {
                         )}
                     </div>
                 )}
+
+                {/* Subscribe / Set-plan CTA — visible to both owner and fans */}
+                <div className="mt-3">
+                    <SubscribeCard
+                        creatorUsername={profile.username}
+                        creatorId={profile.id}
+                        isOwner={isMe}
+                    />
+                </div>
 
                 {isMe && me?.role === "super_admin" && (
                     <button
@@ -316,10 +337,17 @@ export default function Profile() {
                 )}
 
                 {isMe && earnings && (
-                    <div className="mt-3 bg-gradient-to-br from-[#D1795F]/10 to-transparent border border-[#D1795F]/30 rounded-2xl p-4" data-testid="earnings-card">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Wallet className="w-4 h-4 text-[#D1795F]" />
-                            <span className="text-xs text-neutral-400 font-heading font-bold">لوحة الأرباح</span>
+                    <button
+                        data-testid="open-wallet-btn"
+                        onClick={() => navigate("/wallet")}
+                        className="mt-3 w-full text-start bg-gradient-to-br from-[#D1795F]/10 to-transparent border border-[#D1795F]/30 rounded-2xl p-4 hover:border-[#D1795F]/50 transition group"
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <Wallet className="w-4 h-4 text-[#D1795F]" />
+                                <span className="text-xs text-neutral-400 font-heading font-bold">المحفظة والأرباح</span>
+                            </div>
+                            <ArrowLeft className="w-3.5 h-3.5 text-[#D1795F] rotate-180 group-hover:translate-x-[-2px] transition" />
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-center">
                             <div>
@@ -335,8 +363,8 @@ export default function Profile() {
                                 <div className="text-[10px] text-neutral-500">طلبات مدفوعة</div>
                             </div>
                         </div>
-                        <div className="text-[10px] text-neutral-500 mt-2 text-center">عمولة المنصة {earnings.platform_fee_percent}%</div>
-                    </div>
+                        <div className="text-[10px] text-neutral-500 mt-2 text-center">عمولة المنصة {earnings.platform_fee_percent}% · اضغط لعرض المحفظة</div>
+                    </button>
                 )}
             </div>
 
@@ -490,6 +518,13 @@ export default function Profile() {
                     targetId={profile.id}
                     targetLabel={`مستخدم: @${profile.username}`}
                     onClose={() => setShowReport(false)}
+                />
+            )}
+
+            {showTip && !isMe && (
+                <TipModal
+                    creatorUsername={profile.username}
+                    onClose={() => setShowTip(false)}
                 />
             )}
         </div>

@@ -3,8 +3,12 @@ Amora Core — main FastAPI orchestrator.
 Composed of 14 independent Engines under `engines/`.
 Shared infrastructure lives in `core/`.
 """
+import os
 import uuid
 import logging
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
@@ -16,6 +20,21 @@ from core.deps import (
     COMMUNITIES_SEED, init_storage,
 )
 from core.security_utils import limiter
+
+# ═══════════════════════════════════════════════════════════════
+# SENTRY — safe no-op when SENTRY_DSN is unset
+# ═══════════════════════════════════════════════════════════════
+_SENTRY_DSN = os.environ.get("SENTRY_DSN", "").strip()
+if _SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=_SENTRY_DSN,
+        environment=os.environ.get("SENTRY_ENV", "production"),
+        release=os.environ.get("SENTRY_RELEASE", "amora@2.0.0"),
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_RATE", "0.1")),
+        send_default_pii=False,
+        integrations=[FastApiIntegration(transaction_style="endpoint"), StarletteIntegration()],
+    )
+    logging.getLogger("sentry").info("Sentry initialised")
 
 # ==================== Engines ====================
 from engines import (
@@ -43,6 +62,7 @@ from engines import (
     realtime_engine,
     disputes_engine,
     moderation_engine,
+    moyasar_engine,
 )
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -61,6 +81,7 @@ for eng in [
     crm_engine, admin_engine, analytics_engine,
     content_engine, tasks_engine, booking_engine, workspace_engine,
     invoice_engine, billing_engine, disputes_engine, moderation_engine,
+    moyasar_engine,
 ]:
     api_router.include_router(eng.router)
 

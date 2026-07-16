@@ -64,6 +64,7 @@ import AdminReports from "@/pages/admin/AdminReports";
 import Terms from "@/pages/legal/Terms";
 import Privacy from "@/pages/legal/Privacy";
 import Refund from "@/pages/legal/Refund";
+import Wallet from "@/pages/Wallet";
 import Workspace from "@/pages/Workspace";
 
 const Protected = ({ children }) => {
@@ -103,6 +104,7 @@ function App() {
                             <Route path="/explore" element={<Explore />} />
                             <Route path="/upload" element={<Protected><Upload /></Protected>} />
                             <Route path="/orders" element={<Protected><Orders /></Protected>} />
+                            <Route path="/wallet" element={<Protected><Wallet /></Protected>} />
                             <Route path="/profile/edit" element={<Protected><EditProfile /></Protected>} />
                             <Route path="/u/:username" element={<Profile />} />
                             <Route path="/service/:id" element={<ServiceDetail />} />

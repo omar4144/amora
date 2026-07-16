@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Heart, MessageCircle, Share2, ShoppingBag, Play, Sparkles, ChevronLeft, X, Search as SearchIcon, Bell, MoreVertical, Trash2, Flag } from "lucide-react";
+import { Heart, MessageCircle, Share2, ShoppingBag, Play, Sparkles, ChevronLeft, X, Search as SearchIcon, Bell, MoreVertical, Trash2, Flag, HandCoins } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import ReportModal from "@/components/ReportModal";
+import TipModal from "@/components/TipModal";
 
 const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete, currentUserId }) => {
     const videoRef = useRef(null);
@@ -13,6 +14,7 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete
     const [muted, setMuted] = useState(true);
     const [showMenu, setShowMenu] = useState(false);
     const [showReport, setShowReport] = useState(false);
+    const [showTip, setShowTip] = useState(false);
     const isOwner = currentUserId && v.creator?.id === currentUserId;
 
     useEffect(() => {
@@ -127,6 +129,19 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete
                     <span className="text-xs text-white font-body font-bold">اطلب</span>
                 </button>
 
+                {!isOwner && currentUserId && (
+                    <button
+                        onClick={() => setShowTip(true)}
+                        data-testid={`tip-btn-${v.id}`}
+                        className="flex flex-col items-center gap-1"
+                    >
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center hover:from-red-600 hover:to-pink-600 transition active:scale-95 shadow-lg shadow-red-500/30">
+                            <HandCoins className="w-6 h-6 text-white" strokeWidth={2.2} />
+                        </div>
+                        <span className="text-xs text-white font-body font-bold">ادعم</span>
+                    </button>
+                )}
+
                 <button
                     onClick={() => setMuted(!muted)}
                     data-testid={`mute-btn-${v.id}`}
@@ -203,6 +218,14 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete
                     targetId={v.id}
                     targetLabel={v.caption ? `فيديو: ${v.caption.slice(0, 40)}...` : "فيديو"}
                     onClose={() => setShowReport(false)}
+                />
+            )}
+
+            {showTip && v.creator?.username && (
+                <TipModal
+                    creatorUsername={v.creator.username}
+                    videoId={v.id}
+                    onClose={() => setShowTip(false)}
                 />
             )}
         </div>
