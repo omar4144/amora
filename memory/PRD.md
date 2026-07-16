@@ -1,4 +1,34 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 28 — Moyasar Live-Keys Wired + PCI-Compliant Intent Flow + Sentry Active (2026-02)
+
+### Delivered
+- **Moyasar TEST keys wired** into `.env`:
+  - `MOYASAR_PUBLISHABLE_KEY=pk_test_zEefm8dTVdHMeDSGSuwFwD5Y4uJzkyLXbYsSwFof`
+  - `MOYASAR_SECRET_KEY=sk_test_...` (server-side only)
+  - `MOYASAR_WEBHOOK_SECRET=Omarr187@&`
+  - `SENTRY_DSN` — active + verified test event delivered
+- **REFACTORED `/api/tips` and `/api/creators/{u}/subscribe` to PCI-compliant intent pattern:**
+  - Backend creates the pending `tips` / `subscriptions` row, returns a `{intent}` object (amount_halalas, publishable_key, callback_url, given_id, metadata, methods).
+  - Card data NEVER touches our servers — Moyasar.js on frontend collects & POSTs directly to Moyasar.
+  - Reconciliation happens via `/api/webhooks/moyasar`.
+- **Webhook verification hardened** — accepts 3 mechanisms (Moyasar's docs vary by version):
+  1. `X-Moyasar-Secret-Token` header (plain compare)
+  2. `secret_token` field in body (plain compare)
+  3. `X-Moyasar-Signature` header (HMAC-SHA256 of raw body)
+  All use `hmac.compare_digest` (constant-time). Missing/wrong → 401.
+- **Frontend `MoyasarCheckout.jsx`** — takes an `intent` prop, loads Moyasar.js CDN, renders the hosted card form (Arabic language, mada/visa/mastercard, Apple Pay, STC Pay). CDN version corrected to `mpf/1.7.3/moyasar.{js,css}` (1.15.0 was 403).
+- **`TipModal.jsx`** and **`SubscribeCard.jsx`** now open `MoyasarCheckout` with the backend-issued intent.
+
+### Verification (iteration_28.json)
+- **Backend pytest: 21/21 GREEN** — config, tip intent, subscribe intent (with plan required, duplicate 409, self-sub 400), webhook 3 verification paths, webhook idempotency (double-send doesn't double-credit), subscription initial credits `wallet_ledger` with 90% earnings, rate limits (`/tips` 20/hour, `/wallet/payout` 5/hour), Sentry env active.
+- **Frontend E2E**: `/wallet` renders with 83.6 SAR from earlier test data, breakdown rows visible; `/u/crm_tester` tip flow opens tip-modal → submit-tip → moyasar-checkout modal → Moyasar's hosted form renders (name/card/expiry/CVC/pay button); same for subscribe flow with save_card=true.
+
+### Status
+- 🟢 **Backend fully operational** with real Moyasar test keys.
+- 🟢 **Frontend fully operational** — user can enter real test cards.
+- 🟢 **Sentry active** — errors from production reach dashboard.
+- ⚠️ **Moyasar Payouts endpoint** — creates DB records only. Once user activates Payouts service in Moyasar dashboard, we'll wire the actual /v1/payouts API call (or handle manually until then).
+
 ## Iteration 27 — Monetization Pack v1 (Moyasar) + Sentry Hooks (2026-02)
 
 ### Delivered — Full Creator Economy Loop
