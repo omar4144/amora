@@ -1,4 +1,31 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 27 — Monetization Pack v1 (Moyasar) + Sentry Hooks (2026-02)
+
+### Delivered — Full Creator Economy Loop
+- **Moyasar Engine** (NEW `/app/backend/engines/moyasar_engine.py`, 19 endpoints)
+  - `GET /moyasar/config` — publishable key + methods (creditcard/applepay/stcpay) + platform_fee
+  - **Tips (إكراميات)**: `POST /tips` (5-5000 SAR, 6 quick amounts, custom, 280-char msg), `GET /tips/received`, `GET /tips/sent`. Records in `db.tips` BEFORE Moyasar call (idempotent reconciliation).
+  - **Creator Subscriptions**: `PUT /creators/me/subscription-plan` (price, title, up to 8 perks, active flag), `GET /creators/{u}/subscription-plan`, `POST /creators/{u}/subscribe` (creates pending sub + Moyasar payment with save_card=true), `GET /subscriptions/me`, `GET /subscriptions/subscribers`, `DELETE /subscriptions/{id}` (cancel_at_period_end).
+  - **Wallet**: `GET /wallet` — aggregated balance (tips + subscriptions ledger + orders − reserved payouts) with 3-way breakdown. `POST /wallet/payout` — Saudi IBAN validation (SA prefix, 15+ chars, 50 SAR min, rate-limited 5/hour).
+  - **Webhook**: `POST /webhooks/moyasar` — HMAC-SHA256 signature verification (permissive when secret empty for dev), stores raw events in `db.moyasar_events`, cascades to `_handle_tip_event` / `_handle_subscription_initial` / `_handle_subscription_renewal`. Idempotent (skips if already paid).
+- **Sentry Integration** (`server.py`) — `sentry_sdk.init` with FastAPI + Starlette integrations, safe no-op when `SENTRY_DSN` empty. Traces sample 10%. Ready to activate on DSN provision.
+- **Frontend Wallet page** `/app/frontend/src/pages/Wallet.jsx` — gradient hero balance + 3 breakdown rows + payout button (disabled < 50 SAR) + payouts history with 4-state badges + PayoutModal with IBAN + beneficiary + mobile + city.
+- **TipModal** — 6 quick amounts + custom + 3 methods + 280-char message + gradient CTA.
+- **SubscribeCard** — dual-mode (fan sees subscribe / creator sees edit), gradient purple/pink, perk checklist. PlanEditModal with title + price + up to 8 perks + active toggle.
+- **Feed integration** — HandCoins "ادعم" button on every non-owner video → TipModal.
+- **Profile integration** — 3-button row (Follow + Tip HandCoins + Message + Menu) + SubscribeCard inline + earnings card now clickable button `open-wallet-btn` navigating to /wallet.
+- **App.js** — new `/wallet` protected route.
+- **.env** — Moyasar keys (`MOYASAR_PUBLISHABLE_KEY=pk_live_...`, secret+webhook empty pending user), Sentry DSN empty. Zero-DSN-safe.
+
+### Verification (iteration_27.json)
+- **Backend pytest: 29/29 GREEN** — config, plan CRUD, wallet aggregation, payout validation (IBAN/amount/balance), tip creation (self-tip 400, valid → creates pending row even though external returns 503), subscription creation flows, webhook idempotency, rate limits, health with Sentry hook.
+- **Frontend E2E**: /wallet page renders + all 3 breakdown rows + payout button state; TipModal on Feed non-owner videos + Profile non-owner header; SubscribeCard on creator with plan; PlanEditModal for owner without plan; payout modal validation.
+
+### Blockers for full activation (user side)
+- ⚠️ **MOYASAR_SECRET_KEY empty** — user needs to send test-mode `sk_test_...` from Moyasar dashboard
+- ⚠️ **MOYASAR_WEBHOOK_SECRET empty** — user needs to activate webhook in Moyasar dashboard and share the Shared Secret
+- ⚠️ **SENTRY_DSN empty** — pending user's DSN from sentry.io
+
 ## Iteration 26 — P0 Launch Blockers (2026-02)
 
 ### Delivered — Security · Compliance · Legal · Moderation
