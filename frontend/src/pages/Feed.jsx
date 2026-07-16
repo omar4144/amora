@@ -76,14 +76,14 @@ function FeedTopBar({ tab, onTabChange, user }) {
 function SideActions({ v, isOwner, isFollowing, onLike, onComment, onShare, onSave, onHire, onTip, onMore, onFollow, onReport, currentUser }) {
     const isLiked = v.liked;
     const isSaved = v.saved;
-    const btn = "flex flex-col items-center gap-1 group";
+    const btn = "flex flex-col items-center gap-0.5 group";
 
     return (
-        <div className="absolute end-2.5 bottom-32 z-20 flex flex-col items-center gap-4 pb-2">
+        <div className="absolute end-2 bottom-32 z-20 flex flex-col items-center gap-2.5 pb-2">
             {/* Avatar + follow badge */}
             <div className="relative flex flex-col items-center" data-testid={`side-avatar-${v.id}`}>
                 <Link to={`/u/${v.creator?.username}`} className="active:scale-90 transition">
-                    <div className="w-11 h-11 rounded-full bg-[#D1795F] flex items-center justify-center text-black font-heading font-black text-base ring-2 ring-white/30 overflow-hidden shadow-lg">
+                    <div className="w-9 h-9 rounded-full bg-[#D1795F] flex items-center justify-center text-black font-heading font-black text-sm ring-2 ring-white/30 overflow-hidden shadow-lg">
                         {v.creator?.avatar_url ? (
                             <img src={v.creator.avatar_url} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -95,57 +95,57 @@ function SideActions({ v, isOwner, isFollowing, onLike, onComment, onShare, onSa
                     <button
                         onClick={onFollow}
                         data-testid={`follow-side-${v.id}`}
-                        className="absolute -bottom-1.5 w-5 h-5 rounded-full bg-[#D1795F] hover:bg-[#B86648] flex items-center justify-center border-2 border-black transition active:scale-90"
+                        className="absolute -bottom-1.5 w-4 h-4 rounded-full bg-[#D1795F] hover:bg-[#B86648] flex items-center justify-center border-2 border-black transition active:scale-90"
                     >
-                        <UserPlus className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                        <UserPlus className="w-2 h-2 text-white" strokeWidth={3} />
                     </button>
                 )}
                 {isFollowing && (
-                    <div className="absolute -bottom-1.5 w-5 h-5 rounded-full bg-[#C3E0A5] flex items-center justify-center border-2 border-black">
-                        <UserCheck className="w-2.5 h-2.5 text-black" strokeWidth={3} />
+                    <div className="absolute -bottom-1.5 w-4 h-4 rounded-full bg-[#C3E0A5] flex items-center justify-center border-2 border-black">
+                        <UserCheck className="w-2 h-2 text-black" strokeWidth={3} />
                     </div>
                 )}
             </div>
 
             {/* Like */}
             <button onClick={onLike} data-testid={`like-btn-${v.id}`} className={btn}>
-                <div className={`w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60 ${isLiked ? "shadow-lg shadow-red-500/40" : ""}`}>
-                    <Heart className={`w-6 h-6 transition ${isLiked ? "fill-red-500 text-red-500 scale-110" : "text-white"}`} strokeWidth={2.2} />
+                <div className={`w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60 ${isLiked ? "shadow-md shadow-red-500/40" : ""}`}>
+                    <Heart className={`w-5 h-5 transition ${isLiked ? "fill-red-500 text-red-500 scale-110" : "text-white"}`} strokeWidth={2.2} />
                 </div>
-                <span className="text-[11px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.likes || 0)}</span>
+                <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.likes || 0)}</span>
             </button>
 
             {/* Comments */}
             <button onClick={onComment} data-testid={`comment-btn-${v.id}`} className={btn}>
-                <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
-                    <MessageCircle className="w-6 h-6 text-white" strokeWidth={2.2} />
+                <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
+                    <MessageCircle className="w-5 h-5 text-white" strokeWidth={2.2} />
                 </div>
-                <span className="text-[11px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.comments_count || 0)}</span>
+                <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.comments_count || 0)}</span>
             </button>
 
             {/* Share */}
             <button onClick={onShare} data-testid={`share-btn-${v.id}`} className={btn}>
-                <div className="w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
-                    <Share2 className="w-6 h-6 text-white" strokeWidth={2.2} />
+                <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
+                    <Share2 className="w-5 h-5 text-white" strokeWidth={2.2} />
                 </div>
-                <span className="text-[11px] text-white font-heading font-bold drop-shadow-md">مشاركة</span>
+                <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">مشاركة</span>
             </button>
 
             {/* Save (bookmark) */}
             {currentUser && (
                 <button onClick={onSave} data-testid={`save-btn-${v.id}`} className={btn}>
-                    <div className={`w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60 ${isSaved ? "shadow-lg shadow-amber-400/40" : ""}`}>
-                        {isSaved ? <BookmarkCheck className="w-6 h-6 fill-amber-400 text-amber-400" strokeWidth={2.2} /> : <Bookmark className="w-6 h-6 text-white" strokeWidth={2.2} />}
+                    <div className={`w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60 ${isSaved ? "shadow-md shadow-amber-400/40" : ""}`}>
+                        {isSaved ? <BookmarkCheck className="w-5 h-5 fill-amber-400 text-amber-400" strokeWidth={2.2} /> : <Bookmark className="w-5 h-5 text-white" strokeWidth={2.2} />}
                     </div>
-                    <span className="text-[11px] text-white font-heading font-bold drop-shadow-md">حفظ</span>
+                    <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">حفظ</span>
                 </button>
             )}
 
             {/* Hire Me (the killer button) */}
             {!isOwner && (
                 <button onClick={onHire} data-testid={`hire-btn-${v.id}`} className={btn}>
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#D1795F] to-[#C3E0A5] flex items-center justify-center transition active:scale-75 shadow-lg shadow-[#D1795F]/40">
-                        <ShoppingBag className="w-5 h-5 text-black" strokeWidth={2.8} />
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#D1795F] to-[#C3E0A5] flex items-center justify-center transition active:scale-75 shadow-md shadow-[#D1795F]/40">
+                        <ShoppingBag className="w-4 h-4 text-black" strokeWidth={2.8} />
                     </div>
                     <span className="text-[10px] text-white font-heading font-black drop-shadow-md">وظّفني</span>
                 </button>
@@ -154,8 +154,8 @@ function SideActions({ v, isOwner, isFollowing, onLike, onComment, onShare, onSa
             {/* Tip */}
             {!isOwner && currentUser && (
                 <button onClick={onTip} data-testid={`tip-btn-${v.id}`} className={btn}>
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center transition active:scale-75 shadow-lg shadow-red-500/40">
-                        <HandCoins className="w-5 h-5 text-white" strokeWidth={2.6} />
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center transition active:scale-75 shadow-md shadow-red-500/40">
+                        <HandCoins className="w-4 h-4 text-white" strokeWidth={2.6} />
                     </div>
                     <span className="text-[10px] text-white font-heading font-black drop-shadow-md">ادعم</span>
                 </button>
@@ -163,8 +163,8 @@ function SideActions({ v, isOwner, isFollowing, onLike, onComment, onShare, onSa
 
             {/* More (owner: settings, others: report) */}
             <button onClick={isOwner ? onMore : onReport} data-testid={`more-btn-${v.id}`} className={btn}>
-                <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
-                    {isOwner ? <MoreVertical className="w-4 h-4 text-white" /> : <Flag className="w-4 h-4 text-white" />}
+                <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
+                    {isOwner ? <MoreVertical className="w-3.5 h-3.5 text-white" /> : <Flag className="w-3.5 h-3.5 text-white" />}
                 </div>
             </button>
         </div>
