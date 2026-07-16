@@ -106,29 +106,24 @@ async def send_message(username: str, data: MessageCreate, user=Depends(current_
 # ==================== MEDIA UPLOAD FOR DMs ====================
 @router.post("/messages/media")
 async def upload_message_media(file: UploadFile = File(...), user=Depends(current_user)):
-    """Upload media (image/video/file) for a DM. Returns {media_url, media_type} to be sent via /messages/with/{u}."""
+    """Upload media (image/video/file) for a DM. Magic-bytes validated. Returns {media_url, media_type}."""
+    from core.security_utils import validate_media_bytes
     ext = (file.filename.rsplit(".", 1)[-1] if "." in (file.filename or "") else "bin").lower()
-    ct = (file.content_type or "").lower()
-    if ct.startswith("image/"):
-        media_type = "image"
-        if ext not in ["jpg", "jpeg", "png", "webp", "gif"]:
-            raise HTTPException(400, "صيغة الصورة غير مدعومة")
-        max_size = 10 * 1024 * 1024
-    elif ct.startswith("video/"):
-        media_type = "video"
-        if ext not in ["mp4", "mov", "webm", "m4v"]:
-            raise HTTPException(400, "صيغة الفيديو غير مدعومة")
-        max_size = 50 * 1024 * 1024
-    else:
-        media_type = "file"
-        if ext in ["exe", "sh", "bat", "cmd", "js", "php"]:
-            raise HTTPException(400, "نوع الملف غير مسموح")
-        max_size = 20 * 1024 * 1024
+    # cheap extension deny-list (defense-in-depth vs magic-byte spoofing)
+    if ext in {"exe", "sh", "bat", "cmd", "js", "php", "com", "dll", "scr", "vbs"}:
+        raise HTTPException(400, "نوع الملف غير مسموح")
 
     data = await file.read()
+    if not data:
+        raise HTTPException(400, "الملف فارغ")
+    mime, media_type = validate_media_bytes(data)
+
+    size_caps = {"image": 10 * 1024 * 1024, "video": 50 * 1024 * 1024, "file": 20 * 1024 * 1024}
+    max_size = size_caps[media_type]
     if len(data) > max_size:
         raise HTTPException(400, f"الحجم يتجاوز الحد ({max_size // 1024 // 1024}MB)")
+
     path = f"{APP_NAME}/dm/{user['id']}/{uuid.uuid4()}.{ext}"
-    result = put_object(path, data, file.content_type or "application/octet-stream")
+    result = put_object(path, data, mime)
     media_url = result.get("url") or result.get("public_url") or f"/api/uploads/{result.get('path', path)}"
-    return {"media_url": media_url, "media_type": media_type, "filename": file.filename}
+    return {"media_url": media_url, "media_type": media_type, "filename": file.filename, "mime": mime}

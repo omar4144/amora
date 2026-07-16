@@ -8,6 +8,7 @@ from core.deps import (
     db, now_iso, current_user, optional_user,
     put_object, get_object, APP_NAME, create_notification,
 )
+from core.security_utils import validate_image_bytes, validate_video_bytes
 from core.schemas import ProfileUpdate, CommentCreate
 
 router = APIRouter(tags=["social"])
@@ -40,15 +41,15 @@ async def update_me(data: ProfileUpdate, user=Depends(current_user)):
 
 @router.post("/users/me/avatar")
 async def upload_avatar(file: UploadFile = File(...), user=Depends(current_user)):
-    """Upload profile avatar (image). Max 5MB, jpg/jpeg/png/webp."""
-    ext = (file.filename.rsplit(".", 1)[-1] if "." in (file.filename or "") else "jpg").lower()
-    if ext not in ["jpg", "jpeg", "png", "webp"]:
-        raise HTTPException(400, "الصيغة غير مدعومة (jpg/png/webp)")
+    """Upload profile avatar (image). Max 5MB, jpg/jpeg/png/webp — validated by magic bytes."""
     data = await file.read()
     if len(data) > 5 * 1024 * 1024:
         raise HTTPException(400, "حجم الصورة كبير (الحد 5MB)")
+    detected_mime = validate_image_bytes(data, "الصورة الشخصية")
+    ext_map = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
+    ext = ext_map[detected_mime]
     path = f"{APP_NAME}/avatars/{user['id']}/{uuid.uuid4()}.{ext}"
-    result = put_object(path, data, file.content_type or f"image/{ext}")
+    result = put_object(path, data, detected_mime)
     avatar_url = result.get("url") or result.get("public_url") or f"/api/uploads/{result.get('path', path)}"
     await db.users.update_one({"id": user["id"]}, {"$set": {"avatar_url": avatar_url}})
     return {"avatar_url": avatar_url}
@@ -139,26 +140,30 @@ async def upload_video(
     filter_name: str = Form(""),
     user=Depends(current_user),
 ):
-    ext = (file.filename.rsplit(".", 1)[-1] if "." in file.filename else "mp4").lower()
-    if ext not in ["mp4", "mov", "webm", "m4v"]:
-        raise HTTPException(400, "صيغة الفيديو غير مدعومة")
     data = await file.read()
     if len(data) > 100 * 1024 * 1024:
         raise HTTPException(400, "حجم الملف كبير جداً (الحد الأقصى 100MB)")
+    detected_mime = validate_video_bytes(data)
+    ext_map = {"video/mp4": "mp4", "video/quicktime": "mov", "video/webm": "webm", "video/x-m4v": "m4v"}
+    ext = ext_map[detected_mime]
     path = f"{APP_NAME}/videos/{user['id']}/{uuid.uuid4()}.{ext}"
-    result = put_object(path, data, file.content_type or "video/mp4")
+    result = put_object(path, data, detected_mime)
 
-    # Optional thumbnail (generated client-side from video canvas)
+    # Optional thumbnail (generated client-side from video canvas) — validate magic-bytes too
     thumbnail_url = None
     if thumbnail is not None:
         thumb_data = await thumbnail.read()
-        if len(thumb_data) <= 3 * 1024 * 1024:  # 3MB cap
-            t_ext = (thumbnail.filename.rsplit(".", 1)[-1] if "." in (thumbnail.filename or "") else "jpg").lower()
-            if t_ext not in ["jpg", "jpeg", "png", "webp"]:
-                t_ext = "jpg"
-            t_path = f"{APP_NAME}/videos/{user['id']}/thumbs/{uuid.uuid4()}.{t_ext}"
-            t_result = put_object(t_path, thumb_data, thumbnail.content_type or "image/jpeg")
-            thumbnail_url = t_result.get("url") or t_result.get("public_url") or f"/api/uploads/{t_result.get('path', t_path)}"
+        if thumb_data and len(thumb_data) <= 3 * 1024 * 1024:  # 3MB cap
+            try:
+                t_mime = validate_image_bytes(thumb_data, "الصورة المصغّرة")
+                t_ext_map = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
+                t_ext = t_ext_map[t_mime]
+                t_path = f"{APP_NAME}/videos/{user['id']}/thumbs/{uuid.uuid4()}.{t_ext}"
+                t_result = put_object(t_path, thumb_data, t_mime)
+                thumbnail_url = t_result.get("url") or t_result.get("public_url") or f"/api/uploads/{t_result.get('path', t_path)}"
+            except HTTPException:
+                # bad thumbnail — silently skip (video upload still succeeds)
+                thumbnail_url = None
 
     video_id = str(uuid.uuid4())
     doc = {

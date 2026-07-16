@@ -4,9 +4,10 @@ CRM Engine — full CRM: Leads (landing form) + Clients + Deals (Kanban Pipeline
 """
 import uuid
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
 
 from core.deps import db, now_iso, current_user, DEAL_STAGES, DEAL_STAGE_KEYS
+from core.security_utils import limiter
 from core.schemas import (
     LeadCreate, ClientCreate, ClientUpdate,
     DealCreate, DealUpdate, DealMove, ActivityCreate,
@@ -19,7 +20,8 @@ router = APIRouter(tags=["crm"])
 # LEADS (Landing page form) — kept as-is
 # ═══════════════════════════════════════════════════════════════
 @router.post("/leads")
-async def create_lead(payload: LeadCreate):
+@limiter.limit("3/minute;20/hour")
+async def create_lead(request: Request, payload: LeadCreate):
     lead = {
         "id": str(uuid.uuid4()),
         "name": payload.name.strip(),

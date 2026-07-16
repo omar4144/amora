@@ -883,6 +883,14 @@ function Footer() {
                             <li><a href="#contact" className="hover:text-white">تواصل معنا</a></li>
                         </ul>
                     </div>
+                    <div>
+                        <h4 className="text-white font-heading font-semibold mb-4">قانوني</h4>
+                        <ul className="space-y-3 text-white/50 text-sm font-body">
+                            <li><a href="/legal/terms" className="hover:text-white" data-testid="footer-terms">شروط الاستخدام</a></li>
+                            <li><a href="/legal/privacy" className="hover:text-white" data-testid="footer-privacy">سياسة الخصوصية</a></li>
+                            <li><a href="/legal/refund" className="hover:text-white" data-testid="footer-refund">سياسة الاسترداد</a></li>
+                        </ul>
+                    </div>
                 </div>
                 <div className="mt-12 pt-8 border-t border-white/5 flex flex-wrap items-center justify-between gap-4 text-white/40 text-sm font-body">
                     <p>© {new Date().getFullYear()} Amora. كل الحقوق محفوظة.</p>

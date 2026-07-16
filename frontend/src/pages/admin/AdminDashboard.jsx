@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/api";
-import { Users, Video, ShoppingCart, DollarSign, Building2, KanbanSquare, Mail } from "lucide-react";
+import { Users, Video, ShoppingCart, DollarSign, Building2, KanbanSquare, Mail, Flag } from "lucide-react";
 
 function Stat({ icon: Icon, label, value, sublabel, color = "#D1795F", onClick, testid }) {
     return (
@@ -25,10 +25,12 @@ function Stat({ icon: Icon, label, value, sublabel, color = "#D1795F", onClick, 
 export default function AdminDashboard() {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [reportsStats, setReportsStats] = useState(null);
     const nav = useNavigate();
 
     useEffect(() => {
         api.get("/admin/dashboard").then((r) => { setData(r.data); setLoading(false); }).catch(() => setLoading(false));
+        api.get("/admin/reports/stats").then((r) => setReportsStats(r.data)).catch(() => {});
     }, []);
 
     if (loading || !data) return <div className="p-8 text-white/50 text-center">جارٍ التحميل...</div>;
@@ -51,6 +53,15 @@ export default function AdminDashboard() {
                         color="#D1795F"
                         onClick={() => nav("/admin/leads")}
                         testid="stat-leads"
+                    />
+                    <Stat
+                        icon={Flag}
+                        label="البلاغات"
+                        value={reportsStats?.pending ?? "…"}
+                        sublabel={reportsStats ? `${reportsStats.total} إجمالي` : "جارٍ التحميل"}
+                        color="#EF4444"
+                        onClick={() => nav("/admin/reports")}
+                        testid="stat-reports"
                     />
                     <Stat icon={Building2} label="المجتمعات" value={data.community.communities} color="#57769D" />
                 </div>

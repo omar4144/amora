@@ -10,6 +10,7 @@ export default function Auth() {
     const [step, setStep] = useState(1); // signup only: 1 form, 2 role, 3 looking_for
     const [form, setForm] = useState({ email: "", password: "", name: "", username: "", role: "creator", looking_for: [] });
     const [loading, setLoading] = useState(false);
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
     const { login, signup } = useAuth();
     const navigate = useNavigate();
 
@@ -19,6 +20,10 @@ export default function Auth() {
 
     const submit = async (e) => {
         e.preventDefault();
+        if (mode === "signup" && !acceptedTerms) {
+            toast.error("يجب الموافقة على الشروط وسياسة الخصوصية للمتابعة");
+            return;
+        }
         setLoading(true);
         try {
             let result;
@@ -120,15 +125,46 @@ export default function Auth() {
                             التالي →
                         </button>
                     ) : (
-                        <button data-testid="submit-auth" type="submit" disabled={loading} className="bg-[#D1795F] text-white font-heading font-bold rounded-full py-3.5 hover:bg-[#B86648] transition-all active:scale-95 disabled:opacity-60 mt-2">
-                            {loading ? "..." : mode === "login" ? "دخول" : "إنشاء حساب"}
-                        </button>
+                        <>
+                            {mode === "signup" && (
+                                <label className="flex items-start gap-2 text-[11px] text-white/70 leading-relaxed cursor-pointer" data-testid="accept-terms-wrapper">
+                                    <input
+                                        type="checkbox"
+                                        data-testid="accept-terms"
+                                        checked={acceptedTerms}
+                                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                        className="mt-1 accent-[#D1795F] w-4 h-4 flex-shrink-0"
+                                    />
+                                    <span>
+                                        أوافق على{" "}
+                                        <Link to="/legal/terms" target="_blank" className="text-[#D1795F] hover:underline">شروط الاستخدام</Link>
+                                        {" "}و{" "}
+                                        <Link to="/legal/privacy" target="_blank" className="text-[#D1795F] hover:underline">سياسة الخصوصية</Link>
+                                    </span>
+                                </label>
+                            )}
+                            <button
+                                data-testid="submit-auth"
+                                type="submit"
+                                disabled={loading || (mode === "signup" && !acceptedTerms)}
+                                className="bg-[#D1795F] text-white font-heading font-bold rounded-full py-3.5 hover:bg-[#B86648] transition-all active:scale-95 disabled:opacity-60 mt-2"
+                            >
+                                {loading ? "..." : mode === "login" ? "دخول" : "إنشاء حساب"}
+                            </button>
+                        </>
                     )}
                 </form>
 
                 <Link to="/" className="block text-center mt-6 text-neutral-500 text-sm hover:text-white transition" data-testid="skip-auth">
                     تصفح بدون تسجيل →
                 </Link>
+                <div className="mt-4 flex justify-center gap-3 text-[11px] text-white/40">
+                    <Link to="/legal/terms" className="hover:text-white transition">الشروط</Link>
+                    <span>•</span>
+                    <Link to="/legal/privacy" className="hover:text-white transition">الخصوصية</Link>
+                    <span>•</span>
+                    <Link to="/legal/refund" className="hover:text-white transition">الاسترداد</Link>
+                </div>
             </div>
         </div>
     );

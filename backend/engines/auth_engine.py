@@ -1,11 +1,12 @@
 """Auth Engine: signup, login, me, onboarding."""
 import uuid
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import Optional, List
 
 from core.deps import db, now_iso, hash_password, verify_password, create_token, current_user
 from core.schemas import SignupRequest, LoginRequest
+from core.security_utils import limiter
 
 router = APIRouter(tags=["auth"])
 
@@ -20,11 +21,14 @@ VALID_GOALS = {"crm", "content", "tasks", "all"}
 
 
 @router.post("/auth/signup")
-async def signup(data: SignupRequest):
+@limiter.limit("5/minute;30/hour")
+async def signup(request: Request, data: SignupRequest):
     if await db.users.find_one({"email": data.email}):
         raise HTTPException(400, "البريد الإلكتروني مسجل مسبقاً")
     if await db.users.find_one({"username": data.username}):
         raise HTTPException(400, "اسم المستخدم غير متاح")
+    if len(data.password) < 6:
+        raise HTTPException(400, "كلمة المرور يجب أن تكون 6 أحرف على الأقل")
     user_id = str(uuid.uuid4())
     doc = {
         "id": user_id,
@@ -56,10 +60,13 @@ async def signup(data: SignupRequest):
 
 
 @router.post("/auth/login")
-async def login(data: LoginRequest):
+@limiter.limit("10/minute;60/hour")
+async def login(request: Request, data: LoginRequest):
     user = await db.users.find_one({"email": data.email})
     if not user or not verify_password(data.password, user["password"]):
         raise HTTPException(401, "بيانات الدخول غير صحيحة")
+    if user.get("is_banned"):
+        raise HTTPException(403, "تم إيقاف حسابك. تواصل مع الدعم إن كنت ترى ذلك خطأ.")
     token = create_token(user["id"])
     user.pop("password", None)
     user.pop("_id", None)

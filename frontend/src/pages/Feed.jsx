@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Heart, MessageCircle, Share2, ShoppingBag, Play, Sparkles, ChevronLeft, X, Search as SearchIcon, Bell, MoreVertical, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, Share2, ShoppingBag, Play, Sparkles, ChevronLeft, X, Search as SearchIcon, Bell, MoreVertical, Trash2, Flag } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
+import ReportModal from "@/components/ReportModal";
 
 const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete, currentUserId }) => {
     const videoRef = useRef(null);
@@ -11,6 +12,7 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete
     const [playing, setPlaying] = useState(false);
     const [muted, setMuted] = useState(true);
     const [showMenu, setShowMenu] = useState(false);
+    const [showReport, setShowReport] = useState(false);
     const isOwner = currentUserId && v.creator?.id === currentUserId;
 
     useEffect(() => {
@@ -133,7 +135,7 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete
                     {muted ? "🔇" : "🔊"}
                 </button>
 
-                {isOwner && (
+                {isOwner ? (
                     <button
                         onClick={() => setShowMenu(true)}
                         data-testid={`video-menu-${v.id}`}
@@ -141,6 +143,15 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete
                         title="خيارات الفيديو"
                     >
                         <MoreVertical className="w-4 h-4 text-white" />
+                    </button>
+                ) : (
+                    <button
+                        onClick={() => setShowReport(true)}
+                        data-testid={`video-report-${v.id}`}
+                        className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-red-500/20 transition"
+                        title="الإبلاغ عن المحتوى"
+                    >
+                        <Flag className="w-4 h-4 text-white" />
                     </button>
                 )}
             </div>
@@ -184,6 +195,15 @@ const VideoCard = ({ v, onLike, onOpenComments, onOpenServices, onView, onDelete
                         </button>
                     </div>
                 </div>
+            )}
+
+            {showReport && (
+                <ReportModal
+                    targetType="video"
+                    targetId={v.id}
+                    targetLabel={v.caption ? `فيديو: ${v.caption.slice(0, 40)}...` : "فيديو"}
+                    onClose={() => setShowReport(false)}
+                />
             )}
         </div>
     );

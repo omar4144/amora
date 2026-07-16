@@ -60,6 +60,10 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminAudit from "@/pages/admin/AdminAudit";
 import AdminLeads from "@/pages/admin/AdminLeads";
+import AdminReports from "@/pages/admin/AdminReports";
+import Terms from "@/pages/legal/Terms";
+import Privacy from "@/pages/legal/Privacy";
+import Refund from "@/pages/legal/Refund";
 import Workspace from "@/pages/Workspace";
 
 const Protected = ({ children }) => {
@@ -86,6 +90,11 @@ function App() {
                         <Route path="/" element={<Landing />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/onboarding" element={<Protected><Onboarding /></Protected>} />
+
+                        {/* Legal pages — public, full-width */}
+                        <Route path="/legal/terms" element={<Terms />} />
+                        <Route path="/legal/privacy" element={<Privacy />} />
+                        <Route path="/legal/refund" element={<Refund />} />
 
                         {/* App routes with mobile Layout */}
                         <Route element={<Layout />}>
@@ -150,6 +159,7 @@ function App() {
                                 <Route index element={<AdminDashboard />} />
                                 <Route path="users" element={<AdminUsers />} />
                                 <Route path="leads" element={<AdminLeads />} />
+                                <Route path="reports" element={<AdminReports />} />
                                 <Route path="audit" element={<AdminAudit />} />
                             </Route>
 

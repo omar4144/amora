@@ -5,13 +5,17 @@ Shared infrastructure lives in `core/`.
 """
 import uuid
 import logging
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from core.deps import (
     db, now_iso, client, CORS_ORIGINS,
     COMMUNITIES_SEED, init_storage,
 )
+from core.security_utils import limiter
 
 # ==================== Engines ====================
 from engines import (
@@ -38,12 +42,15 @@ from engines import (
     billing_engine,
     realtime_engine,
     disputes_engine,
+    moderation_engine,
 )
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("ruaa")
 
 app = FastAPI(title="Amora — Creative Operating System", version="2.0.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 api_router = APIRouter(prefix="/api")
 
 # Attach all engine routers under /api
@@ -53,7 +60,7 @@ for eng in [
     notification_engine, search_engine, events_engine, academy_engine,
     crm_engine, admin_engine, analytics_engine,
     content_engine, tasks_engine, booking_engine, workspace_engine,
-    invoice_engine, billing_engine, disputes_engine,
+    invoice_engine, billing_engine, disputes_engine, moderation_engine,
 ]:
     api_router.include_router(eng.router)
 
@@ -81,8 +88,22 @@ async def root():
             "auth", "social", "marketplace", "payment", "community", "team",
             "incubator", "ai", "notification", "search", "events", "academy",
             "crm", "admin", "analytics", "content", "tasks", "booking",
+            "moderation",
         ],
     }
+
+
+@app.get("/api/health")
+async def health():
+    """Liveness+readiness probe — verifies DB round-trip."""
+    try:
+        await db.command("ping")
+        return {"status": "ok", "db": "up", "ts": now_iso()}
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "db": "down", "error": str(e), "ts": now_iso()},
+        )
 
 
 @app.on_event("startup")

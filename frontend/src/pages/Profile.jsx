@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video, CheckSquare, ShieldAlert, X } from "lucide-react";
+import { Settings, Plus, Trash2, LogOut, Users, Film, Sparkles, MessageCircle, Wallet, Briefcase, ArrowLeft, Video, CheckSquare, ShieldAlert, X, Flag, UserX, MoreVertical } from "lucide-react";
+import ReportModal from "@/components/ReportModal";
 
 function FollowListModal({ username, kind, onClose }) {
     // kind = "followers" | "following"
@@ -71,6 +72,9 @@ export default function Profile() {
     const [svc, setSvc] = useState({ title: "", description: "", price: "", delivery_days: 3 });
     const [earnings, setEarnings] = useState(null);
     const [followModal, setFollowModal] = useState(null); // "followers" | "following" | null
+    const [showReport, setShowReport] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
 
     const load = () => {
         api.get(`/users/${username}`).then((r) => setProfile(r.data));
@@ -83,6 +87,15 @@ export default function Profile() {
     useEffect(() => {
         if (me && profile && me.id === profile.id) {
             api.get("/earnings/me").then((r) => setEarnings(r.data));
+        }
+        // Check block state (only when viewing someone else's profile while logged in)
+        if (me && profile && me.id !== profile.id) {
+            api.get("/users/me/blocks")
+                .then((r) => {
+                    const blocked = r.data?.blocks?.some((b) => b.blocked_id === profile.id);
+                    setIsBlocked(!!blocked);
+                })
+                .catch(() => {});
         }
     }, [me, profile]);
 
@@ -123,6 +136,25 @@ export default function Profile() {
             setVideos((vs) => vs.filter((v) => v.id !== id));
         } catch (e) {
             toast.error(e?.response?.data?.detail || "تعذّر حذف الفيديو");
+        }
+    };
+
+    const toggleBlock = async () => {
+        try {
+            if (isBlocked) {
+                await api.delete(`/users/${username}/block`);
+                setIsBlocked(false);
+                toast.success("تم إلغاء الحظر");
+            } else {
+                if (!window.confirm(`حظر @${username}؟ لن ترى محتواه بعد الآن.`)) return;
+                await api.post(`/users/${username}/block`);
+                setIsBlocked(true);
+                toast.success("تم حظر المستخدم");
+                setProfile((p) => p ? { ...p, is_following: false } : p);
+            }
+            setShowUserMenu(false);
+        } catch (e) {
+            toast.error(e?.response?.data?.detail || "خطأ");
         }
     };
 
@@ -218,6 +250,16 @@ export default function Profile() {
                             <MessageCircle className="w-4 h-4" />
                             رسالة
                         </button>
+                        {me && (
+                            <button
+                                onClick={() => setShowUserMenu(true)}
+                                data-testid="user-menu-btn"
+                                className="w-11 rounded-full py-3 font-heading font-bold bg-white/10 hover:bg-white/20 transition flex items-center justify-center"
+                                title="خيارات"
+                            >
+                                <MoreVertical className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
                 )}
 
@@ -397,6 +439,57 @@ export default function Profile() {
                     username={profile.username}
                     kind={followModal}
                     onClose={() => setFollowModal(null)}
+                />
+            )}
+
+            {/* Other-user menu sheet: Report + Block */}
+            {showUserMenu && !isMe && (
+                <div
+                    className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-end justify-center"
+                    onClick={() => setShowUserMenu(false)}
+                    data-testid="user-menu-sheet"
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full max-w-md bg-[#0A0A0A] border-t border-white/10 rounded-t-3xl p-5"
+                    >
+                        <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+                        <h3 className="font-heading font-bold text-lg mb-4 text-white">خيارات @{profile.username}</h3>
+
+                        <button
+                            data-testid="report-user-btn"
+                            onClick={() => { setShowUserMenu(false); setShowReport(true); }}
+                            className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl px-4 py-3 flex items-center gap-3 transition mb-2"
+                        >
+                            <Flag className="w-5 h-5 text-amber-400" />
+                            <span className="font-heading font-bold">الإبلاغ عن هذا المستخدم</span>
+                        </button>
+
+                        <button
+                            data-testid="block-user-btn"
+                            onClick={toggleBlock}
+                            className="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 flex items-center gap-3 transition"
+                        >
+                            <UserX className="w-5 h-5" />
+                            <span className="font-heading font-bold">{isBlocked ? "إلغاء الحظر" : "حظر المستخدم"}</span>
+                        </button>
+
+                        <button
+                            onClick={() => setShowUserMenu(false)}
+                            className="w-full mt-3 bg-white/5 hover:bg-white/10 text-white rounded-xl px-4 py-3 font-heading font-bold transition"
+                        >
+                            إلغاء
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {showReport && !isMe && (
+                <ReportModal
+                    targetType="user"
+                    targetId={profile.id}
+                    targetLabel={`مستخدم: @${profile.username}`}
+                    onClose={() => setShowReport(false)}
                 />
             )}
         </div>
