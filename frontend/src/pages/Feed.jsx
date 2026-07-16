@@ -262,7 +262,7 @@ function CreatorServiceCard({ v, onOrder, onDismiss }) {
     const rating = v.creator?.rating;
     return (
         <div
-            className="absolute inset-x-3 bottom-[88px] z-10 rounded-2xl overflow-hidden animate-slide-up"
+            className="absolute inset-x-3 bottom-[88px] z-30 rounded-2xl overflow-hidden animate-slide-up"
             data-testid={`service-card-${v.id}`}
             style={{
                 background: "linear-gradient(135deg, rgba(209,121,95,0.95) 0%, rgba(87,118,157,0.95) 100%)",
@@ -696,7 +696,7 @@ const ServicesSheet = ({ video, onClose }) => {
                         <button
                             key={s.id}
                             data-testid={`service-item-${s.id}`}
-                            onClick={() => nav(`/services/${s.id}`)}
+                            onClick={() => nav(`/service/${s.id}`)}
                             className="w-full text-start bg-gradient-to-br from-white/8 to-white/4 border border-white/10 rounded-2xl p-4 hover:border-[#D1795F]/40 transition active:scale-[0.98] group"
                         >
                             <div className="flex items-start justify-between gap-3 mb-2">
