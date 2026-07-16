@@ -108,21 +108,21 @@ function SideActions({ v, isOwner, isFollowing, muted, onToggleMute, onLike, onC
                 )}
             </div>
 
-            {/* Like */}
-            <button onClick={onLike} data-testid={`like-btn-${v.id}`} className={btn}>
-                <div className={`w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60 ${isLiked ? "shadow-md shadow-red-500/40" : ""}`}>
-                    <Heart className={`w-5 h-5 transition ${isLiked ? "fill-red-500 text-red-500 scale-110" : "text-white"}`} strokeWidth={2.2} />
-                </div>
-                <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.likes || 0)}</span>
-            </button>
-
-            {/* Comments */}
-            <button onClick={onComment} data-testid={`comment-btn-${v.id}`} className={btn}>
-                <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
-                    <MessageCircle className="w-5 h-5 text-white" strokeWidth={2.2} />
-                </div>
-                <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.comments_count || 0)}</span>
-            </button>
+            {/* Like + Comments (paired horizontally) */}
+            <div className="flex items-start gap-1.5">
+                <button onClick={onLike} data-testid={`like-btn-${v.id}`} className={btnCompact}>
+                    <div className={`w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60 ${isLiked ? "shadow-md shadow-red-500/40" : ""}`}>
+                        <Heart className={`w-5 h-5 transition ${isLiked ? "fill-red-500 text-red-500 scale-110" : "text-white"}`} strokeWidth={2.2} />
+                    </div>
+                    <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.likes || 0)}</span>
+                </button>
+                <button onClick={onComment} data-testid={`comment-btn-${v.id}`} className={btnCompact}>
+                    <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
+                        <MessageCircle className="w-5 h-5 text-white" strokeWidth={2.2} />
+                    </div>
+                    <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.comments_count || 0)}</span>
+                </button>
+            </div>
 
             {/* Save + Share (paired horizontally) */}
             <div className="flex items-start gap-1.5">
