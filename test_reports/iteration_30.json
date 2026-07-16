@@ -1,0 +1,57 @@
+{
+  "summary": "Iteration 30 — retest of the iteration_29 critical fix (seller_id→user_id + duration_days→delivery_days). BACKEND FIX VERIFIED: 15/15 pytest GREEN, primary_service now populates for creators with active services with all required keys {id,title,price,delivery_days,user_id,is_active}, user_id matches creator.id. Frontend renders the Creator Service Card correctly with 'خدمة متاحة' label, price, N أيام, 'اطلب الآن' button; ServicesSheet opens with items showing 'N أيام تسليم'. TWO NEW FRONTEND BUGS surfaced now that the card actually renders: (1) service-item click navigates to /services/{id} but App.js only defines /service/:id — console: 'No routes matched location'; (2) dismiss-service-card button is covered by the side-actions column (side-actions z-20 vs card z-10) — dismiss is un-clickable and force-click punches through to the report button.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /videos/feed → enrich_video primary_service sort",
+        "issue": "Sort key ('orders_count', -1) references a field that is never written on services. Effective ordering falls back to created_at desc which is fine for MVP but the intent is lost. When an order is paid, increment services.orders_count so ranking becomes meaningful."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Feed.jsx CreatorServiceCard z-index vs SideActions",
+        "issue": "The service-card container uses z-10 while the right-side action column (bottom-32, z-20) overlays it. The dismiss-service-card button (top-2 end-2 of the card) sits directly under the Flag/report button and is UN-CLICKABLE. Playwright: 'Flag subtree intercepts pointer events'. Force-clicking punches through and opens the Report content sheet. Fix: raise the card z-index above the side-actions (e.g. z-30) or lower the side-actions z below the card, or move the dismiss button to top-start / top-2 start-2 (top-left) so it clears the RTL right-side actions column.",
+        "selector": "[data-testid^='dismiss-service-card-']",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Feed.jsx ServicesSheet → service-item click navigation",
+        "issue": "Line 699: nav(`/services/${s.id}`) — but App.js only registers <Route path='/service/:id'> (singular). Clicking any service in the sheet leaves the user on a blank page and logs 'No routes matched location /services/...'. Fix either the nav call to '/service/${s.id}' or add a plural route (recommended: change nav call to match the existing singular route already used by Profile → ServiceDetail elsewhere).",
+        "selector": "[data-testid^='service-item-']",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration29_feed.py",
+    "/app/test_reports/pytest/iteration30_results.xml"
+  ],
+  "action_items": [
+    "[HIGH] Fix service-card z-index: raise CreatorServiceCard container to z-30 (or reposition dismiss button to start-side) so the right-column side-actions no longer overlap and block the dismiss button.",
+    "[HIGH] Fix Feed.jsx line 699: change nav(`/services/${s.id}`) → nav(`/service/${s.id}`) to match the registered route in App.js. Currently every service-item click lands on a blank/404 page.",
+    "[LOW] Increment services.orders_count on paid orders so primary_service ordering actually favors the top-selling service."
+  ],
+  "critical_code_review_comments": [
+    "The two-line iteration_29 fix (seller_id→user_id + duration_days→delivery_days) is correct and verified end-to-end. Both string mismatches were single-word regressions that fully broke the killer card.",
+    "Route naming inconsistency: navigation code and route registration diverge (`/services/:id` vs `/service/:id`). Pick a single canonical path and grep-replace the other. Similar pattern to the seller_id/user_id and duration_days/delivery_days bugs — these are cheap, high-impact fixes worth a lint rule.",
+    "z-index management in Feed.jsx is ad-hoc (z-10 card, z-20 side-actions, z-[70] sheets). Establish a small z-index scale in tailwind config or a comments table so future overlays don't accidentally cover interactive elements."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration29_feed.py (added TestPrimaryService.test_primary_service_ordering_orders_count and stronger key assertions in the existing primary_service test)"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 pytest)",
+    "frontend": "70% — service-card renders correctly and services-sheet items show the correct delivery_days text, but the dismiss button is z-index-blocked and the service-item navigation is broken due to a route path mismatch."
+  },
+  "test_credentials": "super_admin crm@test.com / testpass123 (already promoted). Fresh viewer users are created inline via /auth/signup with TEST_it30_* prefixes.",
+  "seed_data_creation": "Added two extra services for crm_tester via POST /api/services (TEST_it30_svc_low $50/5d, TEST_it30_svc_high $200/5d) so ordering/sorting could be observed. All test data uses TEST_it30_* prefix for easy cleanup.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The iteration_29 critical fix (enrich_video seller_id→user_id and Feed.jsx duration_days→delivery_days) is fully verified. If main agent applies the two follow-up HIGH fixes (route path /services/{id}→/service/{id} in Feed.jsx line 699, and raising CreatorServiceCard z-index above the side-actions), the Creator Service Card feature will be 100% functional. Backend has 15 passing pytest cases in /app/backend/tests/test_iteration29_feed.py — reuse as regression. To test the killer card in the UI, sign up any new user (auto-follows nobody) and browse /feed — 2 of the 5 seed videos belong to crm_tester who has active services, so the card appears without any scrolling.",
+  "rca of the issue": "iteration_29 fix is correct. The remaining defects are pre-existing UI issues that were dormant because the card never rendered before: (a) Feed.jsx:699 uses plural /services/${s.id} while App.js only defines singular /service/:id; (b) the CreatorServiceCard's dismiss X button sits in the RTL end-2 top-2 corner of a z-10 card, directly beneath the z-20 side-actions column (Flag/report button). Both are trivial one-line CSS/string fixes."
+}

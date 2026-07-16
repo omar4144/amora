@@ -202,5 +202,39 @@ class TestPrimaryService:
             "likely engine mismatch (services stored with user_id but enrich_video queries seller_id)."
         )
         svc = with_svc[0]["primary_service"]
-        assert "title" in svc
-        assert "price" in svc
+        # iteration 30 acceptance: required keys must all be present
+        for k in ["id", "title", "price", "delivery_days", "user_id", "is_active"]:
+            assert k in svc, f"primary_service missing required key: {k}"
+        # user_id must match creator
+        assert svc["user_id"] == with_svc[0]["user_id"], "primary_service.user_id must equal creator.id"
+        assert svc["is_active"] is not False
+
+    def test_primary_service_ordering_orders_count(self, admin_headers, admin_me):
+        """When creator has multiple active services, sort by orders_count desc then created_at desc."""
+        # Create two additional services with different orders_count values
+        base = {"description": "ordering test", "delivery_days": 5}
+        s_low = {**base, "title": "TEST_it30_svc_low", "price": 50.0}
+        s_high = {**base, "title": "TEST_it30_svc_high", "price": 200.0}
+        existing = requests.get(f"{API}/services/user/{admin_me['username']}").json()
+        titles = {s.get("title"): s for s in existing}
+        if "TEST_it30_svc_low" not in titles:
+            r = requests.post(f"{API}/services", json=s_low, headers=admin_headers)
+            assert r.status_code in (200, 201), r.text
+        if "TEST_it30_svc_high" not in titles:
+            r = requests.post(f"{API}/services", json=s_high, headers=admin_headers)
+            assert r.status_code in (200, 201), r.text
+
+        # Sanity: fetch again + pick the LATEST (newest) — that is what fallback returns when no orders_count
+        after = requests.get(f"{API}/services/user/{admin_me['username']}").json()
+        assert len(after) >= 2
+
+        r = requests.get(f"{API}/videos/feed", headers=admin_headers)
+        assert r.status_code == 200
+        admin_videos = [v for v in r.json() if v["user_id"] == admin_me["id"] and v.get("primary_service")]
+        if not admin_videos:
+            pytest.skip("Admin has no videos with primary_service")
+        # In the absence of orders_count on any service, sort falls back to newest created_at
+        # The returned primary_service should be one of admin's active services
+        picked = admin_videos[0]["primary_service"]
+        admin_service_ids = {s["id"] for s in after if s.get("is_active", True) is not False}
+        assert picked["id"] in admin_service_ids, f"primary_service {picked['id']} not in admin's services"

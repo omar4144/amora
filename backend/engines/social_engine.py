@@ -143,7 +143,7 @@ async def enrich_video(v: dict, viewer_id: Optional[str] = None):
     # Primary service — the "killer card" attaches the creator's headline service
     if user:
         svc = await db.services.find_one(
-            {"seller_id": user["id"], "is_active": {"$ne": False}},
+            {"user_id": user["id"], "is_active": {"$ne": False}},
             {"_id": 0},
             sort=[("orders_count", -1), ("created_at", -1)],
         )

@@ -288,7 +288,7 @@ function CreatorServiceCard({ v, onOrder, onDismiss }) {
                         <div className="font-heading font-black text-white text-[15px] leading-tight line-clamp-1">{s.title}</div>
                         <div className="flex items-center gap-2 mt-1 text-[10px] text-white/85 font-body">
                             <span className="font-heading font-black text-white text-sm">${s.price}</span>
-                            {s.duration_days && <><span className="w-0.5 h-0.5 rounded-full bg-white/60" /><span>{s.duration_days} أيام</span></>}
+                            {s.delivery_days && <><span className="w-0.5 h-0.5 rounded-full bg-white/60" /><span>{s.delivery_days} أيام</span></>}
                             {rating && <><span className="w-0.5 h-0.5 rounded-full bg-white/60" /><span className="flex items-center gap-0.5"><Star className="w-2.5 h-2.5 fill-amber-300 text-amber-300" />{rating}</span></>}
                         </div>
                     </div>
@@ -705,7 +705,7 @@ const ServicesSheet = ({ video, onClose }) => {
                             </div>
                             {s.description && <p className="text-[11px] text-white/60 font-body mb-2 line-clamp-2">{s.description}</p>}
                             <div className="flex items-center gap-3 text-[10px] text-white/50 font-body">
-                                {s.duration_days && <span>{s.duration_days} أيام تسليم</span>}
+                                {s.delivery_days && <span>{s.delivery_days} أيام تسليم</span>}
                                 {s.orders_count > 0 && <><span className="w-0.5 h-0.5 rounded-full bg-white/40" /><span>{s.orders_count} طلب</span></>}
                                 <span className="mr-auto text-[#D1795F] font-heading font-bold group-hover:translate-x-[-2px] transition">اطلب الآن ←</span>
                             </div>
