@@ -77,6 +77,7 @@ function SideActions({ v, isOwner, isFollowing, muted, onToggleMute, onLike, onC
     const isLiked = v.liked;
     const isSaved = v.saved;
     const btn = "flex flex-col items-center gap-0.5 group";
+    const btnCompact = "flex flex-col items-center gap-0.5 group";
 
     return (
         <div className="absolute end-2 bottom-20 z-20 flex flex-col items-center gap-2.5 pb-2">
@@ -123,23 +124,23 @@ function SideActions({ v, isOwner, isFollowing, muted, onToggleMute, onLike, onC
                 <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">{formatCount(v.comments_count || 0)}</span>
             </button>
 
-            {/* Save (bookmark) */}
-            {currentUser && (
-                <button onClick={onSave} data-testid={`save-btn-${v.id}`} className={btn}>
-                    <div className={`w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60 ${isSaved ? "shadow-md shadow-amber-400/40" : ""}`}>
-                        {isSaved ? <BookmarkCheck className="w-5 h-5 fill-amber-400 text-amber-400" strokeWidth={2.2} /> : <Bookmark className="w-5 h-5 text-white" strokeWidth={2.2} />}
+            {/* Save + Share (paired horizontally) */}
+            <div className="flex items-start gap-1.5">
+                {currentUser && (
+                    <button onClick={onSave} data-testid={`save-btn-${v.id}`} className={btnCompact}>
+                        <div className={`w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60 ${isSaved ? "shadow-md shadow-amber-400/40" : ""}`}>
+                            {isSaved ? <BookmarkCheck className="w-4 h-4 fill-amber-400 text-amber-400" strokeWidth={2.2} /> : <Bookmark className="w-4 h-4 text-white" strokeWidth={2.2} />}
+                        </div>
+                        <span className="text-[9px] text-white font-heading font-bold drop-shadow-md">حفظ</span>
+                    </button>
+                )}
+                <button onClick={onShare} data-testid={`share-btn-${v.id}`} className={btnCompact}>
+                    <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
+                        <Share2 className="w-4 h-4 text-white" strokeWidth={2.2} />
                     </div>
-                    <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">حفظ</span>
+                    <span className="text-[9px] text-white font-heading font-bold drop-shadow-md">مشاركة</span>
                 </button>
-            )}
-
-            {/* Share */}
-            <button onClick={onShare} data-testid={`share-btn-${v.id}`} className={btn}>
-                <div className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
-                    <Share2 className="w-5 h-5 text-white" strokeWidth={2.2} />
-                </div>
-                <span className="text-[10px] text-white font-heading font-bold drop-shadow-md">مشاركة</span>
-            </button>
+            </div>
 
             {/* Hire Me (the killer button) */}
             {!isOwner && (
@@ -161,19 +162,19 @@ function SideActions({ v, isOwner, isFollowing, muted, onToggleMute, onLike, onC
                 </button>
             )}
 
-            {/* Mute (bottom - compact) */}
-            <button onClick={onToggleMute} data-testid={`mute-btn-${v.id}`} className={btn}>
-                <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
-                    {muted ? <VolumeX className="w-3.5 h-3.5 text-white" /> : <Volume2 className="w-3.5 h-3.5 text-white" />}
-                </div>
-            </button>
-
-            {/* More (owner: settings, others: report) */}
-            <button onClick={isOwner ? onMore : onReport} data-testid={`more-btn-${v.id}`} className={btn}>
-                <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
-                    {isOwner ? <MoreVertical className="w-3.5 h-3.5 text-white" /> : <Flag className="w-3.5 h-3.5 text-white" />}
-                </div>
-            </button>
+            {/* Mute + Report/More (paired horizontally) */}
+            <div className="flex items-center gap-1.5">
+                <button onClick={onToggleMute} data-testid={`mute-btn-${v.id}`} className={btnCompact}>
+                    <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
+                        {muted ? <VolumeX className="w-3.5 h-3.5 text-white" /> : <Volume2 className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                </button>
+                <button onClick={isOwner ? onMore : onReport} data-testid={`more-btn-${v.id}`} className={btnCompact}>
+                    <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center transition active:scale-75 group-hover:bg-black/60">
+                        {isOwner ? <MoreVertical className="w-3.5 h-3.5 text-white" /> : <Flag className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                </button>
+            </div>
         </div>
     );
 }
