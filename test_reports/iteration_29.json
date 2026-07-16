@@ -1,0 +1,76 @@
+{
+  "summary": "Iteration 29 — Feed redesign (TikTok-level). Backend: 13/14 pytest GREEN. Frontend: /feed renders premium layout with all data-testids present; like/save/share/comment/hire/tip/tab-following flows all work. FOUND ONE CRITICAL BUG (backend engine mismatch) that silently disables the killer 'Creator Service Card': enrich_video queries db.services with the wrong field name, so primary_service is ALWAYS null and the card NEVER renders. Related frontend field-name mismatch (duration_days vs delivery_days).",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "enrich_video in /app/backend/engines/social_engine.py:145",
+        "issue": "Queries db.services.find_one({'seller_id': user['id'], ...}) but services are inserted by marketplace_engine.create_service with the field name 'user_id' (line 20). Result: v['primary_service'] is ALWAYS None for every video, so the killer CreatorServiceCard NEVER renders in the UI. Confirmed by pytest TestPrimaryService.test_primary_service_present_when_creator_has_service (created a real service for crm_tester → all his videos still returned primary_service=null). FIX: change 'seller_id' → 'user_id' in the find_one call (and sort orders_count field is fine as-is; missing keys sort last).",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "GET /videos/feed",
+        "issue": "creator.rating uses aggregate on db.reviews with match {creator_id: user.id}. reviews are inserted (marketplace_engine.py:134) with 'creator_id' → good, matches. orders_count uses db.orders count with {creator_id, payment_status:'paid'} which is also correct."
+      },
+      {
+        "endpoint": "GET /videos/feed",
+        "issue": "primary_service sort uses ('orders_count', -1) but services never have an orders_count field written. Sort is not broken (nulls last) but the intent won't be honored. Consider incrementing services.orders_count when an order is paid, or sort by db.orders count per service."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "CreatorServiceCard + service-item card in ServicesSheet (Feed.jsx)",
+        "issue": "Reads s.duration_days but backend ServiceCreate schema stores 'delivery_days' (schemas.py:39, marketplace_engine.py:24). Even if the seller_id→user_id backend bug is fixed, the '· N أيام' badge and 'N أيام تسليم' text will still be hidden because duration_days is always undefined.",
+        "selector": "[data-testid^='service-card-'] , [data-testid^='service-item-']",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Feed VideoCard",
+        "issue": "React dev overlay 'Uncaught runtime errors: The element has no supported sources' pops up for videos whose <video src> fails to load. The overlay intercepts clicks on all side-action buttons. Two remedies: (a) attach onError to the <video> tag to swallow media errors silently, and/or (b) verify at least one working <source> exists before rendering. Existing broken videos in DB should probably be purged or soft-deleted.",
+        "selector": "video",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Hire Me (services-sheet)",
+        "issue": "Sheet opens correctly, but service-items list is empty for creators whose services were created via /api/services POST (uses field 'user_id') — the /services/user/{username} endpoint DOES filter by user_id (marketplace_engine.py:38), so items should show. In our manual test with crm_tester the first video's creator was NOT crm_tester so sheet correctly showed the empty-state. Not a bug per se, just noting: end-to-end user perception depends on creators actually having services.",
+        "affected_selectors": ["[data-testid=services-sheet]", "[data-testid^=service-item-]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration29_feed.py",
+    "/app/test_reports/pytest/iteration29_results.xml"
+  ],
+  "action_items": [
+    "[CRITICAL] Fix /app/backend/engines/social_engine.py enrich_video: change {'seller_id': user['id']} → {'user_id': user['id']} in the primary_service lookup. This one-line change unlocks the entire 'killer' Creator Service Card feature.",
+    "[HIGH] Fix /app/frontend/src/pages/Feed.jsx: replace all s.duration_days references with s.delivery_days (two occurrences: CreatorServiceCard and service-item in ServicesSheet). Alternatively, add alias in enrich/service serializer.",
+    "[MEDIUM] Add onError handler on <video> element in VideoCard to swallow 'The element has no supported sources' so it doesn't trigger react-dev-overlay in dev builds.",
+    "[LOW] When an order is paid, increment services.orders_count so primary_service sort by orders_count is meaningful."
+  ],
+  "critical_code_review_comments": [
+    "social_engine.py line 145: 'seller_id' typo/rename — DB layer never wrote this field. Regression test: assert db.services.find_one({'seller_id': X}) returns None for any real service.",
+    "Feed.jsx uses duration_days (client-side invention) instead of delivery_days (schema truth). Pick ONE canonical name across the stack; recommend delivery_days (already in schema, DB, and other pages).",
+    "handleTap logic in VideoCard (Feed.jsx:442) uses a 260ms setTimeout with a stale-closure check on lastTap.current. Works, but consider replacing with a proper dblclick handler for reliability across browsers with touch events.",
+    "Preload effect (Feed.jsx:777) appends <link rel='preload' as='video'> to head on every activeIdx change. Cleanup fine, but if user scrolls fast the browser will race-cancel. Acceptable but could be debounced.",
+    "IntersectionObserver only re-scans slides when videos array reference changes — after handleLike/handleSaveToggle (which spread-map the array) the observer is torn down and re-created for every keystroke. Consider using a stable ref of slide DOM nodes."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration29_feed.py (new)"
+  ],
+  "success_rate": {
+    "backend": "93% (13/14 pytest — the failing one directly proves the primary_service bug)",
+    "frontend": "95% — all data-testids present, all sheet flows open correctly (share, comments, services, tip-modal), like/save toggle correctly, tab-following shows empty state for user who follows nobody. Only issue is the primary_service card never renders because backend returns null (root-caused above)."
+  },
+  "test_credentials": "super_admin: crm@test.com / testpass123 (username=crm_tester)",
+  "seed_data_creation": "Created test users TEST_it29_uB_* via /auth/signup. Created 1 service 'TEST_it29_headline_service' for crm_tester via POST /api/services (price 100, delivery_days 3). Following relationship: TEST_it29_uB_* → crm_tester.",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "Two-line fix expected from main agent: (1) social_engine.py enrich_video → 'user_id' not 'seller_id'; (2) Feed.jsx → 'delivery_days' not 'duration_days'. After fixes, run pytest /app/backend/tests/test_iteration29_feed.py — all 14 should pass. Then verify UI: on any authed session viewing a crm_tester video, the [data-testid^='service-card-'] should render (crm_tester now has 'TEST_it29_headline_service' seeded). Video source errors are unrelated to the redesign — some legacy videos in DB have missing storage_paths; consider a maintenance sweep.",
+  "rca of the issue": "Root cause of missing Creator Service Card: iteration 29 introduced enrich_video expansion that queries services by seller_id, but marketplace_engine.create_service (unchanged since original) inserts services with 'user_id'. This is a naming divergence, not a data problem. Reproduction: (a) POST /api/services as crm_tester → 200, service stored with user_id=crm_tester.id; (b) db.services.find_one({'seller_id': crm_tester.id}) → None; (c) GET /api/videos/feed → every video from crm_tester has primary_service=null; (d) UI: CreatorServiceCard early-returns null, killer card never appears. Mitigation: single-line change in social_engine.py:145 from 'seller_id' → 'user_id'. Additionally, once backend returns the service, Feed.jsx must use s.delivery_days (schema field) instead of s.duration_days (currently referenced twice) or the duration line will silently be blank."
+}

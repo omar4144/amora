@@ -121,14 +121,90 @@ async def follow_user(username: str, user=Depends(current_user)):
 # ==================== VIDEOS ====================
 async def enrich_video(v: dict, viewer_id: Optional[str] = None):
     user = await db.users.find_one({"id": v["user_id"]}, {"_id": 0, "password": 0})
+    # Attach creator stats: orders_count, rating, primary_service
+    if user:
+        # completed orders as seller
+        orders_count = await db.orders.count_documents({
+            "creator_id": user["id"],
+            "payment_status": "paid",
+        })
+        # avg rating from reviews on their services
+        rating_agg = await db.reviews.aggregate([
+            {"$match": {"creator_id": user["id"]}},
+            {"$group": {"_id": None, "avg": {"$avg": "$rating"}, "n": {"$sum": 1}}},
+        ]).to_list(1)
+        rating = round(rating_agg[0]["avg"], 1) if rating_agg else None
+        reviews_count = rating_agg[0]["n"] if rating_agg else 0
+        user["orders_count"] = orders_count
+        user["rating"] = rating
+        user["reviews_count"] = reviews_count
     v["creator"] = user
+
+    # Primary service — the "killer card" attaches the creator's headline service
+    if user:
+        svc = await db.services.find_one(
+            {"seller_id": user["id"], "is_active": {"$ne": False}},
+            {"_id": 0},
+            sort=[("orders_count", -1), ("created_at", -1)],
+        )
+        v["primary_service"] = svc
+
     if viewer_id:
         liked = await db.likes.find_one({"user_id": viewer_id, "video_id": v["id"]})
         v["liked"] = bool(liked)
+        saved = await db.saves.find_one({"user_id": viewer_id, "video_id": v["id"]})
+        v["saved"] = bool(saved)
     else:
         v["liked"] = False
+        v["saved"] = False
     v.pop("_id", None)
     return v
+
+
+@router.get("/videos/feed/following")
+async def feed_following(viewer=Depends(current_user), limit: int = 20):
+    """Videos from creators the viewer follows."""
+    follows = await db.follows.find({"follower_id": viewer["id"]}).to_list(500)
+    ids = [f["following_id"] for f in follows]
+    if not ids:
+        return []
+    videos = await db.videos.find(
+        {"user_id": {"$in": ids}, "is_deleted": False}, {"_id": 0}
+    ).sort("created_at", -1).to_list(limit)
+    return [await enrich_video(v, viewer["id"]) for v in videos]
+
+
+@router.post("/videos/{video_id}/save")
+async def save_video(video_id: str, user=Depends(current_user)):
+    v = await db.videos.find_one({"id": video_id, "is_deleted": False})
+    if not v:
+        raise HTTPException(404, "الفيديو غير موجود")
+    existing = await db.saves.find_one({"user_id": user["id"], "video_id": video_id})
+    if existing:
+        return {"saved": True, "already": True}
+    await db.saves.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": user["id"],
+        "video_id": video_id,
+        "created_at": now_iso(),
+    })
+    return {"saved": True}
+
+
+@router.delete("/videos/{video_id}/save")
+async def unsave_video(video_id: str, user=Depends(current_user)):
+    res = await db.saves.delete_one({"user_id": user["id"], "video_id": video_id})
+    return {"saved": False, "removed": res.deleted_count > 0}
+
+
+@router.get("/videos/saved")
+async def saved_videos(user=Depends(current_user), limit: int = 100):
+    rows = await db.saves.find({"user_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(limit)
+    ids = [r["video_id"] for r in rows]
+    if not ids:
+        return []
+    videos = await db.videos.find({"id": {"$in": ids}, "is_deleted": False}, {"_id": 0}).to_list(limit)
+    return [await enrich_video(v, user["id"]) for v in videos]
 
 
 @router.post("/videos/upload")
