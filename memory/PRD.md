@@ -1,4 +1,43 @@
 # Creator Hub — منصة صناع المحتوى
+## Iterations 29-31 — Feed Premium Redesign (TikTok-level) + Killer Service Card (2026-02)
+
+### Delivered — Phase 1 of 16-point Feed spec
+- **Full-screen 9:16 vertical swipe** with snap-mandatory + IntersectionObserver-driven autoplay + `<link rel="preload">` for next video.
+- **New Top Bar** — Notifications (left) | Amora logo with "Creative OS" subtitle (center) | Search (right) + "لك / أتابع" tabs with animated underline.
+- **8 Side Actions** column: Avatar + follow badge, Like (heart fills red when liked), Comments (count formatted), Share (opens sheet), Save (bookmark with amber fill), Hire Me (gradient gold — the primary CTA), Tip (gradient red), More/Report.
+- **Video Info Block** (bottom-left) — @username + verified badge + role label + caption (with `#hashtags` extracted and shown in green) + rating stars + orders count + category.
+- 🌟 **KILLER Creator Service Card** — dismissable premium gradient card above bottom-nav. Shows the creator's headline service (title, price, delivery_days, rating) with "اطلب الآن" CTA that opens the Hire Me sheet WITHOUT leaving the video. Every view = a hiring opportunity.
+- **Double-tap heart burst** (springy scale + rotate keyframes) + auto-like.
+- **Long-press menu** — Save / Add to favorites / Not interested / Report.
+- **Enhanced Share Sheet** — WhatsApp / X / Telegram / Snapchat / Copy Link.
+- **Enhanced Services Sheet** — creator's services list with premium cards + skeleton loading.
+- **Enhanced Comments Sheet** — polished header + empty state + avatar images + username links.
+- **Haptic feedback** via `navigator.vibrate` on like/follow/long-press.
+- **CSS animations** (index.css) — slide-up, fade-in, heart-burst, spring-tap + 6 video filter classes.
+
+### Backend enhancements to power the redesign
+- **`enrich_video`** now attaches:
+  - `creator.orders_count` (from `db.orders` where creator_id + paid)
+  - `creator.rating` + `creator.reviews_count` (avg from `db.reviews`)
+  - `primary_service` (headline service ordered by orders_count desc, newest fallback)
+  - `saved` (bool from `db.saves`)
+- **NEW endpoints**:
+  - `GET /api/videos/feed/following` — videos from creators the viewer follows
+  - `POST /api/videos/{id}/save` + `DELETE` — bookmark videos
+  - `GET /api/videos/saved` — user's saved videos (enriched)
+
+### Verification (iterations 29-31)
+- **Backend pytest 15/15 GREEN** — enrichment, following feed, save/unsave, saved list all pass.
+- **Frontend E2E**: all data-testids present + interactive; two bugs found and fixed:
+  - Fix 1 (iter30): `enrich_video` was querying `seller_id` — actual field is `user_id` → primary_service was always null. Also `duration_days` → `delivery_days`.
+  - Fix 2 (iter31): Route `/services/{id}` → `/service/{id}` (singular). Service card `z-10` → `z-30` so dismiss button clickable above side-actions column.
+- **Final regression**: hire → services sheet → click service → /service/{id} page loads. Card dismisses cleanly.
+
+### Deferred to Phase 2
+- AI insights bottom sheet (video analysis + posting time + audience)
+- Daily Brief header banner (for creators)
+- Comments overhaul (replies, pin, GIF, emoji picker)
+
 ## Iteration 28 — Moyasar Live-Keys Wired + PCI-Compliant Intent Flow + Sentry Active (2026-02)
 
 ### Delivered
