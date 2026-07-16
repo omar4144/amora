@@ -1,4 +1,37 @@
 # Creator Hub — منصة صناع المحتوى
+## Iteration 26 — P0 Launch Blockers (2026-02)
+
+### Delivered — Security · Compliance · Legal · Moderation
+- **Rate limiting** (slowapi): `@limiter.limit` on `POST /auth/login` (10/min), `/auth/signup` (5/min), `/leads` (3/min). Honours `X-Forwarded-For`/`X-Real-IP`. Global default 300/min.
+- **Magic-bytes validation** (`filetype`): Rejects spoofed extensions on
+  - `/videos/upload` (mp4/mov/webm/m4v only)
+  - `/users/me/avatar` (jpg/png/webp only)
+  - `/messages/media` (image/video/file with denylist for exe/sh/bat/…)
+- **Banned users cannot log in** (403 + Arabic error)
+- **Moderation Engine** (NEW `/app/backend/engines/moderation_engine.py`)
+  - `POST /api/reports` (dedupe on open target per reporter)
+  - `GET /api/reports/me`, `GET /api/moderation/meta`
+  - `POST/DELETE /api/users/{username}/block` (cascades unfollow)
+  - `GET /api/users/me/blocks`
+  - `GET /api/admin/reports` + `/stats` + `PUT /admin/reports/{id}` — resolve/dismiss + 4 actions (none/content_removed/user_warned/user_banned) that cascade to actual content
+- **`/api/health`** endpoint with DB ping
+- **Legal pages (Arabic RTL)** at `/legal/terms`, `/legal/privacy`, `/legal/refund` — full text drafted covering PDPL + GDPR + tax/refund policy. Linked from Landing footer + Auth page + LegalShell cross-links.
+- **`accept-terms` checkbox** on signup step 3 — submit blocked until checked. Sonner error if user tries to submit without checking.
+- **ReportModal** reusable component (`/app/frontend/src/components/ReportModal.jsx`) triggered from:
+  - Video card (non-owner sees `video-report-{id}` flag icon)
+  - Profile page (non-owner sees `user-menu-btn` → sheet with report + block)
+- **Admin Reports page** (`/admin/reports`) — 4 stat pills + filter chips + expandable cards with resolve/warn/ban/dismiss actions.
+- **AdminDashboard** — new `stat-reports` KPI card navigating to /admin/reports.
+- **axios interceptor** — user-friendly Arabic toast on 429 responses.
+
+### Verification (iteration_26.json)
+- **Backend pytest: 23/23 GREEN** — health, rate-limit auth/signup/leads, magic-bytes (video/avatar), moderation flows (create/dedupe/invalid/list), blocks (self/unknown/cascade/list), admin reports (list/filter/enrich/stats/resolve/dismiss with action cascading to DB), banned-login block.
+- **Frontend E2E** (Playwright 1920x4000): Legal pages render + footer links + LegalShell cross-links; Auth signup terms gate; Feed video-report opens ReportModal with 9 reasons; Profile user-menu-btn opens sheet with report/block; Block toggles server-side + button text updates; Admin /admin/reports full flow (stat cards, filter chips, expand card, resolve buttons); Admin dashboard `stat-reports` navigates.
+
+### Known limitations
+- **CORS still `*`** in preview (server reads from env — user should set `CORS_ORIGINS=https://doc-restore-3.emergent.host` in production).
+- **Sentry** not integrated — pending user's DSN.
+
 ## Iteration 24-25 — 5-Bug Batch Fix (Recos / Video Delete / Followers / Contact Admin) (2026-02)
 
 ### Delivered
